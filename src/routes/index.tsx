@@ -304,6 +304,9 @@ function Metrics() {
 
 function Timeline() {
   const [active, setActive] = useState(0);
+  const ordered = [...archives].reverse();
+  const selected = ordered[active] ?? ordered[0]!;
+
   return (
     <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
       <Reveal>
@@ -321,11 +324,9 @@ function Timeline() {
               className="absolute inset-x-0 bottom-8 h-px bg-accent/40"
               aria-hidden="true"
             />
-            {archives
-              .slice()
-              .reverse()
-              .map((a, i) => (
-                <li key={`${a.volume}-${a.year}`} className="relative">
+            {ordered.map((a, i) => (
+              <li key={`${a.volume}-${a.year}`} className="relative">
+
                   <button
                     onClick={() => setActive(i)}
                     aria-pressed={active === i}
