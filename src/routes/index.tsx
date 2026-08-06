@@ -355,18 +355,19 @@ function Timeline() {
 
       <Reveal delay={180}>
         <div className="archive-card paper-grain mx-auto mt-6 max-w-2xl p-8 text-center">
-          <p className="eyebrow">{[...archives].reverse()[active].month}</p>
+          <p className="eyebrow">{selected.month}</p>
           <h3 className="mt-2 font-display text-2xl text-primary">
-            {[...archives].reverse()[active].volume} · {[...archives].reverse()[active].year}
+            {selected.volume} · {selected.year}
           </h3>
           <p className="mt-3 font-serif text-lg text-foreground/80">
-            {[...archives].reverse()[active].papers} peer-reviewed papers catalogued in this volume.
+            {selected.papers} peer-reviewed papers catalogued in this volume.
           </p>
           <Button asChild variant="outline" className="engraved mt-6">
             <Link to="/archives">Open in archive explorer</Link>
           </Button>
         </div>
       </Reveal>
+
     </section>
   );
 }
