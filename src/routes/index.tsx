@@ -82,7 +82,13 @@ function Hero() {
         width={1408}
         height={912}
         loading="lazy"
-        className="pointer-events-none absolute right-0 bottom-0 -z-10 w-[70%] max-w-4xl opacity-[0.13] mix-blend-multiply dark:opacity-10 dark:mix-blend-screen"
+        style={{
+          maskImage:
+            "radial-gradient(120% 100% at 80% 100%, black 20%, transparent 70%)",
+          WebkitMaskImage:
+            "radial-gradient(120% 100% at 80% 100%, black 20%, transparent 70%)",
+        }}
+        className="pointer-events-none absolute right-0 bottom-0 -z-10 w-[70%] max-w-4xl opacity-[0.16] mix-blend-multiply dark:opacity-10 dark:mix-blend-screen"
       />
 
       <div className="mx-auto w-full max-w-5xl px-4 pt-28 pb-20 text-center sm:px-6">
