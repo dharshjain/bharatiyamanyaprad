@@ -11,6 +11,9 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { SiteHeader } from "@/components/site/site-header";
+import { SiteFooter } from "@/components/site/site-footer";
+import { ScrollProgress } from "@/components/site/scroll-progress";
 
 function NotFoundComponent() {
   return (
@@ -77,21 +80,40 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Bharatiya Manyaprad — International Journal of Indian Studies" },
+      {
+        name: "description",
+        content:
+          "A peer-reviewed international journal of Indian studies: manuscripts, epigraphy, art, archaeology and cultural history. ISSN 2321-8444.",
+      },
+      { name: "author", content: "Bharatiya Manyaprad" },
+      { property: "og:site_name", content: "Bharatiya Manyaprad" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: appCss,
+        href: "https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Periodical",
+          name: "Bharatiya Manyaprad",
+          alternateName: "International Journal of Indian Studies",
+          issn: "2321-8444",
+          inLanguage: "en",
+          publisher: { "@type": "Organization", name: "Bharatiya Manyaprad, Ahmedabad" },
+        }),
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -119,8 +141,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <ScrollProgress />
+      <SiteHeader />
+      <main id="main">
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+      </main>
+      <SiteFooter />
     </QueryClientProvider>
   );
 }
+
