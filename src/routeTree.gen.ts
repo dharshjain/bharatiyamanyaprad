@@ -11,7 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as ArchivesRouteImport } from './routes/archives'
+import { Route as CurrentIssueRouteImport } from './routes/current-issue'
 import { Route as EditorialBoardRouteImport } from './routes/editorial-board'
+import { Route as PapersSlugRouteImport } from './routes/papers.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -23,40 +26,86 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ArchivesRoute = ArchivesRouteImport.update({
+  id: '/archives',
+  path: '/archives',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CurrentIssueRoute = CurrentIssueRouteImport.update({
+  id: '/current-issue',
+  path: '/current-issue',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EditorialBoardRoute = EditorialBoardRouteImport.update({
   id: '/editorial-board',
   path: '/editorial-board',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PapersSlugRoute = PapersSlugRouteImport.update({
+  id: '/papers/$slug',
+  path: '/papers/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/archives': typeof ArchivesRoute
+  '/current-issue': typeof CurrentIssueRoute
   '/editorial-board': typeof EditorialBoardRoute
+  '/papers/$slug': typeof PapersSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/archives': typeof ArchivesRoute
+  '/current-issue': typeof CurrentIssueRoute
   '/editorial-board': typeof EditorialBoardRoute
+  '/papers/$slug': typeof PapersSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/archives': typeof ArchivesRoute
+  '/current-issue': typeof CurrentIssueRoute
   '/editorial-board': typeof EditorialBoardRoute
+  '/papers/$slug': typeof PapersSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/editorial-board'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/archives'
+    | '/current-issue'
+    | '/editorial-board'
+    | '/papers/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/editorial-board'
-  id: '__root__' | '/' | '/about' | '/editorial-board'
+  to:
+    | '/'
+    | '/about'
+    | '/archives'
+    | '/current-issue'
+    | '/editorial-board'
+    | '/papers/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/archives'
+    | '/current-issue'
+    | '/editorial-board'
+    | '/papers/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  ArchivesRoute: typeof ArchivesRoute
+  CurrentIssueRoute: typeof CurrentIssueRoute
   EditorialBoardRoute: typeof EditorialBoardRoute
+  PapersSlugRoute: typeof PapersSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,11 +124,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/archives': {
+      id: '/archives'
+      path: '/archives'
+      fullPath: '/archives'
+      preLoaderRoute: typeof ArchivesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/current-issue': {
+      id: '/current-issue'
+      path: '/current-issue'
+      fullPath: '/current-issue'
+      preLoaderRoute: typeof CurrentIssueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/editorial-board': {
       id: '/editorial-board'
       path: '/editorial-board'
       fullPath: '/editorial-board'
       preLoaderRoute: typeof EditorialBoardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/papers/$slug': {
+      id: '/papers/$slug'
+      path: '/papers/$slug'
+      fullPath: '/papers/$slug'
+      preLoaderRoute: typeof PapersSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -88,7 +158,10 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  ArchivesRoute: ArchivesRoute,
+  CurrentIssueRoute: CurrentIssueRoute,
   EditorialBoardRoute: EditorialBoardRoute,
+  PapersSlugRoute: PapersSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
