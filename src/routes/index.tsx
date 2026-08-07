@@ -220,27 +220,17 @@ function Collections() {
             </Link>
           </div>
         </Reveal>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((it, i) => (
             <Reveal key={it.title} delay={i * 90} as="article">
-              <figure className="group">
-                <div className="overflow-hidden rounded-lg border border-accent/40 bg-parchment/10 p-2">
-                  <img
-                    src={it.img}
-                    alt={it.title}
-                    width={640}
-                    height={640}
-                    loading="lazy"
-                    className="aspect-square w-full rounded-md object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                </div>
-                <figcaption className="mt-4">
-                  <p className="font-display text-lg">{it.title}</p>
-                  <p className="mt-1 text-[0.68rem] tracking-[0.2em] uppercase text-accent">
-                    {it.meta}
-                  </p>
-                </figcaption>
-              </figure>
+              <FramedImage
+                src={it.img}
+                alt={it.title}
+                caption={it.title}
+                meta={it.meta}
+                tone="dark"
+                tilt={i % 2 === 0 ? -0.6 : 0.6}
+              />
             </Reveal>
           ))}
         </div>
@@ -248,6 +238,7 @@ function Collections() {
     </section>
   );
 }
+
 
 
 function Highlights() {
