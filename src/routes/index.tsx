@@ -285,21 +285,25 @@ function Highlights() {
 
 function LatestIssue() {
   return (
-    <section className="paper-grain relative bg-secondary/50 py-20">
+    <section className="paper-grain relative overflow-hidden bg-secondary/50 py-20">
       <CarvedBorder />
+      <DiyaSketch className="sketch-float top-24 left-6 h-16 w-20 -rotate-6" />
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)]">
         <Reveal>
           <div className="relative mx-auto max-w-sm">
-            <img
+            <FramedImage
               src={cover}
               alt={`Cover of Bharatiya Manyaprad ${currentIssue.volume}, ${currentIssue.year}`}
+              ratio="portrait"
               width={912}
               height={1200}
-              loading="lazy"
-              className="w-full rounded-lg stone-frame"
+              caption={`${currentIssue.volume} · ${currentIssue.year}`}
+              meta="Print edition"
             />
+            <QuillSketch className="sketch-float -right-6 -bottom-4 h-24 w-16 rotate-[18deg]" />
           </div>
         </Reveal>
+
         <Reveal delay={140}>
           <p className="eyebrow">Latest Issue</p>
           <h2 className="mt-3 font-display text-3xl text-primary sm:text-4xl">
