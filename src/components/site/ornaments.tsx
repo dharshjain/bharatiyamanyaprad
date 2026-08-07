@@ -56,3 +56,76 @@ export function LotusMark({ className = "" }: { className?: string }) {
     </svg>
   );
 }
+
+export function CornerFlourish({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
+      <path d="M1 8V1h7" stroke="currentColor" strokeWidth="1.1" />
+      <path d="M4 12c0-4.4 3.6-8 8-8" stroke="currentColor" strokeWidth="0.8" opacity="0.8" />
+      <circle cx="4" cy="4" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+/* ---- Hand-drawn style heritage sketches (line art) ---- */
+
+export function QuillSketch({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 64 96" className={className} fill="none" aria-hidden="true">
+      <path
+        d="M52 8c-8 6-20 18-28 32C18 50 14 60 12 70l6 6c8-4 16-10 22-18C50 46 54 30 56 12c.2-2-1.6-3.2-4-4Z"
+        stroke="currentColor"
+        strokeWidth="1.1"
+      />
+      <path d="M44 18C36 28 26 44 18 66" stroke="currentColor" strokeWidth="0.7" opacity="0.7" />
+      <path d="M12 76 4 90" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M34 30c4 2 8 2 12 0M28 42c4 2 8 2 12 0" stroke="currentColor" strokeWidth="0.6" opacity="0.6" />
+    </svg>
+  );
+}
+
+export function PillarSketch({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 48 120" className={className} fill="none" aria-hidden="true">
+      <path d="M8 16h32M6 10h36M12 22h24" stroke="currentColor" strokeWidth="1" />
+      <path d="M14 22v72M34 22v72M18 22v72M30 22v72" stroke="currentColor" strokeWidth="0.7" opacity="0.75" />
+      <path d="M10 94h28l4 8H6l4-8ZM4 110h40M2 116h44" stroke="currentColor" strokeWidth="1" />
+      <path d="M18 40h12M18 58h12M18 76h12" stroke="currentColor" strokeWidth="0.5" opacity="0.5" />
+    </svg>
+  );
+}
+
+export function ManuscriptSketch({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 120 64" className={className} fill="none" aria-hidden="true">
+      <path
+        d="M10 20c8-6 20-8 32-4 10 3 18 3 28 0 12-4 22-2 32 6-8 12-18 18-30 18-10 0-18-2-28-2s-20 3-28 8c-6-8-8-17-6-26Z"
+        stroke="currentColor"
+        strokeWidth="1"
+      />
+      <path d="M22 26h30M22 34h44M22 42h26M74 30h26M74 38h18" stroke="currentColor" strokeWidth="0.6" opacity="0.7" />
+      <circle cx="60" cy="34" r="2" fill="currentColor" opacity="0.6" />
+    </svg>
+  );
+}
+
+export function DiyaSketch({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 72 64" className={className} fill="none" aria-hidden="true">
+      <path d="M36 6c4 6 6 10 6 14s-3 6-6 6-6-2-6-6 2-8 6-14Z" stroke="currentColor" strokeWidth="1" />
+      <path d="M8 38c6 10 16 16 28 16s22-6 28-16c-10-3-19-4-28-4s-18 1-28 4Z" stroke="currentColor" strokeWidth="1.1" />
+      <path d="M14 44c8 3 36 3 44 0" stroke="currentColor" strokeWidth="0.6" opacity="0.6" />
+    </svg>
+  );
+}
+
+export function SealSketch({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 64 64" className={className} fill="none" aria-hidden="true">
+      <circle cx="32" cy="32" r="26" stroke="currentColor" strokeWidth="1" />
+      <circle cx="32" cy="32" r="20" stroke="currentColor" strokeWidth="0.6" opacity="0.7" />
+      <path d="M32 14c5 7 7 13 7 18s-3 9-7 14c-4-5-7-9-7-14s2-11 7-18Z" stroke="currentColor" strokeWidth="0.8" />
+      <path d="M6 32h6M52 32h6M32 6v6M32 52v6" stroke="currentColor" strokeWidth="0.8" opacity="0.8" />
+    </svg>
+  );
+}

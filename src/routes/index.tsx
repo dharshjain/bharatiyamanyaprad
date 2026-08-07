@@ -4,10 +4,7 @@ import {
   BookOpen,
   Download,
   FileText,
-  Landmark,
   Quote,
-  ScrollText,
-  Stamp,
 } from "lucide-react";
 import { useState } from "react";
 import heroBg from "@/assets/hero-manuscript.jpg";
@@ -18,7 +15,18 @@ import sculpture from "@/assets/sculpture-head.jpg";
 import copperPlate from "@/assets/copper-plate.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MandalaDivider, CarvedBorder, LotusMark } from "@/components/site/ornaments";
+import {
+  MandalaDivider,
+  CarvedBorder,
+  LotusMark,
+  CornerFlourish,
+  QuillSketch,
+  PillarSketch,
+  ManuscriptSketch,
+  SealSketch,
+  DiyaSketch,
+} from "@/components/site/ornaments";
+import { FramedImage } from "@/components/site/framed-image";
 import { Reveal } from "@/components/site/reveal";
 import { archives, board, categories, currentIssue } from "@/data/journal";
 
@@ -209,27 +217,17 @@ function Collections() {
             </Link>
           </div>
         </Reveal>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((it, i) => (
             <Reveal key={it.title} delay={i * 90} as="article">
-              <figure className="group">
-                <div className="overflow-hidden rounded-lg border border-accent/40 bg-parchment/10 p-2">
-                  <img
-                    src={it.img}
-                    alt={it.title}
-                    width={640}
-                    height={640}
-                    loading="lazy"
-                    className="aspect-square w-full rounded-md object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                </div>
-                <figcaption className="mt-4">
-                  <p className="font-display text-lg">{it.title}</p>
-                  <p className="mt-1 text-[0.68rem] tracking-[0.2em] uppercase text-accent">
-                    {it.meta}
-                  </p>
-                </figcaption>
-              </figure>
+              <FramedImage
+                src={it.img}
+                alt={it.title}
+                caption={it.title}
+                meta={it.meta}
+                tone="dark"
+                tilt={i % 2 === 0 ? -0.6 : 0.6}
+              />
             </Reveal>
           ))}
         </div>
@@ -239,32 +237,37 @@ function Collections() {
 }
 
 
+
 function Highlights() {
   const items = [
     {
-      icon: ScrollText,
+      Sketch: ManuscriptSketch,
       title: "Manuscript Scholarship",
       body: "Palm leaf and paper folios read closely — colophons, scribes and the workshops that copied them.",
     },
     {
-      icon: Stamp,
+      Sketch: SealSketch,
       title: "Epigraphic Record",
       body: "Copper plate grants, stone edicts and seals treated as an administrative literature of early India.",
     },
     {
-      icon: Landmark,
+      Sketch: PillarSketch,
       title: "Art & Monument",
       body: "Temple architecture, sculpture and excavation studied with archaeological precision.",
     },
   ];
   return (
-    <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
+    <section className="relative mx-auto max-w-7xl overflow-hidden px-4 py-20 sm:px-6">
+      <QuillSketch className="sketch-float top-6 right-4 h-28 w-20 rotate-12" />
       <div className="grid gap-6 md:grid-cols-3">
         {items.map((item, i) => (
           <Reveal key={item.title} delay={i * 100} as="article">
-            <div className="archive-card paper-grain h-full p-8">
-              <item.icon className="size-7 text-accent" aria-hidden="true" />
+            <div className="museum-frame paper-grain relative h-full p-8">
+              <CornerFlourish className="pointer-events-none absolute top-2 left-2 size-4 text-accent/60" />
+              <CornerFlourish className="pointer-events-none absolute right-2 bottom-2 size-4 rotate-180 text-accent/60" />
+              <item.Sketch className="h-14 w-20 text-terracotta/80" />
               <h2 className="mt-5 font-display text-xl text-primary">{item.title}</h2>
+              <span className="gold-rule mt-3 block w-16" />
               <p className="mt-3 font-serif text-lg leading-relaxed text-foreground/80">
                 {item.body}
               </p>
@@ -276,23 +279,28 @@ function Highlights() {
   );
 }
 
+
 function LatestIssue() {
   return (
-    <section className="paper-grain relative bg-secondary/50 py-20">
+    <section className="paper-grain relative overflow-hidden bg-secondary/50 py-20">
       <CarvedBorder />
+      <DiyaSketch className="sketch-float top-24 left-6 h-16 w-20 -rotate-6" />
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)]">
         <Reveal>
           <div className="relative mx-auto max-w-sm">
-            <img
+            <FramedImage
               src={cover}
               alt={`Cover of Bharatiya Manyaprad ${currentIssue.volume}, ${currentIssue.year}`}
+              ratio="portrait"
               width={912}
               height={1200}
-              loading="lazy"
-              className="w-full rounded-lg stone-frame"
+              caption={`${currentIssue.volume} · ${currentIssue.year}`}
+              meta="Print edition"
             />
+            <QuillSketch className="sketch-float -right-6 -bottom-4 h-24 w-16 rotate-[18deg]" />
           </div>
         </Reveal>
+
         <Reveal delay={140}>
           <p className="eyebrow">Latest Issue</p>
           <h2 className="mt-3 font-display text-3xl text-primary sm:text-4xl">
@@ -348,17 +356,27 @@ function FeaturedResearch() {
       <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {currentIssue.papers.map((p, i) => (
           <Reveal key={p.slug} delay={i * 80} as="article">
-            <div className="archive-card flex h-full flex-col p-7">
-              <p className="eyebrow">{p.category}</p>
+            <div className="museum-frame paper-grain relative flex h-full flex-col p-7">
+              <CornerFlourish className="pointer-events-none absolute top-2 left-2 size-4 text-accent/60" />
+              <CornerFlourish className="pointer-events-none absolute top-2 right-2 size-4 rotate-90 text-accent/60" />
+              <CornerFlourish className="pointer-events-none absolute right-2 bottom-2 size-4 rotate-180 text-accent/60" />
+              <CornerFlourish className="pointer-events-none absolute bottom-2 left-2 size-4 -rotate-90 text-accent/60" />
+              <div className="flex items-center justify-between gap-3">
+                <p className="eyebrow">{p.category}</p>
+                <span className="font-display text-xs text-accent">
+                  No. {String(i + 1).padStart(2, "0")}
+                </span>
+              </div>
               <h3 className="mt-3 font-display text-lg leading-snug text-primary">
                 <Link to="/papers/$slug" params={{ slug: p.slug }} className="hover:text-terracotta">
                   {p.title}
                 </Link>
               </h3>
+              <span className="gold-rule mt-3 block" />
               <p className="mt-3 flex-1 font-serif text-base leading-relaxed text-foreground/80">
                 {p.abstract}
               </p>
-              <dl className="mt-5 space-y-1 text-xs text-muted-foreground">
+              <dl className="mt-5 space-y-1 border-t border-accent/25 pt-4 text-xs text-muted-foreground">
                 <div className="flex gap-2">
                   <dt className="font-medium">Authors</dt>
                   <dd className="min-w-0 truncate">{p.authors.join(", ")}</dd>
@@ -380,6 +398,7 @@ function FeaturedResearch() {
               </div>
             </div>
           </Reveal>
+
         ))}
       </div>
     </section>

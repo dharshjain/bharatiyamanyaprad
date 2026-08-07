@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BookOpen, Download } from "lucide-react";
 import cover from "@/assets/issue-cover.jpg";
+import { FramedImage } from "@/components/site/framed-image";
+import { CornerFlourish } from "@/components/site/ornaments";
 import { PageHero } from "@/components/site/page-hero";
 import { Reveal } from "@/components/site/reveal";
 import { Button } from "@/components/ui/button";
@@ -39,13 +41,12 @@ function CurrentIssue() {
       <section className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[320px_minmax(0,1fr)]">
         <Reveal>
           <div className="lg:sticky lg:top-28">
-            <img
+            <FramedImage
               src={cover}
               alt={`Cover of Bharatiya Manyaprad ${currentIssue.volume}`}
+              ratio="portrait"
               width={912}
               height={1200}
-              loading="lazy"
-              className="w-full rounded-lg stone-frame"
             />
             <dl className="mt-6 space-y-2 text-sm text-muted-foreground">
               <div className="flex justify-between gap-4">
@@ -78,7 +79,9 @@ function CurrentIssue() {
           <ol className="mt-6 space-y-5">
             {currentIssue.papers.map((p, i) => (
               <Reveal key={p.slug} delay={i * 70} as="li">
-                <article className="archive-card p-7">
+                <article className="museum-frame paper-grain relative p-7">
+                  <CornerFlourish className="pointer-events-none absolute top-2 left-2 size-4 text-accent/60" />
+                  <CornerFlourish className="pointer-events-none absolute right-2 bottom-2 size-4 rotate-180 text-accent/60" />
                   <div className="flex flex-wrap items-baseline justify-between gap-3">
                     <p className="eyebrow">{p.category}</p>
                     <p className="text-xs text-muted-foreground">pp. {p.pages}</p>

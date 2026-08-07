@@ -301,3 +301,46 @@
   }
 }
 
+/* ---- Museum frames, plaques & sketches ---- */
+
+@utility museum-frame {
+  background:
+    linear-gradient(140deg, color-mix(in oklab, var(--sand) 70%, transparent), transparent 60%),
+    var(--card);
+  border: 1px solid color-mix(in oklab, var(--gold) 55%, transparent);
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--gold) 22%, transparent) inset,
+    var(--shadow-carve);
+  transition:
+    transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--gold) 40%, transparent) inset,
+      var(--shadow-lift);
+  }
+}
+
+@utility museum-frame-dark {
+  background: color-mix(in oklab, var(--parchment) 8%, transparent);
+}
+
+@utility plaque {
+  display: inline-block;
+  padding: 0.3rem 0.9rem;
+  border: 1px solid color-mix(in oklab, var(--gold) 55%, transparent);
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--sand) 55%, transparent);
+  box-shadow: var(--shadow-carve);
+}
+
+@utility sketch-float {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.22;
+  color: color-mix(in oklab, var(--terracotta) 70%, var(--temple));
+}
+
+

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { CornerFlourish, LotusMark } from "@/components/site/ornaments";
 import { PageHero } from "@/components/site/page-hero";
 import { Reveal } from "@/components/site/reveal";
 import { board } from "@/data/journal";
@@ -36,8 +37,13 @@ function EditorialBoard() {
         <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {board.map((m, i) => (
             <Reveal key={m.name} delay={i * 70} as="li">
-              <article className="archive-card paper-grain h-full p-8 text-center">
-                <div className="mx-auto grid size-24 place-items-center rounded-full bg-secondary ring-1 ring-accent/50">
+              <article className="museum-frame paper-grain relative h-full p-8 text-center">
+                <CornerFlourish className="pointer-events-none absolute top-2 left-2 size-4 text-accent/60" />
+                <CornerFlourish className="pointer-events-none absolute top-2 right-2 size-4 rotate-90 text-accent/60" />
+                <CornerFlourish className="pointer-events-none absolute right-2 bottom-2 size-4 rotate-180 text-accent/60" />
+                <CornerFlourish className="pointer-events-none absolute bottom-2 left-2 size-4 -rotate-90 text-accent/60" />
+                <LotusMark className="mx-auto size-7 text-accent/70" />
+                <div className="mx-auto mt-4 grid size-24 place-items-center rounded-full bg-secondary ring-1 ring-accent/50 ring-offset-4 ring-offset-card">
                   <span className="font-display text-2xl text-primary">
                     {m.name
                       .split(" ")
@@ -47,7 +53,7 @@ function EditorialBoard() {
                   </span>
                 </div>
                 <h2 className="mt-5 font-display text-lg text-primary">{m.name}</h2>
-                <p className="eyebrow mt-1">{m.role}</p>
+                <p className="plaque eyebrow mt-2">{m.role}</p>
                 <p className="mt-3 font-serif text-base leading-relaxed text-foreground/80">
                   {m.institution}
                 </p>
