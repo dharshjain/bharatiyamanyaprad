@@ -13,6 +13,9 @@ import { useState } from "react";
 import heroBg from "@/assets/hero-manuscript.jpg";
 import nalanda from "@/assets/nalanda-illustration.jpg";
 import cover from "@/assets/issue-cover.jpg";
+import palmLeaf from "@/assets/palm-leaf.jpg";
+import sculpture from "@/assets/sculpture-head.jpg";
+import copperPlate from "@/assets/copper-plate.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MandalaDivider, CarvedBorder, LotusMark } from "@/components/site/ornaments";
@@ -48,6 +51,8 @@ function Home() {
   return (
     <>
       <Hero />
+      <Marquee />
+      <Collections />
       <Highlights />
       <LatestIssue />
       <FeaturedResearch />
@@ -65,76 +70,174 @@ function Home() {
 
 function Hero() {
   return (
-    <section className="relative isolate flex min-h-[92vh] items-center overflow-hidden">
+    <section className="paper-grain relative isolate overflow-hidden bg-secondary/45 pt-32 pb-0">
       <img
         src={heroBg}
         alt=""
         aria-hidden="true"
         width={1920}
         height={1088}
-        className="absolute inset-0 -z-20 size-full object-cover opacity-90 dark:opacity-25"
+        className="absolute inset-0 -z-20 size-full object-cover opacity-35 dark:opacity-20"
       />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background/85 via-background/70 to-background" />
-      <img
-        src={nalanda}
-        alt=""
-        aria-hidden="true"
-        width={1408}
-        height={912}
-        loading="lazy"
-        style={{
-          maskImage:
-            "radial-gradient(120% 100% at 80% 100%, black 20%, transparent 70%)",
-          WebkitMaskImage:
-            "radial-gradient(120% 100% at 80% 100%, black 20%, transparent 70%)",
-        }}
-        className="pointer-events-none absolute right-0 bottom-0 -z-10 w-[70%] max-w-4xl opacity-[0.16] mix-blend-multiply dark:opacity-10 dark:mix-blend-screen"
-      />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background/70 via-background/55 to-secondary/60" />
 
-      <div className="mx-auto w-full max-w-5xl px-4 pt-28 pb-20 text-center sm:px-6">
+      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
         <Reveal>
-          <p className="font-serif text-base tracking-wide text-terracotta">
+          <p className="text-center font-serif text-base tracking-wide text-terracotta">
             ॥ सबहीं मानप्रद आपहि अमानि ॥ — गोस्वामी तुलसीदास
           </p>
         </Reveal>
-        <Reveal delay={120}>
-          <h1 className="mt-6 font-display text-4xl leading-[1.08] text-primary sm:text-6xl lg:text-7xl">
-            Preserving India&apos;s
-            <br />
-            Scholarly Heritage
+
+        <Reveal delay={100}>
+          <h1 className="mt-8 text-center font-display text-[2.6rem] leading-[0.98] tracking-tight text-primary uppercase sm:text-6xl lg:text-[5.4rem]">
+            <span className="inline-flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+              <span>Step</span>
+              <img
+                src={palmLeaf}
+                alt="Palm leaf manuscript folio in Sanskrit"
+                width={640}
+                height={640}
+                className="inline-block size-12 rounded-md object-cover stone-frame sm:size-16 lg:h-20 lg:w-28"
+              />
+              <span>Inside</span>
+              <span>India&apos;s</span>
+            </span>
+            <span className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+              <img
+                src={sculpture}
+                alt="Ancient Indian sandstone sculpture head"
+                width={640}
+                height={640}
+                className="inline-block size-12 rounded-md object-cover stone-frame sm:size-16 lg:h-20 lg:w-24"
+              />
+              <span>Living Archive</span>
+              <span className="font-sans text-xs align-super text-accent">®</span>
+            </span>
           </h1>
         </Reveal>
+
         <Reveal delay={220}>
-          <MandalaDivider className="mt-8" />
-        </Reveal>
-        <Reveal delay={300}>
-          <p className="mx-auto mt-8 max-w-2xl font-serif text-lg leading-relaxed text-foreground/85 sm:text-2xl">
+          <p className="mx-auto mt-8 max-w-2xl text-center font-serif text-lg leading-relaxed text-foreground/85 sm:text-xl">
             Bharatiya Manyaprad is a peer-reviewed international journal of Indian studies, reading
             manuscripts, inscriptions, sculpture and living culture as one continuous archive of
             thought.
           </p>
         </Reveal>
-        <Reveal delay={380}>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-            <Button asChild size="lg" variant="outline" className="engraved">
-              <Link to="/archives">
-                Explore Journals <ArrowRight className="size-4" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Link to="/current-issue">View Current Issue</Link>
-            </Button>
+
+        <Reveal delay={300}>
+          <div className="mt-8 flex flex-wrap items-center justify-end gap-2 text-right text-[0.62rem] tracking-[0.22em] uppercase text-muted-foreground sm:justify-end">
+            <span>
+              ISSN 2321-8444
+              <br />
+              Print edition since 2013
+            </span>
           </div>
         </Reveal>
-        <Reveal delay={460}>
-          <p className="mt-10 text-xs tracking-[0.24em] uppercase text-muted-foreground">
-            ISSN 2321-8444 · Print Edition · Indexed by Index Copernicus International
-          </p>
+      </div>
+
+      <Reveal delay={360}>
+        <div className="relative z-10 mt-10 flex flex-wrap items-center justify-center gap-3 pb-10">
+          <Link
+            to="/archives"
+            className="group inline-flex items-center gap-3 rounded-full bg-accent px-6 py-3 font-sans text-sm font-semibold text-accent-foreground shadow-[var(--shadow-glow)] transition-transform hover:-translate-y-0.5"
+          >
+            Explore the Archive
+            <span className="grid size-8 place-items-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:rotate-45">
+              <ArrowRight className="size-4" />
+            </span>
+          </Link>
+          <Link
+            to="/current-issue"
+            className="engraved inline-flex items-center rounded-full px-6 py-3 font-sans text-sm font-semibold"
+          >
+            View Current Issue
+          </Link>
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
+function Marquee() {
+  const words = [
+    "Manuscripts",
+    "Inscriptions",
+    "Sculpture",
+    "Archaeology",
+    "Epigraphy",
+    "Ancient Records",
+  ];
+  return (
+    <div className="overflow-hidden bg-primary py-4 text-primary-foreground">
+      <div className="flex w-max animate-[bm-marquee_38s_linear_infinite] gap-10 pr-10">
+        {[0, 1].map((dup) => (
+          <div key={dup} className="flex shrink-0 items-center gap-10">
+            {words.map((w) => (
+              <span
+                key={w}
+                className="flex items-center gap-10 font-display text-2xl tracking-wide whitespace-nowrap uppercase sm:text-4xl"
+              >
+                {w}
+                <LotusMark className="size-6 text-accent" />
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Collections() {
+  const items = [
+    { img: palmLeaf, title: "Palm Leaf Folios", meta: "Manuscript Studies" },
+    { img: copperPlate, title: "Copper Plate Grants", meta: "Epigraphy" },
+    { img: sculpture, title: "Sandstone Figures", meta: "Art History" },
+    { img: nalanda, title: "Nalanda Ruins", meta: "Archaeology" },
+  ];
+  return (
+    <section className="bg-primary pb-16 text-primary-foreground">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <Reveal>
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 pt-14 pb-8 sm:flex sm:justify-between">
+            <h2 className="font-display text-3xl tracking-wide sm:text-4xl">Archive Collections</h2>
+            <Link
+              to="/archives"
+              className="shrink-0 rounded-full border border-accent/70 px-5 py-2 text-xs font-semibold tracking-[0.18em] uppercase text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              Browse all
+            </Link>
+          </div>
         </Reveal>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {items.map((it, i) => (
+            <Reveal key={it.title} delay={i * 90} as="article">
+              <figure className="group">
+                <div className="overflow-hidden rounded-lg border border-accent/40 bg-parchment/10 p-2">
+                  <img
+                    src={it.img}
+                    alt={it.title}
+                    width={640}
+                    height={640}
+                    loading="lazy"
+                    className="aspect-square w-full rounded-md object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                </div>
+                <figcaption className="mt-4">
+                  <p className="font-display text-lg">{it.title}</p>
+                  <p className="mt-1 text-[0.68rem] tracking-[0.2em] uppercase text-accent">
+                    {it.meta}
+                  </p>
+                </figcaption>
+              </figure>
+            </Reveal>
+          ))}
+        </div>
       </div>
     </section>
   );
 }
+
 
 function Highlights() {
   const items = [
