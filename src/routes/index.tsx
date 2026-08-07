@@ -18,7 +18,18 @@ import sculpture from "@/assets/sculpture-head.jpg";
 import copperPlate from "@/assets/copper-plate.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MandalaDivider, CarvedBorder, LotusMark } from "@/components/site/ornaments";
+import {
+  MandalaDivider,
+  CarvedBorder,
+  LotusMark,
+  CornerFlourish,
+  QuillSketch,
+  PillarSketch,
+  ManuscriptSketch,
+  SealSketch,
+  DiyaSketch,
+} from "@/components/site/ornaments";
+import { FramedImage } from "@/components/site/framed-image";
 import { Reveal } from "@/components/site/reveal";
 import { archives, board, categories, currentIssue } from "@/data/journal";
 
