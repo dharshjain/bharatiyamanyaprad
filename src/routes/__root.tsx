@@ -84,12 +84,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "A peer-reviewed international journal of Indian studies: manuscripts, epigraphy, art, archaeology and cultural history. ISSN 2321-8444.",
+          "Preserving India's scholarly heritage. A peer-reviewed print journal of Indian studies — manuscripts, epigraphy, art, archaeology and cultural history since 2013.",
       },
       { name: "author", content: "Bharatiya Manyaprad" },
       { property: "og:site_name", content: "Bharatiya Manyaprad" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:title", content: "Bharatiya Manyaprad — International Journal of Indian Studies" },
+      { name: "twitter:title", content: "Bharatiya Manyaprad — International Journal of Indian Studies" },
+      { property: "og:description", content: "Preserving India's scholarly heritage. A peer-reviewed print journal of Indian studies — manuscripts, epigraphy, art, archaeology and cultural history since 2013." },
+      { name: "twitter:description", content: "Preserving India's scholarly heritage. A peer-reviewed print journal of Indian studies — manuscripts, epigraphy, art, archaeology and cultural history since 2013." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/584cd48787d18349cf4c01789fd6769b/id-preview-b4001d25--1e1651dc-d3b6-4475-8762-9da9d99e6a14.lovable.app-1786096657979.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/584cd48787d18349cf4c01789fd6769b/id-preview-b4001d25--1e1651dc-d3b6-4475-8762-9da9d99e6a14.lovable.app-1786096657979.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

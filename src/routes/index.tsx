@@ -47,7 +47,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "A peer-reviewed journal of Indian studies: manuscripts, epigraphy, art and cultural history. ISSN 2321-8444.",
+          "Preserving India's scholarly heritage. A peer-reviewed print journal of Indian studies — manuscripts, epigraphy, art, archaeology and cultural history since 2013.",
       },
       { property: "og:url", content: "/" },
     ],
