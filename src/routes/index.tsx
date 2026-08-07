@@ -244,29 +244,33 @@ function Collections() {
 function Highlights() {
   const items = [
     {
-      icon: ScrollText,
+      Sketch: ManuscriptSketch,
       title: "Manuscript Scholarship",
       body: "Palm leaf and paper folios read closely — colophons, scribes and the workshops that copied them.",
     },
     {
-      icon: Stamp,
+      Sketch: SealSketch,
       title: "Epigraphic Record",
       body: "Copper plate grants, stone edicts and seals treated as an administrative literature of early India.",
     },
     {
-      icon: Landmark,
+      Sketch: PillarSketch,
       title: "Art & Monument",
       body: "Temple architecture, sculpture and excavation studied with archaeological precision.",
     },
   ];
   return (
-    <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
+    <section className="relative mx-auto max-w-7xl overflow-hidden px-4 py-20 sm:px-6">
+      <QuillSketch className="sketch-float top-6 right-4 h-28 w-20 rotate-12" />
       <div className="grid gap-6 md:grid-cols-3">
         {items.map((item, i) => (
           <Reveal key={item.title} delay={i * 100} as="article">
-            <div className="archive-card paper-grain h-full p-8">
-              <item.icon className="size-7 text-accent" aria-hidden="true" />
+            <div className="museum-frame paper-grain relative h-full p-8">
+              <CornerFlourish className="pointer-events-none absolute top-2 left-2 size-4 text-accent/60" />
+              <CornerFlourish className="pointer-events-none absolute right-2 bottom-2 size-4 rotate-180 text-accent/60" />
+              <item.Sketch className="h-14 w-20 text-terracotta/80" />
               <h2 className="mt-5 font-display text-xl text-primary">{item.title}</h2>
+              <span className="gold-rule mt-3 block w-16" />
               <p className="mt-3 font-serif text-lg leading-relaxed text-foreground/80">
                 {item.body}
               </p>
@@ -277,6 +281,7 @@ function Highlights() {
     </section>
   );
 }
+
 
 function LatestIssue() {
   return (
