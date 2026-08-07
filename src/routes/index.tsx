@@ -359,17 +359,27 @@ function FeaturedResearch() {
       <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {currentIssue.papers.map((p, i) => (
           <Reveal key={p.slug} delay={i * 80} as="article">
-            <div className="archive-card flex h-full flex-col p-7">
-              <p className="eyebrow">{p.category}</p>
+            <div className="museum-frame paper-grain relative flex h-full flex-col p-7">
+              <CornerFlourish className="pointer-events-none absolute top-2 left-2 size-4 text-accent/60" />
+              <CornerFlourish className="pointer-events-none absolute top-2 right-2 size-4 rotate-90 text-accent/60" />
+              <CornerFlourish className="pointer-events-none absolute right-2 bottom-2 size-4 rotate-180 text-accent/60" />
+              <CornerFlourish className="pointer-events-none absolute bottom-2 left-2 size-4 -rotate-90 text-accent/60" />
+              <div className="flex items-center justify-between gap-3">
+                <p className="eyebrow">{p.category}</p>
+                <span className="font-display text-xs text-accent">
+                  No. {String(i + 1).padStart(2, "0")}
+                </span>
+              </div>
               <h3 className="mt-3 font-display text-lg leading-snug text-primary">
                 <Link to="/papers/$slug" params={{ slug: p.slug }} className="hover:text-terracotta">
                   {p.title}
                 </Link>
               </h3>
+              <span className="gold-rule mt-3 block" />
               <p className="mt-3 flex-1 font-serif text-base leading-relaxed text-foreground/80">
                 {p.abstract}
               </p>
-              <dl className="mt-5 space-y-1 text-xs text-muted-foreground">
+              <dl className="mt-5 space-y-1 border-t border-accent/25 pt-4 text-xs text-muted-foreground">
                 <div className="flex gap-2">
                   <dt className="font-medium">Authors</dt>
                   <dd className="min-w-0 truncate">{p.authors.join(", ")}</dd>
@@ -391,6 +401,7 @@ function FeaturedResearch() {
               </div>
             </div>
           </Reveal>
+
         ))}
       </div>
     </section>
