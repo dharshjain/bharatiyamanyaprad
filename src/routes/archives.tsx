@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Grid2X2, List } from "lucide-react";
 import { useMemo, useState } from "react";
+import { CornerFlourish, SealSketch } from "@/components/site/ornaments";
 import { PageHero } from "@/components/site/page-hero";
 import { Reveal } from "@/components/site/reveal";
 import { Button } from "@/components/ui/button";
@@ -97,7 +98,10 @@ function Archives() {
           {filtered.map((a, i) => (
             <Reveal key={`${a.volume}-${a.year}`} delay={i * 60} as="li">
               {view === "grid" ? (
-                <article className="archive-card paper-grain h-full p-7">
+                <article className="museum-frame paper-grain relative h-full overflow-hidden p-7">
+                  <CornerFlourish className="pointer-events-none absolute top-2 left-2 size-4 text-accent/60" />
+                  <CornerFlourish className="pointer-events-none absolute right-2 bottom-2 size-4 rotate-180 text-accent/60" />
+                  <SealSketch className="pointer-events-none absolute -top-4 -right-4 size-24 text-terracotta/15" />
                   <p className="eyebrow">{a.month}</p>
                   <h2 className="mt-2 font-display text-2xl text-primary">{a.volume}</h2>
                   <p className="mt-1 font-serif text-lg text-foreground/80">{a.year}</p>
