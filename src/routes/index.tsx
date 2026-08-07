@@ -4,10 +4,7 @@ import {
   BookOpen,
   Download,
   FileText,
-  Landmark,
   Quote,
-  ScrollText,
-  Stamp,
 } from "lucide-react";
 import { useState } from "react";
 import heroBg from "@/assets/hero-manuscript.jpg";
