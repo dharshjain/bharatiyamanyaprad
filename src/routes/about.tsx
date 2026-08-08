@@ -3,6 +3,7 @@ import { PageHero } from "@/components/site/page-hero";
 import { MandalaDivider } from "@/components/site/ornaments";
 import { Reveal } from "@/components/site/reveal";
 import nalanda from "@/assets/nalanda-illustration.jpg";
+import { aboutParagraphs, heritageNote, notices } from "@/data/journal";
 
 export const Route = createFileRoute("/about")({
   component: About,
@@ -12,13 +13,15 @@ export const Route = createFileRoute("/about")({
       {
         name: "description",
         content:
-          "Bharatiya Manyaprad is an international journal of Indian studies published under the aegis of Bhartiya Vidya Bhavan and Gujarat University, Ahmedabad.",
+          "Bharatiya Manyaprad is an International Journal of Indian Studies published under the aegis of Bhartiya Vidya Bhawan and Gujarat University, Ahmedabad, with support from ICHR.",
       },
       { property: "og:title", content: "About the Journal — Bharatiya Manyaprad" },
       {
         property: "og:description",
         content: "The aims, scope and heritage of Bharatiya Manyaprad, ISSN 2321-8444.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { property: "og:url", content: "/about" },
     ],
     links: [{ rel: "canonical", href: "/about" }],
@@ -29,37 +32,34 @@ function About() {
   return (
     <>
       <PageHero
-        eyebrow="About the Journal"
+        eyebrow="About Bharatiya Manyaprad"
         title="A call to bring closer all Indians at one mental meadow"
-        intro="Bharatiya Manyaprad reads India's manuscripts, inscriptions and living practices as a single, continuous scholarly tradition."
+        intro="An International Journal of Indian Studies for residents, NRIs and PIOs alike — certain issues touch all of them with the same concern."
       />
 
       <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
         <Reveal>
           <div className="space-y-6 font-serif text-lg leading-relaxed text-foreground/85">
-            <p>
-              <strong className="font-display text-primary">Bharatiya Manyaprad</strong> is an
-              international journal of Indian studies aiming to bring the best of cultural studies
-              to a diverse academic and non-academic audience. It features research articles on
-              practices and conditions specific to contemporary popular culture, traditions, norms
-              and societies, alongside scholarly work on the issues faced by Indians in any part of
-              the world.
-            </p>
-            <p>
-              The journal comes under the aegis of Bhartiya Vidya Bhavan and Gujarat University,
-              Ahmedabad, and has received financial support from the Indian Council of Historical
-              Research (ICHR). It is indexed by Index Copernicus International and included in the
-              International E-library, where volumes have been uploaded for open consultation.
-            </p>
-            <p>
-              Though a research journal, it also carries the restlessness of an Indian as she faces
-              the society around her. Articles borrow from semiotics, psychoanalysis, queer theory
-              and other disciplines associated with cultural studies and critical theory, while
-              remaining accessible to a general reader. All articles are published after peer
-              review.
-            </p>
+            {aboutParagraphs.map((p) => (
+              <p key={p.slice(0, 24)}>{p}</p>
+            ))}
+            <p>{heritageNote}</p>
           </div>
         </Reveal>
+
+        <Reveal delay={80}>
+          <ul className="mt-10 space-y-3">
+            {notices.map((n) => (
+              <li
+                key={n}
+                className="border-l-2 border-accent/50 pl-4 font-serif text-lg leading-relaxed text-foreground/85"
+              >
+                {n}
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+
 
         <MandalaDivider className="my-14" />
 
