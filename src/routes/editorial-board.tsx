@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CornerFlourish, LotusMark } from "@/components/site/ornaments";
+import { LotusMark } from "@/components/site/ornaments";
 import { PageHero } from "@/components/site/page-hero";
 import { Reveal } from "@/components/site/reveal";
-import { board } from "@/data/journal";
+import { contact } from "@/data/journal";
 
 export const Route = createFileRoute("/editorial-board")({
   component: EditorialBoard,
@@ -12,13 +12,15 @@ export const Route = createFileRoute("/editorial-board")({
       {
         name: "description",
         content:
-          "The scholars who steward Bharatiya Manyaprad: editors and board members in epigraphy, manuscript studies, art history and cultural studies.",
+          "The editorial desk of Bharatiya Manyaprad, led by Dr Neerja A Gupta, Vice Chancellor, Sanchi University of Buddhist-Indic Studies.",
       },
       { property: "og:title", content: "Editorial Board — Bharatiya Manyaprad" },
       {
         property: "og:description",
-        content: "Editors and board members of the International Journal of Indian Studies.",
+        content: "Editor and editorial desk of the International Journal of Indian Studies.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { property: "og:url", content: "/editorial-board" },
     ],
     links: [{ rel: "canonical", href: "/editorial-board" }],
@@ -30,47 +32,43 @@ function EditorialBoard() {
     <>
       <PageHero
         eyebrow="Editorial Board"
-        title="Scholars who steward the record"
-        intro="Peer review at Bharatiya Manyaprad is carried by specialists in epigraphy, manuscriptology, art history and cultural theory."
+        title="The editorial desk"
+        intro="Bharatiya Manyaprad is edited from Ahmedabad, under the aegis of Bhartiya Vidya Bhawan and Gujarat University."
       />
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {board.map((m, i) => (
-            <Reveal key={m.name} delay={i * 70} as="li">
-              <article className="museum-frame paper-grain relative h-full p-8 text-center">
-                <CornerFlourish className="pointer-events-none absolute top-2 left-2 size-4 text-accent/60" />
-                <CornerFlourish className="pointer-events-none absolute top-2 right-2 size-4 rotate-90 text-accent/60" />
-                <CornerFlourish className="pointer-events-none absolute right-2 bottom-2 size-4 rotate-180 text-accent/60" />
-                <CornerFlourish className="pointer-events-none absolute bottom-2 left-2 size-4 -rotate-90 text-accent/60" />
-                <LotusMark className="mx-auto size-7 text-accent/70" />
-                <div className="mx-auto mt-4 grid size-24 place-items-center rounded-full bg-secondary ring-1 ring-accent/50 ring-offset-4 ring-offset-card">
-                  <span className="font-display text-2xl text-primary">
-                    {m.name
-                      .split(" ")
-                      .slice(-2)
-                      .map((w) => w[0])
-                      .join("")}
-                  </span>
-                </div>
-                <h2 className="mt-5 font-display text-lg text-primary">{m.name}</h2>
-                <p className="plaque eyebrow mt-2">{m.role}</p>
-                <p className="mt-3 font-serif text-base leading-relaxed text-foreground/80">
-                  {m.institution}
-                </p>
-                <ul className="mt-5 flex flex-wrap justify-center gap-2">
-                  {m.interests.map((t) => (
-                    <li
-                      key={t}
-                      className="rounded-full border border-accent/40 px-3 py-1 text-xs text-muted-foreground"
-                    >
-                      {t}
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            </Reveal>
-          ))}
-        </ul>
+
+      <section className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
+        <Reveal>
+          <article className="archive-card paper-grain p-8 text-center">
+            <div className="mx-auto grid size-24 place-items-center rounded-full bg-secondary ring-1 ring-accent/50">
+              <span className="font-display text-2xl text-primary">NG</span>
+            </div>
+            <h2 className="mt-5 font-display text-2xl text-primary">{contact.editor}</h2>
+            <p className="eyebrow mt-2">Editor</p>
+            <p className="mt-3 font-serif text-lg leading-relaxed text-foreground/85">
+              {contact.designation}
+            </p>
+            <p className="mt-2 font-serif text-lg leading-relaxed text-foreground/80">
+              Principal, Bhavan&apos;s Arts and Commerce College, Navarangpura, Ahmedabad.
+            </p>
+            <p className="mt-4 text-sm">
+              <a className="text-terracotta hover:underline" href={`mailto:${contact.email}`}>
+                {contact.email}
+              </a>
+            </p>
+          </article>
+        </Reveal>
+
+        <Reveal delay={120}>
+          <div className="archive-card mt-8 flex items-start gap-4 p-8">
+            <LotusMark className="mt-1 size-6 shrink-0 text-accent" />
+            <p className="font-serif text-lg leading-relaxed text-foreground/85">
+              Every article is published after peer review by subject specialists drawn from the
+              journal&apos;s reviewer panel across Indian and overseas universities. The complete
+              board is printed in the front matter of each volume; correspondence for the board may
+              be addressed to the editorial office.
+            </p>
+          </div>
+        </Reveal>
       </section>
     </>
   );
