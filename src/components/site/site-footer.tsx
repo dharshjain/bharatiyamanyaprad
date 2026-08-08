@@ -30,8 +30,8 @@ export function SiteFooter() {
             {[
               { label: "About", to: "/about" },
               { label: "Editorial Board", to: "/editorial-board" },
-              { label: "Current Issue", to: "/current-issue" },
-              { label: "Archives", to: "/archives" },
+              { label: "Publication", to: "/publication" },
+              { label: "Subscription", to: "/subscription" },
             ].map((l) => (
               <li key={l.to}>
                 <Link to={l.to} className="text-primary-foreground/85 hover:text-accent">
@@ -46,9 +46,10 @@ export function SiteFooter() {
           <h2 className="eyebrow text-accent">Authors</h2>
           <ul className="mt-4 space-y-2 text-sm">
             {[
-              { label: "Instructions to Authors", to: "/instructions-to-authors" },
-              { label: "Publication Ethics", to: "/publication-ethics" },
-              { label: "Submission", to: "/submission" },
+              { label: "Author's Instructions", to: "/instructions-to-authors" },
+              { label: "Responsibilities", to: "/publication-ethics" },
+              { label: "Call for Papers", to: "/call-for-papers" },
+              { label: "Submit Review Paper", to: "/submission" },
               { label: "Contact", to: "/contact" },
             ].map((l) => (
               <li key={l.to}>
@@ -59,6 +60,7 @@ export function SiteFooter() {
             ))}
           </ul>
         </nav>
+
 
         <div>
           <h2 className="eyebrow text-accent">Indexing &amp; Contact</h2>

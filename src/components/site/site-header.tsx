@@ -14,14 +14,15 @@ import { Input } from "@/components/ui/input";
 const nav = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
+  { label: "Author's", to: "/instructions-to-authors" },
+  { label: "Publication", to: "/publication" },
+  { label: "Subscription", to: "/subscription" },
+  { label: "Responsibilities", to: "/publication-ethics" },
+  { label: "Call for Papers", to: "/call-for-papers" },
   { label: "Editorial Board", to: "/editorial-board" },
-  { label: "Current Issue", to: "/current-issue" },
-  { label: "Archives", to: "/archives" },
-  { label: "Ethics", to: "/publication-ethics" },
-  { label: "For Authors", to: "/instructions-to-authors" },
-  { label: "Submission", to: "/submission" },
   { label: "Contact", to: "/contact" },
 ];
+
 
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
