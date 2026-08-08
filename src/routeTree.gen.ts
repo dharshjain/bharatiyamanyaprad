@@ -17,6 +17,7 @@ import { Route as InstructionsToAuthorsRouteImport } from './routes/instructions
 import { Route as PublicationRouteImport } from './routes/publication'
 import { Route as PublicationEthicsRouteImport } from './routes/publication-ethics'
 import { Route as SubmissionRouteImport } from './routes/submission'
+import { Route as SubscriptionRouteImport } from './routes/subscription'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -58,6 +59,11 @@ const SubmissionRoute = SubmissionRouteImport.update({
   path: '/submission',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SubscriptionRoute = SubscriptionRouteImport.update({
+  id: '/subscription',
+  path: '/subscription',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/publication': typeof PublicationRoute
   '/publication-ethics': typeof PublicationEthicsRoute
   '/submission': typeof SubmissionRoute
+  '/subscription': typeof SubscriptionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/publication': typeof PublicationRoute
   '/publication-ethics': typeof PublicationEthicsRoute
   '/submission': typeof SubmissionRoute
+  '/subscription': typeof SubscriptionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/publication': typeof PublicationRoute
   '/publication-ethics': typeof PublicationEthicsRoute
   '/submission': typeof SubmissionRoute
+  '/subscription': typeof SubscriptionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/publication'
     | '/publication-ethics'
     | '/submission'
+    | '/subscription'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/publication'
     | '/publication-ethics'
     | '/submission'
+    | '/subscription'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/publication'
     | '/publication-ethics'
     | '/submission'
+    | '/subscription'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +144,7 @@ export interface RootRouteChildren {
   PublicationRoute: typeof PublicationRoute
   PublicationEthicsRoute: typeof PublicationEthicsRoute
   SubmissionRoute: typeof SubmissionRoute
+  SubscriptionRoute: typeof SubscriptionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubmissionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/subscription': {
+      id: '/subscription'
+      path: '/subscription'
+      fullPath: '/subscription'
+      preLoaderRoute: typeof SubscriptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   PublicationRoute: PublicationRoute,
   PublicationEthicsRoute: PublicationEthicsRoute,
   SubmissionRoute: SubmissionRoute,
+  SubscriptionRoute: SubscriptionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
