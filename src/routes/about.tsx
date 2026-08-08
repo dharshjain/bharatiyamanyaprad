@@ -79,20 +79,21 @@ function About() {
             {[
               {
                 h: "Aims",
-                p: "To publish rigorous, readable scholarship on Indian civilisational history and its contemporary life.",
+                p: "To bring the best of cultural studies to a diverse academic and non-academic audience.",
               },
               {
                 h: "Scope",
-                p: "Manuscript studies, epigraphy, art and archaeology, intellectual history, cultural studies, language and literature.",
+                p: "Socio-cultural-psycho issues faced by Indians throughout the world, including India, and books for review.",
               },
               {
-                h: "Readership",
-                p: "Academics, museum professionals, students and general readers connected to India in any manner.",
+                h: "Recognition",
+                p: "Peer-reviewed and enlisted in the UGC CARE List; financially assisted by ICHR, New Delhi.",
               },
               {
-                h: "Frequency",
-                p: "Annual print edition, with occasional special volumes on themed subjects.",
+                h: "Publisher",
+                p: "Started by Bharatiya Vidya Bhavan's Ahmedabad Kendra; under the aegis of Gujarat University, Ahmedabad.",
               },
+
             ].map((b) => (
               <div key={b.h} className="archive-card p-7">
                 <h2 className="font-display text-lg text-primary">{b.h}</h2>
