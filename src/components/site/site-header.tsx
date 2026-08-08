@@ -39,12 +39,12 @@ export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("bm-theme");
-    const isDark = stored === "dark";
+    const isDark = stored ? stored === "dark" : true;
     setDark(isDark);
     document.documentElement.classList.toggle("dark", isDark);
   }, []);

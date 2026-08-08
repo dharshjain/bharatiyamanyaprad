@@ -124,14 +124,14 @@ function Hero() {
           src={heritageElephant}
           alt=""
           aria-hidden="true"
-          className="absolute right-full top-1/2 -translate-y-1/2 mr-6 h-[400px] w-auto object-contain pointer-events-none select-none z-10 opacity-75 dark:opacity-55 mix-blend-multiply invert hue-rotate-[180deg] brightness-[0.45] contrast-[1.2] dark:mix-blend-screen dark:invert-0 dark:hue-rotate-0 dark:brightness-100 dark:contrast-100 hidden xl:block transition-all duration-300"
+          className="absolute right-full top-1/2 -translate-y-1/2 mr-6 h-[400px] w-auto object-contain pointer-events-none select-none z-10 opacity-75 dark:opacity-55 invert hue-rotate-[180deg] brightness-[0.45] contrast-[1.2] dark:invert-0 dark:hue-rotate-0 dark:brightness-100 dark:contrast-100 hidden xl:block transition-all duration-300"
         />
         {/* Right Elephant: Flipped scale-x-[-1] to look left toward the text */}
         <img
           src={heritageElephant}
           alt=""
           aria-hidden="true"
-          className="absolute left-full top-1/2 -translate-y-1/2 ml-6 h-[400px] w-auto object-contain pointer-events-none select-none z-10 transform scale-x-[-1] opacity-75 dark:opacity-55 mix-blend-multiply invert hue-rotate-[180deg] brightness-[0.45] contrast-[1.2] dark:mix-blend-screen dark:invert-0 dark:hue-rotate-0 dark:brightness-100 dark:contrast-100 hidden xl:block transition-all duration-300"
+          className="absolute left-full top-1/2 -translate-y-1/2 ml-6 h-[400px] w-auto object-contain pointer-events-none select-none z-10 transform scale-x-[-1] opacity-75 dark:opacity-55 invert hue-rotate-[180deg] brightness-[0.45] contrast-[1.2] dark:invert-0 dark:hue-rotate-0 dark:brightness-100 dark:contrast-100 hidden xl:block transition-all duration-300"
         />
         <Reveal>
           <p className="text-center font-serif text-base tracking-wide text-terracotta">
@@ -371,7 +371,7 @@ function Publications({ publications }: { publications: Array<{ id: string; titl
                     <img 
                       src={heritageLotus} 
                       alt="Golden Lotus"
-                      className="w-full h-full object-contain relative z-10 transition-transform duration-500 group-hover:scale-105 mix-blend-multiply invert hue-rotate-[180deg] brightness-[0.45] contrast-[1.2] dark:mix-blend-screen dark:invert-0 dark:hue-rotate-0 dark:brightness-100 dark:contrast-100"
+                      className="w-full h-full object-contain relative z-10 transition-transform duration-500 group-hover:scale-105 invert hue-rotate-[180deg] brightness-[0.45] contrast-[1.2] dark:invert-0 dark:hue-rotate-0 dark:brightness-100 dark:contrast-100"
                     />
                   </div>
                 </div>

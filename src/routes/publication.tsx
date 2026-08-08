@@ -148,7 +148,7 @@ function Publication() {
                       <img 
                         src={heritageLotus} 
                         alt="Golden Lotus"
-                        className="w-full h-full object-contain relative z-10 transition-transform duration-500 group-hover:scale-105 mix-blend-multiply invert hue-rotate-[180deg] brightness-[0.45] contrast-[1.2] dark:mix-blend-screen dark:invert-0 dark:hue-rotate-0 dark:brightness-100 dark:contrast-100"
+                        className="w-full h-full object-contain relative z-10 transition-transform duration-500 group-hover:scale-105 invert hue-rotate-[180deg] brightness-[0.45] contrast-[1.2] dark:invert-0 dark:hue-rotate-0 dark:brightness-100 dark:contrast-100"
                       />
                     </div>
                   </div>
