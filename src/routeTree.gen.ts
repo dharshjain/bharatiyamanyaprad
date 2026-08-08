@@ -14,6 +14,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as EditorialBoardRouteImport } from './routes/editorial-board'
 import { Route as InstructionsToAuthorsRouteImport } from './routes/instructions-to-authors'
+import { Route as PublicationRouteImport } from './routes/publication'
 import { Route as PublicationEthicsRouteImport } from './routes/publication-ethics'
 import { Route as SubmissionRouteImport } from './routes/submission'
 
@@ -42,6 +43,11 @@ const InstructionsToAuthorsRoute = InstructionsToAuthorsRouteImport.update({
   path: '/instructions-to-authors',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PublicationRoute = PublicationRouteImport.update({
+  id: '/publication',
+  path: '/publication',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PublicationEthicsRoute = PublicationEthicsRouteImport.update({
   id: '/publication-ethics',
   path: '/publication-ethics',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/editorial-board': typeof EditorialBoardRoute
   '/instructions-to-authors': typeof InstructionsToAuthorsRoute
+  '/publication': typeof PublicationRoute
   '/publication-ethics': typeof PublicationEthicsRoute
   '/submission': typeof SubmissionRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/editorial-board': typeof EditorialBoardRoute
   '/instructions-to-authors': typeof InstructionsToAuthorsRoute
+  '/publication': typeof PublicationRoute
   '/publication-ethics': typeof PublicationEthicsRoute
   '/submission': typeof SubmissionRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/editorial-board': typeof EditorialBoardRoute
   '/instructions-to-authors': typeof InstructionsToAuthorsRoute
+  '/publication': typeof PublicationRoute
   '/publication-ethics': typeof PublicationEthicsRoute
   '/submission': typeof SubmissionRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/editorial-board'
     | '/instructions-to-authors'
+    | '/publication'
     | '/publication-ethics'
     | '/submission'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/editorial-board'
     | '/instructions-to-authors'
+    | '/publication'
     | '/publication-ethics'
     | '/submission'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/editorial-board'
     | '/instructions-to-authors'
+    | '/publication'
     | '/publication-ethics'
     | '/submission'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   EditorialBoardRoute: typeof EditorialBoardRoute
   InstructionsToAuthorsRoute: typeof InstructionsToAuthorsRoute
+  PublicationRoute: typeof PublicationRoute
   PublicationEthicsRoute: typeof PublicationEthicsRoute
   SubmissionRoute: typeof SubmissionRoute
 }
@@ -158,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstructionsToAuthorsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/publication': {
+      id: '/publication'
+      path: '/publication'
+      fullPath: '/publication'
+      preLoaderRoute: typeof PublicationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/publication-ethics': {
       id: '/publication-ethics'
       path: '/publication-ethics'
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   EditorialBoardRoute: EditorialBoardRoute,
   InstructionsToAuthorsRoute: InstructionsToAuthorsRoute,
+  PublicationRoute: PublicationRoute,
   PublicationEthicsRoute: PublicationEthicsRoute,
   SubmissionRoute: SubmissionRoute,
 }
