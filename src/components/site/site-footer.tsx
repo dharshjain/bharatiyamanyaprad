@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import logo from "@/assets/logo.asset.json";
+import logo from "@/assets/logo.jpeg";
 import { CarvedBorder } from "@/components/site/ornaments";
 import { contact } from "@/data/journal";
 
@@ -10,12 +10,12 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
         <div className="md:col-span-1">
           <img
-            src={logo.url}
+            src={logo}
             alt="Bharatiya Manyaprad emblem"
             width={72}
             height={72}
             loading="lazy"
-            className="size-16 rounded-full bg-parchment/90 p-1 ring-1 ring-accent/50"
+            className="size-16 rounded-full bg-parchment/90 p-1 ring-1 ring-accent/50 object-cover"
           />
           <p className="mt-4 font-serif text-lg leading-snug">
             An international journal of Indian studies, published in print since 2013 under the

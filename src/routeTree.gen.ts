@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CallForPapersRouteImport } from './routes/call-for-papers'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as EditorialBoardRouteImport } from './routes/editorial-board'
@@ -19,6 +20,8 @@ import { Route as PublicationRouteImport } from './routes/publication'
 import { Route as PublicationEthicsRouteImport } from './routes/publication-ethics'
 import { Route as SubmissionRouteImport } from './routes/submission'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CallForPapersRoute = CallForPapersRouteImport.update({
@@ -70,10 +78,21 @@ const SubscriptionRoute = SubscriptionRouteImport.update({
   path: '/subscription',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/call-for-papers': typeof CallForPapersRoute
   '/contact': typeof ContactRoute
   '/editorial-board': typeof EditorialBoardRoute
@@ -82,6 +101,8 @@ export interface FileRoutesByFullPath {
   '/publication-ethics': typeof PublicationEthicsRoute
   '/submission': typeof SubmissionRoute
   '/subscription': typeof SubscriptionRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,11 +115,14 @@ export interface FileRoutesByTo {
   '/publication-ethics': typeof PublicationEthicsRoute
   '/submission': typeof SubmissionRoute
   '/subscription': typeof SubscriptionRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/call-for-papers': typeof CallForPapersRoute
   '/contact': typeof ContactRoute
   '/editorial-board': typeof EditorialBoardRoute
@@ -107,12 +131,15 @@ export interface FileRoutesById {
   '/publication-ethics': typeof PublicationEthicsRoute
   '/submission': typeof SubmissionRoute
   '/subscription': typeof SubscriptionRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/about'
+    | '/admin'
     | '/call-for-papers'
     | '/contact'
     | '/editorial-board'
@@ -121,6 +148,8 @@ export interface FileRouteTypes {
     | '/publication-ethics'
     | '/submission'
     | '/subscription'
+    | '/admin/dashboard'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,10 +162,13 @@ export interface FileRouteTypes {
     | '/publication-ethics'
     | '/submission'
     | '/subscription'
+    | '/admin/dashboard'
+    | '/admin'
   id:
     | '__root__'
     | '/'
     | '/about'
+    | '/admin'
     | '/call-for-papers'
     | '/contact'
     | '/editorial-board'
@@ -145,11 +177,14 @@ export interface FileRouteTypes {
     | '/publication-ethics'
     | '/submission'
     | '/subscription'
+    | '/admin/dashboard'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRouteWithChildren
   CallForPapersRoute: typeof CallForPapersRoute
   ContactRoute: typeof ContactRoute
   EditorialBoardRoute: typeof EditorialBoardRoute
@@ -174,6 +209,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/call-for-papers': {
@@ -232,12 +274,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubscriptionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
+
+interface AdminRouteChildren {
+  AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminDashboardRoute: AdminDashboardRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AdminRoute: AdminRouteWithChildren,
   CallForPapersRoute: CallForPapersRoute,
   ContactRoute: ContactRoute,
   EditorialBoardRoute: EditorialBoardRoute,
@@ -250,3 +319,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

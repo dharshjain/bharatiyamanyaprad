@@ -25,15 +25,31 @@ export function CarvedBorder({ className = "" }: { className?: string }) {
   return (
     <div className={`overflow-hidden ${className}`} aria-hidden="true">
       <svg
-        viewBox="0 0 120 12"
+        viewBox="0 0 120 16"
         preserveAspectRatio="none"
-        className="h-3 w-full text-accent/55"
+        className="h-4.5 w-full text-accent/45"
         fill="none"
       >
-        <pattern id="carve" width="12" height="12" patternUnits="userSpaceOnUse">
-          <path d="M0 11h12M6 11V5l3-3M6 5 3 2" stroke="currentColor" strokeWidth="0.7" />
+        <pattern id="carve" width="24" height="16" patternUnits="userSpaceOnUse">
+          {/* Base border line */}
+          <line x1="0" y1="15" x2="24" y2="15" stroke="currentColor" strokeWidth="0.8" />
+          
+          {/* Ornate flowing vine scroll curves */}
+          <path d="M 0 15 C 6 15, 6 11, 12 15" stroke="currentColor" strokeWidth="0.6" />
+          <path d="M 12 15 C 18 15, 18 11, 24 15" stroke="currentColor" strokeWidth="0.6" />
+          
+          {/* Traditional 3-petal Lotus Bud shape (Kamal Mala) */}
+          {/* Center Petal */}
+          <path d="M 12 15 C 9.5 11, 9.5 4, 12 1 C 14.5 4, 14.5 11, 12 15" stroke="currentColor" strokeWidth="0.85" />
+          {/* Left Petal */}
+          <path d="M 12 15 C 7.5 11, 7.5 5, 11 2.5" stroke="currentColor" strokeWidth="0.7" />
+          {/* Right Petal */}
+          <path d="M 12 15 C 16.5 11, 16.5 5, 13 2.5" stroke="currentColor" strokeWidth="0.7" />
+          
+          {/* Small decorative accent dot inside bud */}
+          <circle cx="12" cy="9" r="0.6" fill="currentColor" opacity="0.8" />
         </pattern>
-        <rect width="120" height="12" fill="url(#carve)" />
+        <rect width="120" height="16" fill="url(#carve)" />
       </svg>
     </div>
   );
@@ -126,6 +142,89 @@ export function SealSketch({ className = "" }: { className?: string }) {
       <circle cx="32" cy="32" r="20" stroke="currentColor" strokeWidth="0.6" opacity="0.7" />
       <path d="M32 14c5 7 7 13 7 18s-3 9-7 14c-4-5-7-9-7-14s2-11 7-18Z" stroke="currentColor" strokeWidth="0.8" />
       <path d="M6 32h6M52 32h6M32 6v6M32 52v6" stroke="currentColor" strokeWidth="0.8" opacity="0.8" />
+    </svg>
+  );
+}
+
+export function MajesticLotus({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 160 100" className={className} fill="none" aria-hidden="true">
+      {/* Base scrolls */}
+      <path
+        d="M 80 75 C 65 75, 45 85, 20 80 C 45 78, 55 65, 72 68"
+        stroke="currentColor"
+        strokeWidth="0.85"
+        opacity="0.6"
+      />
+      <path
+        d="M 80 75 C 95 75, 115 85, 140 80 C 115 78, 105 65, 88 68"
+        stroke="currentColor"
+        strokeWidth="0.85"
+        opacity="0.6"
+      />
+      
+      {/* Center Petal */}
+      <path
+        d="M 80 18 C 76 35, 74 55, 80 74 C 86 55, 84 35, 80 18 Z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
+      
+      {/* First Inner Petals */}
+      <path
+        d="M 80 18 C 70 30, 64 45, 68 62 C 73 54, 76 40, 80 25"
+        stroke="currentColor"
+        strokeWidth="1.1"
+      />
+      <path
+        d="M 80 18 C 90 30, 96 45, 92 62 C 87 54, 84 40, 80 25"
+        stroke="currentColor"
+        strokeWidth="1.1"
+      />
+
+      {/* Second Petal Row */}
+      <path
+        d="M 80 24 C 62 36, 52 54, 58 71 C 65 60, 70 48, 80 34"
+        stroke="currentColor"
+        strokeWidth="1"
+      />
+      <path
+        d="M 80 24 C 98 36, 108 54, 102 71 C 95 60, 90 48, 80 34"
+        stroke="currentColor"
+        strokeWidth="1"
+      />
+
+      {/* Third Petal Row */}
+      <path
+        d="M 80 32 C 54 44, 42 62, 48 76 C 58 66, 66 54, 80 44"
+        stroke="currentColor"
+        strokeWidth="0.9"
+        opacity="0.9"
+      />
+      <path
+        d="M 80 32 C 106 44, 118 62, 112 76 C 102 66, 94 54, 80 44"
+        stroke="currentColor"
+        strokeWidth="0.9"
+        opacity="0.9"
+      />
+
+      {/* Fourth Outer Flared Petals */}
+      <path
+        d="M 80 42 C 46 52, 34 68, 38 80 C 52 72, 62 62, 80 54"
+        stroke="currentColor"
+        strokeWidth="0.8"
+        opacity="0.8"
+      />
+      <path
+        d="M 80 42 C 114 52, 126 68, 122 80 C 108 72, 98 62, 80 54"
+        stroke="currentColor"
+        strokeWidth="0.8"
+        opacity="0.8"
+      />
+      
+      {/* Ground droplet details */}
+      <circle cx="80" cy="79" r="0.75" fill="currentColor" />
+      <circle cx="80" cy="83" r="0.5" fill="currentColor" opacity="0.7" />
     </svg>
   );
 }
