@@ -26,47 +26,49 @@ export const Route = createFileRoute("/instructions-to-authors")({
 
 const guides = [
   {
-    h: "Length and structure",
+    h: "Language and length",
     items: [
-      "Research articles: 5,000–8,000 words including notes.",
-      "Review essays: 3,000–4,000 words. Book reviews: 1,200 words.",
-      "An abstract of no more than 250 words and five keywords.",
+      "Language: English; Sanskrit or Hindi text may be supplemented as citations.",
+      "Submissions of not less than 3500 words.",
+      "12 pages maximum, 6 pages minimum.",
+    ],
+  },
+  {
+    h: "Page setup",
+    items: [
+      "Paper size A4, Times New Roman 12 pt, 1.5 line spacing.",
+      'Margins 1" on right, top and bottom, and 1.5" on left.',
+      "Title of the article: caps, bold, centered, 14 pt. Text justified.",
     ],
   },
   {
     h: "Style and referencing",
     items: [
-      "Chicago notes-and-bibliography style, endnotes not footnotes.",
-      "British spelling; italicise non-English terms on first use only.",
-      "IAST transliteration for Sanskrit, Prakrit and Pali.",
+      "Submissions should follow APA Style guidelines.",
+      "References: authors ordered alphabetically.",
+      "Titles of books in italics; titles of articles quoted.",
     ],
   },
   {
-    h: "Images and plates",
+    h: "Files and declarations",
     items: [
-      "Minimum 300 dpi TIFF or high-quality JPEG, supplied separately.",
-      "Captions must name the object, provenance and holding institution.",
-      "Written permission from the custodial institution is required.",
-    ],
-  },
-  {
-    h: "Files",
-    items: [
-      "Word or RTF for text; PDF for reference only.",
-      "A separate title page carrying author details, for blind review.",
-      "Name files as Surname_ShortTitle.",
+      "Articles as MS Word documents, sent as .rtf attachment via email to the editors.",
+      "First name, last name, institutional affiliation with full address and e-mail.",
+      'Declaration of "Not published before" and an undertaking of originality.',
     ],
   },
 ];
+
 
 function Authors() {
   return (
     <>
       <PageHero
-        eyebrow="For Authors"
-        title="Instructions to Authors"
-        intro="Clear prose, verifiable sources and a manuscript prepared for blind review. These conventions keep the record durable."
+        eyebrow="Author's"
+        title="Notes for the contributors"
+        intro="Article submissions should be preceded by a short personal and professional brief, and must meet the editing requirements below."
       />
+
       <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
         <div className="grid gap-6 sm:grid-cols-2">
           {guides.map((g, i) => (

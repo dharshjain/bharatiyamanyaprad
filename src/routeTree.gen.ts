@@ -11,14 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
-import { Route as ArchivesRouteImport } from './routes/archives'
+import { Route as CallForPapersRouteImport } from './routes/call-for-papers'
 import { Route as ContactRouteImport } from './routes/contact'
-import { Route as CurrentIssueRouteImport } from './routes/current-issue'
 import { Route as EditorialBoardRouteImport } from './routes/editorial-board'
 import { Route as InstructionsToAuthorsRouteImport } from './routes/instructions-to-authors'
+import { Route as PublicationRouteImport } from './routes/publication'
 import { Route as PublicationEthicsRouteImport } from './routes/publication-ethics'
 import { Route as SubmissionRouteImport } from './routes/submission'
-import { Route as PapersSlugRouteImport } from './routes/papers.$slug'
+import { Route as SubscriptionRouteImport } from './routes/subscription'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -30,19 +30,14 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ArchivesRoute = ArchivesRouteImport.update({
-  id: '/archives',
-  path: '/archives',
+const CallForPapersRoute = CallForPapersRouteImport.update({
+  id: '/call-for-papers',
+  path: '/call-for-papers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CurrentIssueRoute = CurrentIssueRouteImport.update({
-  id: '/current-issue',
-  path: '/current-issue',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EditorialBoardRoute = EditorialBoardRouteImport.update({
@@ -55,6 +50,11 @@ const InstructionsToAuthorsRoute = InstructionsToAuthorsRouteImport.update({
   path: '/instructions-to-authors',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PublicationRoute = PublicationRouteImport.update({
+  id: '/publication',
+  path: '/publication',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PublicationEthicsRoute = PublicationEthicsRouteImport.update({
   id: '/publication-ethics',
   path: '/publication-ethics',
@@ -65,99 +65,99 @@ const SubmissionRoute = SubmissionRouteImport.update({
   path: '/submission',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PapersSlugRoute = PapersSlugRouteImport.update({
-  id: '/papers/$slug',
-  path: '/papers/$slug',
+const SubscriptionRoute = SubscriptionRouteImport.update({
+  id: '/subscription',
+  path: '/subscription',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/archives': typeof ArchivesRoute
+  '/call-for-papers': typeof CallForPapersRoute
   '/contact': typeof ContactRoute
-  '/current-issue': typeof CurrentIssueRoute
   '/editorial-board': typeof EditorialBoardRoute
   '/instructions-to-authors': typeof InstructionsToAuthorsRoute
+  '/publication': typeof PublicationRoute
   '/publication-ethics': typeof PublicationEthicsRoute
   '/submission': typeof SubmissionRoute
-  '/papers/$slug': typeof PapersSlugRoute
+  '/subscription': typeof SubscriptionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/archives': typeof ArchivesRoute
+  '/call-for-papers': typeof CallForPapersRoute
   '/contact': typeof ContactRoute
-  '/current-issue': typeof CurrentIssueRoute
   '/editorial-board': typeof EditorialBoardRoute
   '/instructions-to-authors': typeof InstructionsToAuthorsRoute
+  '/publication': typeof PublicationRoute
   '/publication-ethics': typeof PublicationEthicsRoute
   '/submission': typeof SubmissionRoute
-  '/papers/$slug': typeof PapersSlugRoute
+  '/subscription': typeof SubscriptionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/archives': typeof ArchivesRoute
+  '/call-for-papers': typeof CallForPapersRoute
   '/contact': typeof ContactRoute
-  '/current-issue': typeof CurrentIssueRoute
   '/editorial-board': typeof EditorialBoardRoute
   '/instructions-to-authors': typeof InstructionsToAuthorsRoute
+  '/publication': typeof PublicationRoute
   '/publication-ethics': typeof PublicationEthicsRoute
   '/submission': typeof SubmissionRoute
-  '/papers/$slug': typeof PapersSlugRoute
+  '/subscription': typeof SubscriptionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/about'
-    | '/archives'
+    | '/call-for-papers'
     | '/contact'
-    | '/current-issue'
     | '/editorial-board'
     | '/instructions-to-authors'
+    | '/publication'
     | '/publication-ethics'
     | '/submission'
-    | '/papers/$slug'
+    | '/subscription'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
-    | '/archives'
+    | '/call-for-papers'
     | '/contact'
-    | '/current-issue'
     | '/editorial-board'
     | '/instructions-to-authors'
+    | '/publication'
     | '/publication-ethics'
     | '/submission'
-    | '/papers/$slug'
+    | '/subscription'
   id:
     | '__root__'
     | '/'
     | '/about'
-    | '/archives'
+    | '/call-for-papers'
     | '/contact'
-    | '/current-issue'
     | '/editorial-board'
     | '/instructions-to-authors'
+    | '/publication'
     | '/publication-ethics'
     | '/submission'
-    | '/papers/$slug'
+    | '/subscription'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  ArchivesRoute: typeof ArchivesRoute
+  CallForPapersRoute: typeof CallForPapersRoute
   ContactRoute: typeof ContactRoute
-  CurrentIssueRoute: typeof CurrentIssueRoute
   EditorialBoardRoute: typeof EditorialBoardRoute
   InstructionsToAuthorsRoute: typeof InstructionsToAuthorsRoute
+  PublicationRoute: typeof PublicationRoute
   PublicationEthicsRoute: typeof PublicationEthicsRoute
   SubmissionRoute: typeof SubmissionRoute
-  PapersSlugRoute: typeof PapersSlugRoute
+  SubscriptionRoute: typeof SubscriptionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -176,11 +176,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/archives': {
-      id: '/archives'
-      path: '/archives'
-      fullPath: '/archives'
-      preLoaderRoute: typeof ArchivesRouteImport
+    '/call-for-papers': {
+      id: '/call-for-papers'
+      path: '/call-for-papers'
+      fullPath: '/call-for-papers'
+      preLoaderRoute: typeof CallForPapersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -188,13 +188,6 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/current-issue': {
-      id: '/current-issue'
-      path: '/current-issue'
-      fullPath: '/current-issue'
-      preLoaderRoute: typeof CurrentIssueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/editorial-board': {
@@ -211,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstructionsToAuthorsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/publication': {
+      id: '/publication'
+      path: '/publication'
+      fullPath: '/publication'
+      preLoaderRoute: typeof PublicationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/publication-ethics': {
       id: '/publication-ethics'
       path: '/publication-ethics'
@@ -225,11 +225,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubmissionRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/papers/$slug': {
-      id: '/papers/$slug'
-      path: '/papers/$slug'
-      fullPath: '/papers/$slug'
-      preLoaderRoute: typeof PapersSlugRouteImport
+    '/subscription': {
+      id: '/subscription'
+      path: '/subscription'
+      fullPath: '/subscription'
+      preLoaderRoute: typeof SubscriptionRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -238,14 +238,14 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  ArchivesRoute: ArchivesRoute,
+  CallForPapersRoute: CallForPapersRoute,
   ContactRoute: ContactRoute,
-  CurrentIssueRoute: CurrentIssueRoute,
   EditorialBoardRoute: EditorialBoardRoute,
   InstructionsToAuthorsRoute: InstructionsToAuthorsRoute,
+  PublicationRoute: PublicationRoute,
   PublicationEthicsRoute: PublicationEthicsRoute,
   SubmissionRoute: SubmissionRoute,
-  PapersSlugRoute: PapersSlugRoute,
+  SubscriptionRoute: SubscriptionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

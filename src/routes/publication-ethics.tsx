@@ -3,20 +3,22 @@ import { PageHero } from "@/components/site/page-hero";
 import { Reveal } from "@/components/site/reveal";
 
 export const Route = createFileRoute("/publication-ethics")({
-  component: Ethics,
+  component: Responsibilities,
   head: () => ({
     meta: [
-      { title: "Publication Ethics — Bharatiya Manyaprad" },
+      { title: "Responsibilities — Bharatiya Manyaprad" },
       {
         name: "description",
         content:
-          "Editorial standards, peer review integrity, plagiarism policy and authorship ethics observed by Bharatiya Manyaprad.",
+          "Responsibilities of authors, reviewers and the editorial office of Bharatiya Manyaprad — originality, peer review, book reviews and correspondence.",
       },
-      { property: "og:title", content: "Publication Ethics — Bharatiya Manyaprad" },
+      { property: "og:title", content: "Responsibilities — Bharatiya Manyaprad" },
       {
         property: "og:description",
-        content: "The ethical standards governing review and publication at the journal.",
+        content: "Editorial, author and reviewer responsibilities at the journal.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { property: "og:url", content: "/publication-ethics" },
     ],
     links: [{ rel: "canonical", href: "/publication-ethics" }],
@@ -25,38 +27,38 @@ export const Route = createFileRoute("/publication-ethics")({
 
 const policies = [
   {
-    h: "Peer review integrity",
-    p: "Every research article is reviewed double-blind by two specialists. Reviewers with an institutional or personal conflict must recuse themselves before reading the manuscript.",
+    h: "Author responsibilities",
+    p: "Every submission must be original and accompanied by a declaration of \u201cNot published before\u201d, along with an undertaking of originality by the author. Authors must supply their full name, institutional affiliation, postal address and e-mail with the manuscript.",
   },
   {
-    h: "Originality and plagiarism",
-    p: "Submissions must be original and unpublished. All manuscripts are screened for textual overlap; substantiated plagiarism results in immediate rejection and notification of the author's institution.",
+    h: "Peer review",
+    p: "Bharatiya Manyaprad is a recognized peer-reviewed journal enlisted in the UGC CARE List. Articles are liable to be published only after peer review by subject specialists.",
   },
   {
-    h: "Authorship",
-    p: "Authorship is reserved for those who made a substantive intellectual contribution. Ghost, gift and guest authorship are not accepted. Contribution statements are requested for multi-author papers.",
+    h: "Editorial responsibilities",
+    p: "The editorial office acknowledges receipt of submissions, communicates reviewer decisions, and ensures that accepted articles are typeset for the annual print volume and uploaded to the International E-library.",
   },
   {
-    h: "Sources and permissions",
-    p: "Authors must secure permissions for images of manuscripts, inscriptions and museum objects, and must acknowledge custodial institutions and communities appropriately.",
+    h: "Books for review",
+    p: "Books are welcome for review. The first reference to the book should include the publisher, place and year of publication, and a first-hand copy should be mailed along with the book review.",
   },
   {
-    h: "Corrections and retraction",
-    p: "Errors of fact are corrected in the following volume with a signed erratum. Retraction is reserved for serious research misconduct and is announced in print and online.",
+    h: "Scope and accessibility",
+    p: "Articles may borrow from semiotics, psychoanalysis, queer theory and other disciplines associated with cultural studies and critical theory, while remaining accessible to a general audience.",
   },
   {
-    h: "Complaints",
-    p: "Concerns regarding editorial conduct may be addressed to the Editor-in-Chief and are answered within thirty days.",
+    h: "Correspondence",
+    p: "Concerns regarding editorial conduct, subscriptions or submissions may be addressed to the Editor at the Ahmedabad office and are answered by the editorial desk.",
   },
 ];
 
-function Ethics() {
+function Responsibilities() {
   return (
     <>
       <PageHero
         eyebrow="Policy"
-        title="Publication Ethics"
-        intro="Scholarship on heritage material carries a duty of care — to the sources, to the custodians and to the reader."
+        title="Responsibilities"
+        intro="Scholarship on Indian civilisation carries a duty of care — to the sources, to the custodians and to the reader."
       />
       <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
         <div className="space-y-6">
