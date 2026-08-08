@@ -64,10 +64,11 @@ function Authors() {
   return (
     <>
       <PageHero
-        eyebrow="For Authors"
-        title="Instructions to Authors"
-        intro="Clear prose, verifiable sources and a manuscript prepared for blind review. These conventions keep the record durable."
+        eyebrow="Author's"
+        title="Notes for the contributors"
+        intro="Article submissions should be preceded by a short personal and professional brief, and must meet the editing requirements below."
       />
+
       <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
         <div className="grid gap-6 sm:grid-cols-2">
           {guides.map((g, i) => (
