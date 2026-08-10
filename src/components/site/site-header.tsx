@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Menu, Moon, Search, Sun, X, ChevronDown } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import logo from "@/assets/logo.jpeg";
 import { LotusMark } from "@/components/site/ornaments";
 import {
@@ -34,13 +34,16 @@ const dropdownItems = [
   { label: "Further Reading", to: "/publication-ethics#reading" },
 ];
 
-
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [visible, setVisible] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const [dark, setDark] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const openRef = useRef(open);
+  openRef.current = open;
 
   useEffect(() => {
     const stored = localStorage.getItem("bm-theme");
@@ -50,7 +53,35 @@ export function SiteHeader() {
   }, []);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    let lastY = window.scrollY;
+
+    const onScroll = () => {
+      const currentY = window.scrollY;
+
+      setScrolled(currentY > 24);
+
+      if (openRef.current) {
+        setVisible(true);
+        lastY = currentY;
+        return;
+      }
+
+      const threshold = 5;
+      if (Math.abs(currentY - lastY) < threshold) {
+        return;
+      }
+
+      if (currentY < 10) {
+        setVisible(true);
+      } else if (currentY > lastY) {
+        setVisible(false);
+      } else {
+        setVisible(true);
+      }
+
+      lastY = currentY;
+    };
+
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -69,22 +100,26 @@ export function SiteHeader() {
         scrolled
           ? "border-b border-accent/30 bg-background/95 backdrop-blur-md shadow-[0_10px_30px_-24px_rgba(75,54,33,0.6)]"
           : "border-b border-transparent bg-transparent"
-      }`}
+      } ${visible ? "translate-y-0" : "-translate-y-full"}`}
     >
-      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 sm:px-6 lg:py-4">
-        <Link to="/" className="flex min-w-0 items-center gap-3" aria-label="Bharatiya Manyaprad home">
+      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-4 py-3 sm:px-6 sm:gap-4 lg:py-4">
+        <Link
+          to="/"
+          className="flex min-w-0 items-center gap-2 sm:gap-3"
+          aria-label="Bharatiya Manyaprad home"
+        >
           <img
             src={logo}
             alt="Bharatiya Manyaprad emblem"
-            width={48}
-            height={48}
-            className="size-10 shrink-0 rounded-full ring-1 ring-accent/40 lg:size-12 object-cover"
+            width={64}
+            height={64}
+            className="size-12 shrink-0 rounded-full ring-1 ring-accent/40 sm:size-14 lg:size-16 object-cover bg-white"
           />
-          <span className="min-w-0">
-            <span className="block truncate font-display text-base font-semibold tracking-wide text-primary lg:text-lg">
+          <span className="min-w-0 flex flex-col justify-center">
+            <span className="block font-display text-sm sm:text-base font-semibold tracking-wide text-primary lg:text-lg leading-tight whitespace-nowrap">
               Bharatiya Manyaprad
             </span>
-            <span className="block truncate text-[0.62rem] tracking-[0.22em] uppercase text-muted-foreground">
+            <span className="block text-[0.52rem] sm:text-[0.62rem] tracking-wider sm:tracking-[0.22em] uppercase text-muted-foreground leading-tight mt-0.5 whitespace-normal">
               International Journal of Indian Studies
             </span>
           </span>
@@ -107,14 +142,16 @@ export function SiteHeader() {
                       className="inline-flex items-center gap-1 rounded-md px-2.5 py-2 font-sans text-[0.8rem] font-medium text-foreground/85 transition-colors hover:bg-secondary hover:text-primary"
                     >
                       {item.label}
-                      <ChevronDown className={`size-3.5 transition-transform duration-300 ${dropdownOpen ? "rotate-180 text-accent" : ""}`} />
+                      <ChevronDown
+                        className={`size-3.5 transition-transform duration-300 ${dropdownOpen ? "rotate-180 text-accent" : ""}`}
+                      />
                     </Link>
-                    
+
                     {/* The Unique Historic Dropdown */}
                     <div
                       className={`absolute top-full left-1/2 -translate-x-1/2 mt-1 w-64 rounded-xl border border-accent/25 p-2 shadow-[0_15px_35px_rgba(184,134,11,0.14)] backdrop-blur-md transition-all duration-300 origin-top z-50 ${
-                        dropdownOpen 
-                          ? "opacity-100 scale-100 translate-y-0 pointer-events-auto" 
+                        dropdownOpen
+                          ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
                           : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
                       }`}
                       style={{
@@ -123,7 +160,7 @@ export function SiteHeader() {
                     >
                       {/* Inner double border for historic manuscript look */}
                       <div className="absolute inset-1.5 rounded-[8px] border border-accent/15 pointer-events-none" />
-                      
+
                       {/* Corner flourishes inside the dropdown */}
                       <div className="absolute top-2 left-2 size-2.5 border-t border-l border-accent/35 rounded-tl-sm" />
                       <div className="absolute top-2 right-2 size-2.5 border-t border-r border-accent/35 rounded-tr-sm" />
@@ -132,11 +169,11 @@ export function SiteHeader() {
 
                       <ul className="relative z-10 space-y-0.5 py-1">
                         {dropdownItems.map((sub, idx) => (
-                          <li 
+                          <li
                             key={sub.to}
                             className={`transition-all duration-300 ${
-                              dropdownOpen 
-                                ? "opacity-100 translate-x-0" 
+                              dropdownOpen
+                                ? "opacity-100 translate-x-0"
                                 : "opacity-0 -translate-x-3.5"
                             }`}
                             style={{
@@ -160,7 +197,7 @@ export function SiteHeader() {
                   </div>
                 );
               }
-              
+
               return (
                 <Link
                   key={item.to}
@@ -177,14 +214,14 @@ export function SiteHeader() {
           <button
             onClick={() => setSearchOpen(true)}
             aria-label="Search the archive"
-            className="grid size-11 min-h-11 min-w-11 place-items-center rounded-md text-foreground/80 transition-colors hover:bg-secondary hover:text-primary"
+            className="grid size-9 sm:size-11 place-items-center rounded-md text-foreground/80 transition-colors hover:bg-secondary hover:text-primary"
           >
             <Search className="size-4" />
           </button>
           <button
             onClick={toggleTheme}
             aria-label={dark ? "Switch to light reading mode" : "Switch to dark reading mode"}
-            className="grid size-11 min-h-11 min-w-11 place-items-center rounded-md text-foreground/80 transition-colors hover:bg-secondary hover:text-primary"
+            className="grid size-9 sm:size-11 place-items-center rounded-md text-foreground/80 transition-colors hover:bg-secondary hover:text-primary"
           >
             {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
           </button>
@@ -192,7 +229,7 @@ export function SiteHeader() {
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
-            className="grid size-11 min-h-11 min-w-11 place-items-center rounded-md text-foreground/80 transition-colors hover:bg-secondary hover:text-primary xl:hidden"
+            className="grid size-9 sm:size-11 place-items-center rounded-md text-foreground/80 transition-colors hover:bg-secondary hover:text-primary xl:hidden"
           >
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
