@@ -160,7 +160,7 @@ function Publication() {
                     </h3>
                     
                     <h2 className="font-display text-lg leading-snug text-primary group-hover:text-accent transition-colors duration-300">
-                      {p.title}
+                      {p.title.replace(/Bharatiya Manyaprad\s*/i, "")}
                     </h2>
                     
                     <p className="font-serif text-sm italic text-foreground/75">

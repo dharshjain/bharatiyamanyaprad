@@ -383,7 +383,7 @@ function Publications({ publications }: { publications: Array<{ id: string; titl
                   </h3>
                   
                   <h4 className="font-display text-lg leading-snug text-primary group-hover:text-accent transition-colors duration-300">
-                    {p.title}
+                    {p.title.replace(/Bharatiya Manyaprad\s*/i, "")}
                   </h4>
                   
                   <p className="font-serif text-sm italic text-foreground/75">
