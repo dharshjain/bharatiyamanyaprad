@@ -1,6 +1,13 @@
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
-import type { ReactNode, CSSProperties, ChangeEvent, Dispatch, SetStateAction, FormEvent } from "react";
+import type {
+  ReactNode,
+  CSSProperties,
+  ChangeEvent,
+  Dispatch,
+  SetStateAction,
+  FormEvent,
+} from "react";
 import {
   BookOpen,
   FileText,
@@ -185,9 +192,7 @@ function AdminDashboard() {
 
   return (
     <div className="flex min-h-screen" style={{ background: "#0d0d0f", color: "#f5f0e8" }}>
-      {toast && (
-        <Toast msg={toast.msg} type={toast.type} onDone={() => setToast(null)} />
-      )}
+      {toast && <Toast msg={toast.msg} type={toast.type} onDone={() => setToast(null)} />}
 
       {/* Sidebar */}
       <aside
@@ -218,7 +223,8 @@ function AdminDashboard() {
               style={
                 activeTab === t.id
                   ? {
-                      background: "linear-gradient(135deg,rgba(184,134,11,0.25),rgba(212,168,67,0.15))",
+                      background:
+                        "linear-gradient(135deg,rgba(184,134,11,0.25),rgba(212,168,67,0.15))",
                       color: "#d4a843",
                       border: "1px solid rgba(184,134,11,0.3)",
                     }
@@ -266,7 +272,14 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
   const [editForm, setEditForm] = useState<Partial<EditorialBoardMember>>({});
   const [saving, setSaving] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
-  const [addForm, setAddForm] = useState({ role: "advisory", name: "", designation: "", description: "", email: "" });
+  const [addForm, setAddForm] = useState({
+    role: "advisory",
+    name: "",
+    designation: "",
+    description: "",
+    email: "",
+    photo_url: "",
+  });
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -281,18 +294,33 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   function startEdit(m: EditorialBoardMember) {
     setEditingId(m.id);
-    setEditForm({ name: m.name, designation: m.designation ?? "", description: m.description ?? "", email: m.email ?? "", role: m.role, sort_order: m.sort_order });
+    setEditForm({
+      name: m.name,
+      designation: m.designation ?? "",
+      description: m.description ?? "",
+      email: m.email ?? "",
+      role: m.role,
+      sort_order: m.sort_order,
+      photo_url: m.photo_url ?? "",
+    });
   }
 
   async function saveEdit(id: string) {
     setSaving(true);
+    const updateData = {
+      ...editForm,
+      photo_url: editForm.photo_url?.trim() || null,
+      updated_at: new Date().toISOString(),
+    };
     const { error } = await supabase
       .from("editorial_board_members")
-      .update({ ...editForm, updated_at: new Date().toISOString() })
+      .update(updateData)
       .eq("id", id);
     setSaving(false);
     if (error) return showToast(error.message, "error");
@@ -309,16 +337,40 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
     load();
   }
 
+  async function updateMemberPhoto(id: string, url: string | null) {
+    setSaving(true);
+    const { error } = await supabase
+      .from("editorial_board_members")
+      .update({ photo_url: url, updated_at: new Date().toISOString() })
+      .eq("id", id);
+    setSaving(false);
+    if (error) return showToast(error.message, "error");
+    showToast("Profile photo updated successfully.");
+    load();
+  }
+
   async function addMember() {
     if (!addForm.name.trim()) return showToast("Name is required.", "error");
     setSaving(true);
     const maxOrder = members.length ? Math.max(...members.map((m) => m.sort_order)) + 1 : 1;
-    const { error } = await supabase.from("editorial_board_members").insert({ ...addForm, sort_order: maxOrder });
+    const insertData = {
+      ...addForm,
+      photo_url: addForm.photo_url.trim() || null,
+      sort_order: maxOrder,
+    };
+    const { error } = await supabase.from("editorial_board_members").insert(insertData);
     setSaving(false);
     if (error) return showToast(error.message, "error");
     showToast("Member added.");
     setShowAdd(false);
-    setAddForm({ role: "advisory", name: "", designation: "", description: "", email: "" });
+    setAddForm({
+      role: "advisory",
+      name: "",
+      designation: "",
+      description: "",
+      email: "",
+      photo_url: "",
+    });
     load();
   }
 
@@ -328,10 +380,22 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
     setUploading(true);
     const ext = file.name.split(".").pop();
     const path = `editorial-board-${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage.from("editorial-documents").upload(path, file, { upsert: true });
-    if (upErr) { setUploading(false); return showToast(upErr.message, "error"); }
+    const { error: upErr } = await supabase.storage
+      .from("editorial-documents")
+      .upload(path, file, { upsert: true });
+    if (upErr) {
+      setUploading(false);
+      return showToast(upErr.message, "error");
+    }
     const { data: urlData } = supabase.storage.from("editorial-documents").getPublicUrl(path);
-    const { error: dbErr } = await supabase.from("editorial_board_document").update({ file_url: urlData.publicUrl, file_name: file.name, updated_at: new Date().toISOString() }).eq("id", boardDoc?.id ?? "");
+    const { error: dbErr } = await supabase
+      .from("editorial_board_document")
+      .update({
+        file_url: urlData.publicUrl,
+        file_name: file.name,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", boardDoc?.id ?? "");
     setUploading(false);
     if (dbErr) return showToast(dbErr.message, "error");
     showToast("Document uploaded.");
@@ -355,12 +419,18 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold" style={{ color: "#f5f0e8" }}>Editorial Board</h1>
+        <h1 className="text-2xl font-semibold" style={{ color: "#f5f0e8" }}>
+          Editorial Board
+        </h1>
         <button
           id="editorial-add-btn"
           onClick={() => setShowAdd(true)}
           className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:opacity-90"
-          style={{ background: "rgba(184,134,11,0.2)", color: "#d4a843", border: "1px solid rgba(184,134,11,0.3)" }}
+          style={{
+            background: "rgba(184,134,11,0.2)",
+            color: "#d4a843",
+            border: "1px solid rgba(184,134,11,0.3)",
+          }}
         >
           <Plus className="h-4 w-4" /> Add Member
         </button>
@@ -375,25 +445,45 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition hover:opacity-80"
-              style={{ background: "rgba(184,134,11,0.15)", color: "#d4a843", border: "1px solid rgba(184,134,11,0.3)" }}
+              style={{
+                background: "rgba(184,134,11,0.15)",
+                color: "#d4a843",
+                border: "1px solid rgba(184,134,11,0.3)",
+              }}
             >
               <Download className="h-4 w-4" />
               {boardDoc.file_name ?? "View current file"}
             </a>
           ) : (
-            <p className="text-sm" style={{ color: "#6b6450" }}>No document uploaded yet.</p>
+            <p className="text-sm" style={{ color: "#6b6450" }}>
+              No document uploaded yet.
+            </p>
           )}
           <button
             id="editorial-doc-upload-btn"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
             className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
-            style={{ background: "rgba(255,255,255,0.06)", color: "#f5f0e8", border: "1px solid rgba(255,255,255,0.1)" }}
+            style={{
+              background: "rgba(255,255,255,0.06)",
+              color: "#f5f0e8",
+              border: "1px solid rgba(255,255,255,0.1)",
+            }}
           >
-            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+            {uploading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4" />
+            )}
             {boardDoc?.file_url ? "Replace document" : "Upload document"}
           </button>
-          <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={uploadDocument} />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.doc,.docx"
+            className="hidden"
+            onChange={uploadDocument}
+          />
         </div>
         <p className="mt-2 text-xs" style={{ color: "#3d3728" }}>
           Accepted: PDF, DOC, DOCX · This file opens when visitors click "Click here to read more"
@@ -405,27 +495,125 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
         <Section title="Add New Member">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium uppercase tracking-wider" style={{ color: "#9a8a6a" }}>Role</label>
+              <label
+                className="text-xs font-medium uppercase tracking-wider"
+                style={{ color: "#9a8a6a" }}
+              >
+                Role
+              </label>
               <select
                 value={addForm.role}
                 onChange={(e) => setAddForm((f) => ({ ...f, role: e.target.value }))}
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(184,134,11,0.2)", color: "#f5f0e8", borderRadius: 8, padding: "10px 12px", fontSize: 14, outline: "none" }}
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(184,134,11,0.2)",
+                  color: "#f5f0e8",
+                  borderRadius: 8,
+                  padding: "10px 12px",
+                  fontSize: 14,
+                  outline: "none",
+                }}
               >
-                <option value="editor_in_chief" style={{ background: "#1a1a1c" }}>Editor in Chief & Publisher</option>
-                <option value="executive_editor" style={{ background: "#1a1a1c" }}>Executive Editor</option>
-                <option value="advisory" style={{ background: "#1a1a1c" }}>Advisory Board</option>
+                <option value="editor_in_chief" style={{ background: "#1a1a1c" }}>
+                  Editor in Chief & Publisher
+                </option>
+                <option value="executive_editor" style={{ background: "#1a1a1c" }}>
+                  Executive Editor
+                </option>
+                <option value="advisory" style={{ background: "#1a1a1c" }}>
+                  Advisory Board
+                </option>
               </select>
             </div>
-            <InputRow label="Name" value={addForm.name} onChange={(v) => setAddForm((f) => ({ ...f, name: v }))} placeholder="Dr. Full Name" />
-            <InputRow label="Designation" value={addForm.designation} onChange={(v) => setAddForm((f) => ({ ...f, designation: v }))} placeholder="e.g. Executive Editor" />
-            <InputRow label="Email" value={addForm.email} type="email" onChange={(v) => setAddForm((f) => ({ ...f, email: v }))} placeholder="email@example.com" />
+            <InputRow
+              label="Name"
+              value={addForm.name}
+              onChange={(v) => setAddForm((f) => ({ ...f, name: v }))}
+              placeholder="Dr. Full Name"
+            />
+            <InputRow
+              label="Designation"
+              value={addForm.designation}
+              onChange={(v) => setAddForm((f) => ({ ...f, designation: v }))}
+              placeholder="e.g. Executive Editor"
+            />
+            <InputRow
+              label="Email"
+              value={addForm.email}
+              type="email"
+              onChange={(v) => setAddForm((f) => ({ ...f, email: v }))}
+              placeholder="email@example.com"
+            />
             <div className="sm:col-span-2">
-              <InputRow label="Description / Address" value={addForm.description} onChange={(v) => setAddForm((f) => ({ ...f, description: v }))} placeholder="University, position, city…" multiline />
+              <InputRow
+                label="Description / Address"
+                value={addForm.description}
+                onChange={(v) => setAddForm((f) => ({ ...f, description: v }))}
+                placeholder="University, position, city…"
+                multiline
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label
+                className="text-xs font-medium uppercase tracking-wider block mb-1.5"
+                style={{ color: "#9a8a6a" }}
+              >
+                Photo
+              </label>
+              <div className="flex items-center gap-4">
+                {addForm.photo_url ? (
+                  <div className="relative size-16 shrink-0 rounded-full border border-accent/40 overflow-hidden">
+                    <img src={addForm.photo_url} alt="Preview" className="size-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setAddForm((f) => ({ ...f, photo_url: "" }))}
+                      className="absolute inset-0 bg-black/60 flex items-center justify-center text-red-400 opacity-0 hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="size-16 shrink-0 rounded-full border border-dashed border-accent/35 flex items-center justify-center text-accent/60">
+                    <Upload className="size-5" />
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setSaving(true);
+                    const ext = file.name.split(".").pop();
+                    const path = `member-photo-${Date.now()}.${ext}`;
+                    const { error: upErr } = await supabase.storage
+                      .from("editorial-documents")
+                      .upload(path, file, { upsert: true });
+                    if (upErr) {
+                      setSaving(false);
+                      return showToast(upErr.message, "error");
+                    }
+                    const { data: urlData } = supabase.storage
+                      .from("editorial-documents")
+                      .getPublicUrl(path);
+                    setAddForm((f) => ({ ...f, photo_url: urlData.publicUrl }));
+                    setSaving(false);
+                    showToast("Photo uploaded successfully.");
+                  }}
+                  className="text-xs text-foreground/75"
+                />
+              </div>
             </div>
           </div>
           <div className="mt-4 flex gap-3">
             <SaveBtn onClick={addMember} loading={saving} />
-            <button onClick={() => setShowAdd(false)} className="rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80" style={{ color: "#6b6450" }}>Cancel</button>
+            <button
+              onClick={() => setShowAdd(false)}
+              className="rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80"
+              style={{ color: "#6b6450" }}
+            >
+              Cancel
+            </button>
           </div>
         </Section>
       )}
@@ -444,9 +632,17 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
                     onSave={() => saveEdit(m.id)}
                     onCancel={() => setEditingId(null)}
                     saving={saving}
+                    setSaving={setSaving}
+                    showToast={showToast}
                   />
                 ) : (
-                  <MemberCard key={m.id} member={m} onEdit={() => startEdit(m)} onDelete={() => deleteMember(m.id)} />
+                  <MemberCard
+                    key={m.id}
+                    member={m}
+                    onEdit={() => startEdit(m)}
+                    onDelete={() => deleteMember(m.id)}
+                    onPhotoUpdate={(url) => updateMemberPhoto(m.id, url)}
+                  />
                 ),
               )}
             </div>
@@ -457,23 +653,129 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
   );
 }
 
-function MemberCard({ member, onEdit, onDelete }: { member: EditorialBoardMember; onEdit: () => void; onDelete: () => void }) {
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter((w) => /^[A-Z]/.test(w))
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("");
+}
+
+function MemberCard({
+  member,
+  onEdit,
+  onDelete,
+  onPhotoUpdate,
+}: {
+  member: EditorialBoardMember;
+  onEdit: () => void;
+  onDelete: () => void;
+  onPhotoUpdate: (photoUrl: string | null) => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
   return (
     <div
       className="flex items-start justify-between gap-4 rounded-xl p-4"
       style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
     >
-      <div className="min-w-0 flex-1">
-        <p className="font-semibold" style={{ color: "#f5f0e8" }}>{member.name}</p>
-        {member.designation && <p className="mt-0.5 text-sm" style={{ color: "#b8860b" }}>{member.designation}</p>}
-        {member.description && <p className="mt-1 text-sm leading-relaxed" style={{ color: "#6b6450" }}>{member.description}</p>}
-        {member.email && <a href={`mailto:${member.email}`} className="mt-1 block text-xs hover:underline" style={{ color: "#9a8a6a" }}>{member.email}</a>}
+      <div className="flex items-start gap-4 min-w-0 flex-1">
+        <input
+          type="file"
+          ref={fileRef}
+          accept="image/*"
+          className="hidden"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            setUploading(true);
+            const ext = file.name.split(".").pop();
+            const path = `member-photo-${Date.now()}.${ext}`;
+            const { error: upErr } = await supabase.storage
+              .from("editorial-documents")
+              .upload(path, file, { upsert: true });
+            if (upErr) {
+              setUploading(false);
+              alert(upErr.message);
+              return;
+            }
+            const { data: urlData } = supabase.storage
+              .from("editorial-documents")
+              .getPublicUrl(path);
+            onPhotoUpdate(urlData.publicUrl);
+            setUploading(false);
+          }}
+        />
+
+        <div className="relative size-12 shrink-0 rounded-full overflow-hidden group cursor-pointer border border-accent/20 hover:border-accent transition-colors">
+          {uploading ? (
+            <div className="size-full bg-black/60 flex items-center justify-center">
+              <Loader2 className="size-4 animate-spin text-accent" />
+            </div>
+          ) : (
+            <>
+              {member.photo_url ? (
+                <img src={member.photo_url} alt={member.name} className="size-full object-cover" />
+              ) : (
+                <div className="size-full bg-accent/5 flex items-center justify-center text-accent text-xs font-semibold">
+                  {getInitials(member.name)}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="absolute inset-0 bg-black/65 flex flex-col items-center justify-center text-[0.6rem] text-accent font-semibold opacity-0 group-hover:opacity-100 transition-opacity outline-none"
+                title="Upload profile"
+              >
+                <Upload className="size-3.5 mb-0.5 text-accent" />
+                <span>Upload</span>
+              </button>
+            </>
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold" style={{ color: "#f5f0e8" }}>
+            {member.name}
+          </p>
+          {member.designation && (
+            <p className="mt-0.5 text-sm" style={{ color: "#b8860b" }}>
+              {member.designation}
+            </p>
+          )}
+          {member.description && (
+            <p className="mt-1 text-sm leading-relaxed" style={{ color: "#6b6450" }}>
+              {member.description}
+            </p>
+          )}
+          {member.email && (
+            <a
+              href={`mailto:${member.email}`}
+              className="mt-1 block text-xs hover:underline"
+              style={{ color: "#9a8a6a" }}
+            >
+              {member.email}
+            </a>
+          )}
+        </div>
       </div>
       <div className="flex shrink-0 gap-2">
-        <button onClick={onEdit} className="rounded-lg p-2 transition hover:opacity-80" style={{ background: "rgba(184,134,11,0.15)", color: "#d4a843" }} aria-label="Edit member">
+        <button
+          onClick={onEdit}
+          className="rounded-lg p-2 transition hover:opacity-80"
+          style={{ background: "rgba(184,134,11,0.15)", color: "#d4a843" }}
+          aria-label="Edit member"
+        >
           <Pencil className="h-4 w-4" />
         </button>
-        <button onClick={onDelete} className="rounded-lg p-2 transition hover:opacity-80" style={{ background: "rgba(220,38,38,0.15)", color: "#f87171" }} aria-label="Delete member">
+        <button
+          onClick={onDelete}
+          className="rounded-lg p-2 transition hover:opacity-80"
+          style={{ background: "rgba(220,38,38,0.15)", color: "#f87171" }}
+          aria-label="Delete member"
+        >
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
@@ -481,32 +783,149 @@ function MemberCard({ member, onEdit, onDelete }: { member: EditorialBoardMember
   );
 }
 
-function EditMemberForm({ form, setForm, onSave, onCancel, saving }: { form: Partial<EditorialBoardMember>; setForm: Dispatch<SetStateAction<Partial<EditorialBoardMember>>>; onSave: () => void; onCancel: () => void; saving: boolean }) {
+function EditMemberForm({
+  form,
+  setForm,
+  onSave,
+  onCancel,
+  saving,
+  setSaving,
+  showToast,
+}: {
+  form: Partial<EditorialBoardMember>;
+  setForm: Dispatch<SetStateAction<Partial<EditorialBoardMember>>>;
+  onSave: () => void;
+  onCancel: () => void;
+  saving: boolean;
+  setSaving: Dispatch<SetStateAction<boolean>>;
+  showToast: (m: string, t?: "success" | "error") => void;
+}) {
   return (
-    <div className="rounded-xl p-4 space-y-3" style={{ background: "rgba(184,134,11,0.06)", border: "1px solid rgba(184,134,11,0.2)" }}>
+    <div
+      className="rounded-xl p-4 space-y-3"
+      style={{ background: "rgba(184,134,11,0.06)", border: "1px solid rgba(184,134,11,0.2)" }}
+    >
       <div className="grid gap-3 sm:grid-cols-2">
-        <InputRow label="Name" value={form.name ?? ""} onChange={(v) => setForm((f) => ({ ...f, name: v }))} />
-        <InputRow label="Designation" value={form.designation ?? ""} onChange={(v) => setForm((f) => ({ ...f, designation: v }))} />
-        <InputRow label="Email" value={form.email ?? ""} type="email" onChange={(v) => setForm((f) => ({ ...f, email: v }))} />
+        <InputRow
+          label="Name"
+          value={form.name ?? ""}
+          onChange={(v) => setForm((f) => ({ ...f, name: v }))}
+        />
+        <InputRow
+          label="Designation"
+          value={form.designation ?? ""}
+          onChange={(v) => setForm((f) => ({ ...f, designation: v }))}
+        />
+        <InputRow
+          label="Email"
+          value={form.email ?? ""}
+          type="email"
+          onChange={(v) => setForm((f) => ({ ...f, email: v }))}
+        />
         <div>
-          <label className="text-xs font-medium uppercase tracking-wider" style={{ color: "#9a8a6a" }}>Role</label>
+          <label
+            className="text-xs font-medium uppercase tracking-wider"
+            style={{ color: "#9a8a6a" }}
+          >
+            Role
+          </label>
           <select
             value={form.role ?? "advisory"}
-            onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as EditorialBoardMember["role"] }))}
-            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(184,134,11,0.2)", color: "#f5f0e8", borderRadius: 8, padding: "10px 12px", fontSize: 14, outline: "none", width: "100%", marginTop: 6 }}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, role: e.target.value as EditorialBoardMember["role"] }))
+            }
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(184,134,11,0.2)",
+              color: "#f5f0e8",
+              borderRadius: 8,
+              padding: "10px 12px",
+              fontSize: 14,
+              outline: "none",
+              width: "100%",
+              marginTop: 6,
+            }}
           >
-            <option value="editor_in_chief" style={{ background: "#1a1a1c" }}>Editor in Chief</option>
-            <option value="executive_editor" style={{ background: "#1a1a1c" }}>Executive Editor</option>
-            <option value="advisory" style={{ background: "#1a1a1c" }}>Advisory</option>
+            <option value="editor_in_chief" style={{ background: "#1a1a1c" }}>
+              Editor in Chief
+            </option>
+            <option value="executive_editor" style={{ background: "#1a1a1c" }}>
+              Executive Editor
+            </option>
+            <option value="advisory" style={{ background: "#1a1a1c" }}>
+              Advisory
+            </option>
           </select>
         </div>
         <div className="sm:col-span-2">
-          <InputRow label="Description" value={form.description ?? ""} onChange={(v) => setForm((f) => ({ ...f, description: v }))} multiline />
+          <InputRow
+            label="Description"
+            value={form.description ?? ""}
+            onChange={(v) => setForm((f) => ({ ...f, description: v }))}
+            multiline
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <label
+            className="text-xs font-medium uppercase tracking-wider block mb-1.5"
+            style={{ color: "#9a8a6a" }}
+          >
+            Photo
+          </label>
+          <div className="flex items-center gap-4">
+            {form.photo_url ? (
+              <div className="relative size-16 shrink-0 rounded-full border border-accent/40 overflow-hidden">
+                <img src={form.photo_url} alt="Preview" className="size-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, photo_url: "" }))}
+                  className="absolute inset-0 bg-black/60 flex items-center justify-center text-red-400 opacity-0 hover:opacity-100 transition-opacity"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="size-16 shrink-0 rounded-full border border-dashed border-accent/35 flex items-center justify-center text-accent/60">
+                <Upload className="size-5" />
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setSaving(true);
+                const ext = file.name.split(".").pop();
+                const path = `member-photo-${Date.now()}.${ext}`;
+                const { error: upErr } = await supabase.storage
+                  .from("editorial-documents")
+                  .upload(path, file, { upsert: true });
+                if (upErr) {
+                  setSaving(false);
+                  return showToast(upErr.message, "error");
+                }
+                const { data: urlData } = supabase.storage
+                  .from("editorial-documents")
+                  .getPublicUrl(path);
+                setForm((f) => ({ ...f, photo_url: urlData.publicUrl }));
+                setSaving(false);
+                showToast("Photo uploaded successfully.");
+              }}
+              className="text-xs text-foreground/75"
+            />
+          </div>
         </div>
       </div>
       <div className="flex gap-3">
         <SaveBtn onClick={onSave} loading={saving} />
-        <button onClick={onCancel} className="rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80" style={{ color: "#6b6450" }}>Cancel</button>
+        <button
+          onClick={onCancel}
+          className="rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80"
+          style={{ color: "#6b6450" }}
+        >
+          Cancel
+        </button>
       </div>
     </div>
   );
@@ -530,11 +949,16 @@ function NewsTab({ showToast }: { showToast: (m: string, t?: "success" | "error"
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   async function saveEdit(id: string) {
     setSaving(true);
-    const { error } = await supabase.from("news_events").update({ content: editContent, updated_at: new Date().toISOString() }).eq("id", id);
+    const { error } = await supabase
+      .from("news_events")
+      .update({ content: editContent, updated_at: new Date().toISOString() })
+      .eq("id", id);
     setSaving(false);
     if (error) return showToast(error.message, "error");
     showToast("News item updated.");
@@ -543,7 +967,10 @@ function NewsTab({ showToast }: { showToast: (m: string, t?: "success" | "error"
   }
 
   async function toggleActive(item: NewsEvent) {
-    const { error } = await supabase.from("news_events").update({ is_active: !item.is_active }).eq("id", item.id);
+    const { error } = await supabase
+      .from("news_events")
+      .update({ is_active: !item.is_active })
+      .eq("id", item.id);
     if (error) return showToast(error.message, "error");
     load();
   }
@@ -560,7 +987,9 @@ function NewsTab({ showToast }: { showToast: (m: string, t?: "success" | "error"
     if (!newContent.trim()) return showToast("Content is required.", "error");
     setSaving(true);
     const maxOrder = items.length ? Math.max(...items.map((i) => i.sort_order)) + 1 : 1;
-    const { error } = await supabase.from("news_events").insert({ content: newContent, sort_order: maxOrder });
+    const { error } = await supabase
+      .from("news_events")
+      .insert({ content: newContent, sort_order: maxOrder });
     setSaving(false);
     if (error) return showToast(error.message, "error");
     showToast("News item added.");
@@ -573,7 +1002,8 @@ function NewsTab({ showToast }: { showToast: (m: string, t?: "success" | "error"
     const idx = items.findIndex((i) => i.id === id);
     const swapIdx = direction === "up" ? idx - 1 : idx + 1;
     if (swapIdx < 0 || swapIdx >= items.length) return;
-    const a = items[idx], b = items[swapIdx];
+    const a = items[idx],
+      b = items[swapIdx];
     if (!a || !b) return;
     await Promise.all([
       supabase.from("news_events").update({ sort_order: b.sort_order }).eq("id", a.id),
@@ -587,12 +1017,18 @@ function NewsTab({ showToast }: { showToast: (m: string, t?: "success" | "error"
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold" style={{ color: "#f5f0e8" }}>News & Events</h1>
+        <h1 className="text-2xl font-semibold" style={{ color: "#f5f0e8" }}>
+          News & Events
+        </h1>
         <button
           id="news-add-btn"
           onClick={() => setShowAdd(true)}
           className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:opacity-90"
-          style={{ background: "rgba(184,134,11,0.2)", color: "#d4a843", border: "1px solid rgba(184,134,11,0.3)" }}
+          style={{
+            background: "rgba(184,134,11,0.2)",
+            color: "#d4a843",
+            border: "1px solid rgba(184,134,11,0.3)",
+          }}
         >
           <Plus className="h-4 w-4" /> Add Item
         </button>
@@ -600,10 +1036,22 @@ function NewsTab({ showToast }: { showToast: (m: string, t?: "success" | "error"
 
       {showAdd && (
         <Section title="Add News Item">
-          <InputRow label="Content" value={newContent} onChange={setNewContent} placeholder="Enter news or announcement…" multiline />
+          <InputRow
+            label="Content"
+            value={newContent}
+            onChange={setNewContent}
+            placeholder="Enter news or announcement…"
+            multiline
+          />
           <div className="mt-4 flex gap-3">
             <SaveBtn onClick={addItem} loading={saving} />
-            <button onClick={() => setShowAdd(false)} className="rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80" style={{ color: "#6b6450" }}>Cancel</button>
+            <button
+              onClick={() => setShowAdd(false)}
+              className="rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80"
+              style={{ color: "#6b6450" }}
+            >
+              Cancel
+            </button>
           </div>
         </Section>
       )}
@@ -624,23 +1072,75 @@ function NewsTab({ showToast }: { showToast: (m: string, t?: "success" | "error"
                 <InputRow label="Content" value={editContent} onChange={setEditContent} multiline />
                 <div className="flex gap-3">
                   <SaveBtn onClick={() => saveEdit(item.id)} loading={saving} />
-                  <button onClick={() => setEditingId(null)} className="rounded-lg px-4 py-2.5 text-sm" style={{ color: "#6b6450" }}>Cancel</button>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="rounded-lg px-4 py-2.5 text-sm"
+                    style={{ color: "#6b6450" }}
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
             ) : (
               <div className="flex items-start gap-4">
                 <div className="flex-1">
-                  <p className="text-sm leading-relaxed" style={{ color: "#f5f0e8" }}>{item.content}</p>
+                  <p className="text-sm leading-relaxed" style={{ color: "#f5f0e8" }}>
+                    {item.content}
+                  </p>
                 </div>
                 <div className="flex shrink-0 flex-col gap-1">
                   <div className="flex gap-1">
-                    <button onClick={() => moveItem(item.id, "up")} disabled={idx === 0} className="rounded-lg p-1.5 transition hover:opacity-80 disabled:opacity-30" style={{ color: "#6b6450" }} aria-label="Move up"><ChevronUp className="h-3.5 w-3.5" /></button>
-                    <button onClick={() => moveItem(item.id, "down")} disabled={idx === items.length - 1} className="rounded-lg p-1.5 transition hover:opacity-80 disabled:opacity-30" style={{ color: "#6b6450" }} aria-label="Move down"><ChevronDown className="h-3.5 w-3.5" /></button>
+                    <button
+                      onClick={() => moveItem(item.id, "up")}
+                      disabled={idx === 0}
+                      className="rounded-lg p-1.5 transition hover:opacity-80 disabled:opacity-30"
+                      style={{ color: "#6b6450" }}
+                      aria-label="Move up"
+                    >
+                      <ChevronUp className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => moveItem(item.id, "down")}
+                      disabled={idx === items.length - 1}
+                      className="rounded-lg p-1.5 transition hover:opacity-80 disabled:opacity-30"
+                      style={{ color: "#6b6450" }}
+                      aria-label="Move down"
+                    >
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                   <div className="flex gap-1">
-                    <button onClick={() => toggleActive(item)} className="rounded-lg p-1.5 transition hover:opacity-80" style={{ color: item.is_active ? "#6b6450" : "#d4a843" }} aria-label={item.is_active ? "Hide" : "Show"}>{item.is_active ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}</button>
-                    <button onClick={() => { setEditingId(item.id); setEditContent(item.content); }} className="rounded-lg p-1.5 transition hover:opacity-80" style={{ color: "#d4a843" }} aria-label="Edit"><Pencil className="h-3.5 w-3.5" /></button>
-                    <button onClick={() => deleteItem(item.id)} className="rounded-lg p-1.5 transition hover:opacity-80" style={{ color: "#f87171" }} aria-label="Delete"><Trash2 className="h-3.5 w-3.5" /></button>
+                    <button
+                      onClick={() => toggleActive(item)}
+                      className="rounded-lg p-1.5 transition hover:opacity-80"
+                      style={{ color: item.is_active ? "#6b6450" : "#d4a843" }}
+                      aria-label={item.is_active ? "Hide" : "Show"}
+                    >
+                      {item.is_active ? (
+                        <EyeOff className="h-3.5 w-3.5" />
+                      ) : (
+                        <Eye className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingId(item.id);
+                        setEditContent(item.content);
+                      }}
+                      className="rounded-lg p-1.5 transition hover:opacity-80"
+                      style={{ color: "#d4a843" }}
+                      aria-label="Edit"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => deleteItem(item.id)}
+                      className="rounded-lg p-1.5 transition hover:opacity-80"
+                      style={{ color: "#f87171" }}
+                      aria-label="Delete"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -654,14 +1154,23 @@ function NewsTab({ showToast }: { showToast: (m: string, t?: "success" | "error"
 
 // ─── Publications Tab ──────────────────────────────────────────────────────────
 
-function PublicationsTab({ showToast }: { showToast: (m: string, t?: "success" | "error") => void }) {
+function PublicationsTab({
+  showToast,
+}: {
+  showToast: (m: string, t?: "success" | "error") => void;
+}) {
   const [pubs, setPubs] = useState<Publication[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Publication>>({});
   const [saving, setSaving] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
-  const [addForm, setAddForm] = useState({ title: "", volume: "", period: "", year: new Date().getFullYear() });
+  const [addForm, setAddForm] = useState({
+    title: "",
+    volume: "",
+    period: "",
+    year: new Date().getFullYear(),
+  });
   const [uploading, setUploading] = useState<string | null>(null); // id of pub being uploaded
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const addFileRef = useRef<HTMLInputElement>(null);
@@ -674,13 +1183,23 @@ function PublicationsTab({ showToast }: { showToast: (m: string, t?: "success" |
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
-  async function uploadPdf(pubId: string, file: File): Promise<{ url: string; name: string } | null> {
+  async function uploadPdf(
+    pubId: string,
+    file: File,
+  ): Promise<{ url: string; name: string } | null> {
     const ext = file.name.split(".").pop();
     const path = `pub-${pubId}-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("publications").upload(path, file, { upsert: true });
-    if (error) { showToast(error.message, "error"); return null; }
+    const { error } = await supabase.storage
+      .from("publications")
+      .upload(path, file, { upsert: true });
+    if (error) {
+      showToast(error.message, "error");
+      return null;
+    }
     const { data } = supabase.storage.from("publications").getPublicUrl(path);
     return { url: data.publicUrl, name: file.name };
   }
@@ -693,12 +1212,15 @@ function PublicationsTab({ showToast }: { showToast: (m: string, t?: "success" |
       const res = await uploadPdf(id, fileInput.files[0]);
       if (res) pdfData = { pdf_url: res.url, pdf_name: res.name };
     }
-    const { error } = await supabase.from("publications").update({
-      ...editForm,
-      ...(pdfData ?? {}),
-      year: Number(editForm.year),
-      updated_at: new Date().toISOString(),
-    }).eq("id", id);
+    const { error } = await supabase
+      .from("publications")
+      .update({
+        ...editForm,
+        ...(pdfData ?? {}),
+        year: Number(editForm.year),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
     setSaving(false);
     if (error) return showToast(error.message, "error");
     showToast("Publication updated.");
@@ -718,8 +1240,15 @@ function PublicationsTab({ showToast }: { showToast: (m: string, t?: "success" |
     if (!addForm.title.trim()) return showToast("Title is required.", "error");
     setSaving(true);
     const maxOrder = pubs.length ? Math.max(...pubs.map((p) => p.sort_order)) + 1 : 1;
-    const { data, error } = await supabase.from("publications").insert({ ...addForm, year: Number(addForm.year), sort_order: maxOrder }).select().single();
-    if (error || !data) { setSaving(false); return showToast(error?.message ?? "Error adding publication.", "error"); }
+    const { data, error } = await supabase
+      .from("publications")
+      .insert({ ...addForm, year: Number(addForm.year), sort_order: maxOrder })
+      .select()
+      .single();
+    if (error || !data) {
+      setSaving(false);
+      return showToast(error?.message ?? "Error adding publication.", "error");
+    }
     let pdfData: { pdf_url: string; pdf_name: string } | undefined;
     if (addPdfFile) {
       const res = await uploadPdf(data.id, addPdfFile);
@@ -740,7 +1269,10 @@ function PublicationsTab({ showToast }: { showToast: (m: string, t?: "success" |
     setUploading(pub.id);
     const res = await uploadPdf(pub.id, file);
     if (res) {
-      await supabase.from("publications").update({ pdf_url: res.url, pdf_name: res.name, updated_at: new Date().toISOString() }).eq("id", pub.id);
+      await supabase
+        .from("publications")
+        .update({ pdf_url: res.url, pdf_name: res.name, updated_at: new Date().toISOString() })
+        .eq("id", pub.id);
       showToast("PDF uploaded.");
       load();
     }
@@ -752,12 +1284,18 @@ function PublicationsTab({ showToast }: { showToast: (m: string, t?: "success" |
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold" style={{ color: "#f5f0e8" }}>Publications</h1>
+        <h1 className="text-2xl font-semibold" style={{ color: "#f5f0e8" }}>
+          Publications
+        </h1>
         <button
           id="pub-add-btn"
           onClick={() => setShowAdd(true)}
           className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:opacity-90"
-          style={{ background: "rgba(184,134,11,0.2)", color: "#d4a843", border: "1px solid rgba(184,134,11,0.3)" }}
+          style={{
+            background: "rgba(184,134,11,0.2)",
+            color: "#d4a843",
+            border: "1px solid rgba(184,134,11,0.3)",
+          }}
         >
           <Plus className="h-4 w-4" /> Add Publication
         </button>
@@ -767,28 +1305,69 @@ function PublicationsTab({ showToast }: { showToast: (m: string, t?: "success" |
         <Section title="Add New Publication">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <InputRow label="Title" value={addForm.title} onChange={(v) => setAddForm((f) => ({ ...f, title: v }))} placeholder="Bharatiya Manyaprad Vol XII…" />
+              <InputRow
+                label="Title"
+                value={addForm.title}
+                onChange={(v) => setAddForm((f) => ({ ...f, title: v }))}
+                placeholder="Bharatiya Manyaprad Vol XII…"
+              />
             </div>
-            <InputRow label="Volume" value={addForm.volume} onChange={(v) => setAddForm((f) => ({ ...f, volume: v }))} placeholder="Vol. XII" />
-            <InputRow label="Period" value={addForm.period} onChange={(v) => setAddForm((f) => ({ ...f, period: v }))} placeholder="May 2025" />
-            <InputRow label="Year" value={String(addForm.year)} type="number" onChange={(v) => setAddForm((f) => ({ ...f, year: Number(v) }))} />
+            <InputRow
+              label="Volume"
+              value={addForm.volume}
+              onChange={(v) => setAddForm((f) => ({ ...f, volume: v }))}
+              placeholder="Vol. XII"
+            />
+            <InputRow
+              label="Period"
+              value={addForm.period}
+              onChange={(v) => setAddForm((f) => ({ ...f, period: v }))}
+              placeholder="May 2025"
+            />
+            <InputRow
+              label="Year"
+              value={String(addForm.year)}
+              type="number"
+              onChange={(v) => setAddForm((f) => ({ ...f, year: Number(v) }))}
+            />
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium uppercase tracking-wider" style={{ color: "#9a8a6a" }}>PDF File (optional)</label>
+              <label
+                className="text-xs font-medium uppercase tracking-wider"
+                style={{ color: "#9a8a6a" }}
+              >
+                PDF File (optional)
+              </label>
               <button
                 type="button"
                 onClick={() => addFileRef.current?.click()}
                 className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80"
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(184,134,11,0.2)", color: "#9a8a6a" }}
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(184,134,11,0.2)",
+                  color: "#9a8a6a",
+                }}
               >
                 <Upload className="h-4 w-4" />
                 {addPdfFile ? addPdfFile.name : "Choose PDF…"}
               </button>
-              <input ref={addFileRef} type="file" accept=".pdf" className="hidden" onChange={(e) => setAddPdfFile(e.target.files?.[0] ?? null)} />
+              <input
+                ref={addFileRef}
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={(e) => setAddPdfFile(e.target.files?.[0] ?? null)}
+              />
             </div>
           </div>
           <div className="mt-4 flex gap-3">
             <SaveBtn onClick={addPub} loading={saving} />
-            <button onClick={() => setShowAdd(false)} className="rounded-lg px-4 py-2.5 text-sm" style={{ color: "#6b6450" }}>Cancel</button>
+            <button
+              onClick={() => setShowAdd(false)}
+              className="rounded-lg px-4 py-2.5 text-sm"
+              style={{ color: "#6b6450" }}
+            >
+              Cancel
+            </button>
           </div>
         </Section>
       )}
@@ -798,47 +1377,106 @@ function PublicationsTab({ showToast }: { showToast: (m: string, t?: "success" |
           <div
             key={pub.id}
             className="rounded-xl p-5"
-            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(184,134,11,0.12)" }}
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(184,134,11,0.12)",
+            }}
           >
             {editingId === pub.id ? (
               <div className="space-y-3">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="sm:col-span-2">
-                    <InputRow label="Title" value={editForm.title ?? ""} onChange={(v) => setEditForm((f) => ({ ...f, title: v }))} />
+                    <InputRow
+                      label="Title"
+                      value={editForm.title ?? ""}
+                      onChange={(v) => setEditForm((f) => ({ ...f, title: v }))}
+                    />
                   </div>
-                  <InputRow label="Volume" value={editForm.volume ?? ""} onChange={(v) => setEditForm((f) => ({ ...f, volume: v }))} />
-                  <InputRow label="Period" value={editForm.period ?? ""} onChange={(v) => setEditForm((f) => ({ ...f, period: v }))} />
-                  <InputRow label="Year" value={String(editForm.year ?? "")} type="number" onChange={(v) => setEditForm((f) => ({ ...f, year: Number(v) }))} />
+                  <InputRow
+                    label="Volume"
+                    value={editForm.volume ?? ""}
+                    onChange={(v) => setEditForm((f) => ({ ...f, volume: v }))}
+                  />
+                  <InputRow
+                    label="Period"
+                    value={editForm.period ?? ""}
+                    onChange={(v) => setEditForm((f) => ({ ...f, period: v }))}
+                  />
+                  <InputRow
+                    label="Year"
+                    value={String(editForm.year ?? "")}
+                    type="number"
+                    onChange={(v) => setEditForm((f) => ({ ...f, year: Number(v) }))}
+                  />
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium uppercase tracking-wider" style={{ color: "#9a8a6a" }}>Replace PDF</label>
+                    <label
+                      className="text-xs font-medium uppercase tracking-wider"
+                      style={{ color: "#9a8a6a" }}
+                    >
+                      Replace PDF
+                    </label>
                     <button
                       type="button"
                       onClick={() => fileRefs.current[pub.id]?.click()}
                       className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80"
-                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(184,134,11,0.2)", color: "#9a8a6a" }}
+                      style={{
+                        background: "rgba(255,255,255,0.05)",
+                        border: "1px solid rgba(184,134,11,0.2)",
+                        color: "#9a8a6a",
+                      }}
                     >
                       <Upload className="h-4 w-4" /> Choose new PDF
                     </button>
-                    <input ref={(el) => { fileRefs.current[pub.id] = el; }} type="file" accept=".pdf" className="hidden" />
+                    <input
+                      ref={(el) => {
+                        fileRefs.current[pub.id] = el;
+                      }}
+                      type="file"
+                      accept=".pdf"
+                      className="hidden"
+                    />
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <SaveBtn onClick={() => saveEdit(pub.id)} loading={saving} />
-                  <button onClick={() => setEditingId(null)} className="rounded-lg px-4 py-2.5 text-sm" style={{ color: "#6b6450" }}>Cancel</button>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="rounded-lg px-4 py-2.5 text-sm"
+                    style={{ color: "#6b6450" }}
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
             ) : (
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs uppercase tracking-widest" style={{ color: "#b8860b" }}>{pub.period}</p>
-                  <p className="mt-1 font-semibold" style={{ color: "#f5f0e8" }}>{pub.title}</p>
-                  <p className="text-sm" style={{ color: "#6b6450" }}>{pub.volume}</p>
+                  <p className="text-xs uppercase tracking-widest" style={{ color: "#b8860b" }}>
+                    {pub.period}
+                  </p>
+                  <p className="mt-1 font-semibold" style={{ color: "#f5f0e8" }}>
+                    {pub.title}
+                  </p>
+                  <p className="text-sm" style={{ color: "#6b6450" }}>
+                    {pub.volume}
+                  </p>
                   {pub.pdf_url ? (
-                    <a href={pub.pdf_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-xs hover:underline" style={{ color: "#d4a843" }}>
+                    <a
+                      href={pub.pdf_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-flex items-center gap-1.5 text-xs hover:underline"
+                      style={{ color: "#d4a843" }}
+                    >
                       <Download className="h-3.5 w-3.5" /> {pub.pdf_name ?? "Download PDF"}
                     </a>
                   ) : (
-                    <span className="mt-2 inline-flex items-center gap-1.5 text-xs" style={{ color: "#3d3728" }}>No PDF uploaded</span>
+                    <span
+                      className="mt-2 inline-flex items-center gap-1.5 text-xs"
+                      style={{ color: "#3d3728" }}
+                    >
+                      No PDF uploaded
+                    </span>
                   )}
                 </div>
                 <div className="flex shrink-0 gap-2 flex-wrap justify-end">
@@ -846,23 +1484,54 @@ function PublicationsTab({ showToast }: { showToast: (m: string, t?: "success" |
                     onClick={() => fileRefs.current[`quick-${pub.id}`]?.click()}
                     disabled={uploading === pub.id}
                     className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition hover:opacity-80 disabled:opacity-50"
-                    style={{ background: "rgba(255,255,255,0.06)", color: "#9a8a6a", border: "1px solid rgba(255,255,255,0.08)" }}
+                    style={{
+                      background: "rgba(255,255,255,0.06)",
+                      color: "#9a8a6a",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                    }}
                     aria-label="Upload PDF"
                   >
-                    {uploading === pub.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                    {uploading === pub.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Upload className="h-3.5 w-3.5" />
+                    )}
                     {pub.pdf_url ? "Replace PDF" : "Upload PDF"}
                   </button>
                   <input
-                    ref={(el) => { fileRefs.current[`quick-${pub.id}`] = el; }}
+                    ref={(el) => {
+                      fileRefs.current[`quick-${pub.id}`] = el;
+                    }}
                     type="file"
                     accept=".pdf"
                     className="hidden"
-                    onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadExistingPdf(pub, f); }}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) uploadExistingPdf(pub, f);
+                    }}
                   />
-                  <button onClick={() => { setEditingId(pub.id); setEditForm({ title: pub.title, volume: pub.volume, period: pub.period, year: pub.year }); }} className="rounded-lg p-2 transition hover:opacity-80" style={{ background: "rgba(184,134,11,0.15)", color: "#d4a843" }} aria-label="Edit">
+                  <button
+                    onClick={() => {
+                      setEditingId(pub.id);
+                      setEditForm({
+                        title: pub.title,
+                        volume: pub.volume,
+                        period: pub.period,
+                        year: pub.year,
+                      });
+                    }}
+                    className="rounded-lg p-2 transition hover:opacity-80"
+                    style={{ background: "rgba(184,134,11,0.15)", color: "#d4a843" }}
+                    aria-label="Edit"
+                  >
                     <Pencil className="h-4 w-4" />
                   </button>
-                  <button onClick={() => deletePub(pub.id)} className="rounded-lg p-2 transition hover:opacity-80" style={{ background: "rgba(220,38,38,0.15)", color: "#f87171" }} aria-label="Delete">
+                  <button
+                    onClick={() => deletePub(pub.id)}
+                    className="rounded-lg p-2 transition hover:opacity-80"
+                    style={{ background: "rgba(220,38,38,0.15)", color: "#f87171" }}
+                    aria-label="Delete"
+                  >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
@@ -885,7 +1554,8 @@ function SettingsTab({ showToast }: { showToast: (m: string, t?: "success" | "er
 
   async function handleChangePassword(e: FormEvent) {
     e.preventDefault();
-    if (newPassword.length < 4) return showToast("Password must be at least 4 characters.", "error");
+    if (newPassword.length < 4)
+      return showToast("Password must be at least 4 characters.", "error");
     if (newPassword !== confirmPassword) return showToast("Passwords do not match.", "error");
     setSaving(true);
     const result = await changeAdminPassword(newPassword);
@@ -898,18 +1568,40 @@ function SettingsTab({ showToast }: { showToast: (m: string, t?: "success" | "er
 
   return (
     <div className="space-y-6 max-w-lg">
-      <h1 className="text-2xl font-semibold" style={{ color: "#f5f0e8" }}>Settings</h1>
+      <h1 className="text-2xl font-semibold" style={{ color: "#f5f0e8" }}>
+        Settings
+      </h1>
 
       <Section title="Change Password">
         <form onSubmit={handleChangePassword} className="space-y-4">
           <div className="relative">
-            <InputRow label="New Password" value={newPassword} onChange={setNewPassword} type={showPw ? "text" : "password"} placeholder="Enter new password" />
+            <InputRow
+              label="New Password"
+              value={newPassword}
+              onChange={setNewPassword}
+              type={showPw ? "text" : "password"}
+              placeholder="Enter new password"
+            />
           </div>
           <div className="relative">
-            <InputRow label="Confirm New Password" value={confirmPassword} onChange={setConfirmPassword} type={showPw ? "text" : "password"} placeholder="Repeat new password" />
+            <InputRow
+              label="Confirm New Password"
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              type={showPw ? "text" : "password"}
+              placeholder="Repeat new password"
+            />
           </div>
-          <label className="flex cursor-pointer items-center gap-2 text-sm" style={{ color: "#6b6450" }}>
-            <input type="checkbox" checked={showPw} onChange={(e) => setShowPw(e.target.checked)} className="rounded" />
+          <label
+            className="flex cursor-pointer items-center gap-2 text-sm"
+            style={{ color: "#6b6450" }}
+          >
+            <input
+              type="checkbox"
+              checked={showPw}
+              onChange={(e) => setShowPw(e.target.checked)}
+              className="rounded"
+            />
             Show passwords
           </label>
           <SaveBtn onClick={() => {}} loading={saving} />

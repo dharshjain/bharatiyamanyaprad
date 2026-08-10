@@ -33,7 +33,12 @@ import {
   publications as staticPublications,
   quickLinks,
 } from "@/data/journal";
-import { supabase, type NewsEvent, type Publication } from "@/lib/supabase";
+import {
+  supabase,
+  type NewsEvent,
+  type Publication,
+  type EditorialBoardMember,
+} from "@/lib/supabase";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -71,25 +76,35 @@ function Home() {
       .from("news_events")
       .select("*")
       .order("sort_order")
-      .then(({ data }) => { if (data) setLiveNotices(data as NewsEvent[]); });
+      .then(({ data }) => {
+        if (data) setLiveNotices(data as NewsEvent[]);
+      });
     supabase
       .from("publications")
       .select("*")
       .order("sort_order")
-      .then(({ data }) => { if (data) setLivePublications(data as Publication[]); });
+      .then(({ data }) => {
+        if (data) setLivePublications(data as Publication[]);
+      });
   }, []);
 
-  const notices = liveNotices.length > 0
-    ? liveNotices.map((n) => n.content)
-    : staticNotices;
+  const notices = liveNotices.length > 0 ? liveNotices.map((n) => n.content) : staticNotices;
 
-  const publications = livePublications.length > 0
-    ? livePublications
-    : staticPublications.map((p, i) => ({
-        id: String(i), title: p.title, volume: p.volume,
-        period: p.period, year: p.year, pdf_url: null, pdf_name: null,
-        sort_order: i, created_at: "", updated_at: "",
-      }));
+  const publications =
+    livePublications.length > 0
+      ? livePublications
+      : staticPublications.map((p, i) => ({
+          id: String(i),
+          title: p.title,
+          volume: p.volume,
+          period: p.period,
+          year: p.year,
+          pdf_url: null,
+          pdf_name: null,
+          sort_order: i,
+          created_at: "",
+          updated_at: "",
+        }));
 
   return (
     <>
@@ -97,10 +112,139 @@ function Home() {
       <Notices notices={notices} />
       <About />
       <Publications publications={publications} />
+      <EditorialGlimpse />
       <QuickDesk />
       <CallForPapersBand />
       <ContactStrip />
     </>
+  );
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter((w) => /^[A-Z]/.test(w))
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("");
+}
+
+function EditorialGlimpse() {
+  const [members, setMembers] = useState<EditorialBoardMember[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase
+      .from("editorial_board_members")
+      .select("*")
+      .order("sort_order")
+      .then(({ data }) => {
+        if (data) setMembers(data as EditorialBoardMember[]);
+        setLoading(false);
+      });
+  }, []);
+
+  const neerja = members.find((m) => m.name.toLowerCase().includes("neerja"));
+  const sanjeev = members.find((m) => m.name.toLowerCase().includes("sanjeev"));
+  const kavita = members.find((m) => m.name.toLowerCase().includes("kavita"));
+
+  const displayMembers: EditorialBoardMember[] = [];
+  if (neerja) displayMembers.push(neerja);
+  if (sanjeev) displayMembers.push(sanjeev);
+  if (kavita) displayMembers.push(kavita);
+
+  if (displayMembers.length < 3) {
+    const remaining = members.filter((m) => !displayMembers.some((dm) => dm.id === m.id));
+    const editorInChief = remaining.filter((m) => m.role === "editor_in_chief");
+    const others = remaining.filter((m) => m.role !== "editor_in_chief");
+    const extra = [...editorInChief, ...others];
+    while (displayMembers.length < 3 && extra.length > 0) {
+      displayMembers.push(extra.shift()!);
+    }
+  }
+
+  if (loading || displayMembers.length === 0) return null;
+
+  return (
+    <section className="relative overflow-hidden bg-background py-20">
+      <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[36rem] rounded-full bg-accent/5 opacity-10 blur-3xl" />
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <Reveal>
+          <p className="eyebrow text-center">Editorial Leadership</p>
+          <h2 className="mt-3 text-center font-display text-3xl text-primary sm:text-4xl">
+            Meet Our Key Editors
+          </h2>
+          <MandalaDivider className="mt-6" />
+        </Reveal>
+
+        <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {displayMembers.map((m, idx) => (
+            <Reveal key={m.id} delay={idx * 80}>
+              <div
+                className="relative rounded-3xl p-6 hover:translate-y-[-6px] hover:shadow-[0_20px_40px_rgba(184,134,11,0.1)] transition-all duration-500 flex flex-col justify-between h-full group text-center border border-accent/25 overflow-hidden"
+                style={{
+                  background: "linear-gradient(135deg, var(--card), var(--background))",
+                }}
+              >
+                <div className="absolute inset-2 rounded-[22px] border border-accent/15 pointer-events-none" />
+                <CornerFlourish className="pointer-events-none absolute top-3.5 left-3.5 size-4 text-accent/40" />
+                <CornerFlourish className="pointer-events-none absolute top-3.5 right-3.5 size-4 rotate-90 text-accent/40" />
+                <CornerFlourish className="pointer-events-none absolute bottom-3.5 left-3.5 size-4 -rotate-90 text-accent/40" />
+                <CornerFlourish className="pointer-events-none absolute bottom-3.5 right-3.5 size-4 rotate-180 text-accent/40" />
+
+                <div className="relative z-10 flex flex-col items-center space-y-5 py-4">
+                  {m.photo_url ? (
+                    <div className="relative size-24 shrink-0 rounded-full border border-accent/40 p-0.5 bg-background shadow-md">
+                      <img
+                        src={m.photo_url}
+                        alt={m.name}
+                        className="size-full rounded-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="relative grid size-20 shrink-0 place-items-center rounded-full border border-accent/30 bg-accent/5 text-accent font-display text-xl tracking-wider font-semibold select-none">
+                      <div className="absolute inset-1 rounded-full border border-accent/10 pointer-events-none" />
+                      <span>{getInitials(m.name)}</span>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <span className="font-display text-[0.62rem] tracking-[0.2rem] text-accent uppercase font-bold block">
+                      {m.role === "editor_in_chief"
+                        ? "Editor in Chief"
+                        : m.role === "executive_editor"
+                          ? "Executive Editor"
+                          : "Advisory Board"}
+                    </span>
+                    <h3 className="font-display text-lg text-primary group-hover:text-accent transition-colors">
+                      {m.name}
+                    </h3>
+                    {m.designation && (
+                      <p className="text-xs text-accent-foreground font-semibold uppercase tracking-wide">
+                        {m.designation}
+                      </p>
+                    )}
+                  </div>
+
+                  {m.description && (
+                    <p className="font-serif text-sm leading-relaxed text-foreground/80 line-clamp-3 italic">
+                      "{m.description}"
+                    </p>
+                  )}
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        <div className="mt-12 text-center">
+          <Button asChild variant="outline" className="engraved">
+            <Link to="/editorial-board">View Full Editorial Board</Link>
+          </Button>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -260,11 +404,14 @@ function About() {
         <Reveal delay={100}>
           <div className="space-y-5">
             {aboutParagraphs.map((p) => (
-              <p key={p.slice(0, 30)} className="font-serif text-lg leading-relaxed text-foreground/85">
+              <p
+                key={p.slice(0, 30)}
+                className="font-serif text-lg leading-relaxed text-foreground/85"
+              >
                 {p}
               </p>
             ))}
-            <div 
+            <div
               className="relative rounded-3xl p-6 sm:p-8 border border-accent/25 shadow-lg overflow-hidden mt-8"
               style={{
                 background: "linear-gradient(135deg, var(--card), var(--background))",
@@ -272,7 +419,7 @@ function About() {
             >
               {/* Double thin border for historic scroll look */}
               <div className="absolute inset-2 rounded-[22px] border border-accent/15 pointer-events-none" />
-              
+
               {/* Corner flourishes inside padding */}
               <CornerFlourish className="pointer-events-none absolute top-4 left-4 size-4.5 text-accent/40" />
               <CornerFlourish className="pointer-events-none absolute top-4 right-4 size-4.5 rotate-90 text-accent/40" />
@@ -285,9 +432,11 @@ function About() {
               <div className="relative z-10 space-y-4">
                 <div className="flex items-center gap-2.5">
                   <LotusMark className="size-4.5 text-accent" />
-                  <span className="font-display text-xs tracking-wider uppercase text-accent-foreground font-semibold">Civilisational Heritage</span>
+                  <span className="font-display text-xs tracking-wider uppercase text-accent-foreground font-semibold">
+                    Civilisational Heritage
+                  </span>
                 </div>
-                
+
                 <p className="font-serif text-base leading-relaxed text-foreground/90 italic">
                   "{heritageNote}"
                 </p>
@@ -315,7 +464,18 @@ function About() {
   );
 }
 
-function Publications({ publications }: { publications: Array<{ id: string; title: string; volume: string; period: string; year: number; pdf_url: string | null }> }) {
+function Publications({
+  publications,
+}: {
+  publications: Array<{
+    id: string;
+    title: string;
+    volume: string;
+    period: string;
+    year: number;
+    pdf_url: string | null;
+  }>;
+}) {
   return (
     <section className="paper-grain relative overflow-hidden bg-secondary/50 py-20">
       <CarvedBorder />
@@ -332,7 +492,7 @@ function Publications({ publications }: { publications: Array<{ id: string; titl
         <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {publications.slice(0, 6).map((p, i) => (
             <Reveal key={p.id} delay={i * 70} as="li">
-              <article 
+              <article
                 className="relative rounded-3xl p-6 pt-16 hover:translate-y-[-6px] hover:shadow-[0_20px_40px_rgba(184,134,11,0.12)] transition-all duration-500 flex flex-col justify-between h-full group text-center border border-accent/25 overflow-hidden"
                 style={{
                   background: "linear-gradient(135deg, var(--card), var(--background))",
@@ -340,7 +500,7 @@ function Publications({ publications }: { publications: Array<{ id: string; titl
               >
                 {/* Double thin border for historic charter look */}
                 <div className="absolute inset-2 rounded-[22px] border border-accent/15 pointer-events-none" />
-                
+
                 {/* Corner flourishes in all four corners */}
                 <CornerFlourish className="pointer-events-none absolute top-3.5 left-3.5 size-4 text-accent/40" />
                 <CornerFlourish className="pointer-events-none absolute top-3.5 right-3.5 size-4 rotate-90 text-accent/40" />
@@ -368,8 +528,8 @@ function Publications({ publications }: { publications: Array<{ id: string; titl
                 <div className="flex flex-col items-center pt-4 pb-2">
                   <div className="relative w-40 h-24 flex items-center justify-center">
                     <div className="absolute inset-0 bg-accent/10 blur-xl rounded-full scale-110 pointer-events-none opacity-40 dark:opacity-65" />
-                    <img 
-                      src={heritageLotus} 
+                    <img
+                      src={heritageLotus}
                       alt="Golden Lotus"
                       className="w-full h-full object-contain relative z-10 transition-transform duration-500 group-hover:scale-105 invert hue-rotate-[180deg] brightness-[0.45] contrast-[1.2] dark:invert-0 dark:hue-rotate-0 dark:brightness-100 dark:contrast-100"
                     />
@@ -381,15 +541,13 @@ function Publications({ publications }: { publications: Array<{ id: string; titl
                   <h3 className="font-display text-xs tracking-[0.22em] text-accent/90 uppercase font-semibold">
                     Bharatiya Manyaprad
                   </h3>
-                  
+
                   <h4 className="font-display text-lg leading-snug text-primary group-hover:text-accent transition-colors duration-300">
                     {p.title.replace(/Bharatiya Manyaprad\s*/i, "")}
                   </h4>
-                  
-                  <p className="font-serif text-sm italic text-foreground/75">
-                    {p.volume}
-                  </p>
-                  
+
+                  <p className="font-serif text-sm italic text-foreground/75">{p.volume}</p>
+
                   <div className="flex items-center justify-center gap-1.5 opacity-45 pt-1">
                     <span className="h-[0.5px] w-5 bg-accent" />
                     <span className="text-[0.4rem] text-accent">✦</span>
@@ -400,13 +558,23 @@ function Publications({ publications }: { publications: Array<{ id: string; titl
                 {/* Action button */}
                 <div className="mt-6 z-10">
                   {p.pdf_url ? (
-                    <Button variant="outline" size="sm" className="engraved w-full py-5 rounded-xl border-accent/20 hover:border-accent" asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="engraved w-full py-5 rounded-xl border-accent/20 hover:border-accent"
+                      asChild
+                    >
                       <a href={p.pdf_url} target="_blank" rel="noopener noreferrer" download>
                         <Download className="size-3.5 mr-1.5" /> Download volume
                       </a>
                     </Button>
                   ) : (
-                    <Button variant="outline" size="sm" className="engraved w-full py-5 rounded-xl border-accent/20" disabled>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="engraved w-full py-5 rounded-xl border-accent/20"
+                      disabled
+                    >
                       <Download className="size-3.5 mr-1.5" /> Download volume
                     </Button>
                   )}
@@ -434,7 +602,9 @@ function QuickDesk() {
       .from("news_events")
       .select("content")
       .order("sort_order")
-      .then(({ data }) => { if (data && data.length > 0) setNotices(data.map((d) => d.content)); });
+      .then(({ data }) => {
+        if (data && data.length > 0) setNotices(data.map((d) => d.content));
+      });
   }, []);
 
   return (
@@ -445,14 +615,14 @@ function QuickDesk() {
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="grid gap-8 lg:grid-cols-12 lg:items-start">
-          
           {/* Editorial Desk Left Column - Layout in 2x2 Compact Grid */}
           <div className="lg:col-span-6">
             <Reveal>
-              <div 
+              <div
                 className="relative rounded-3xl p-6 sm:p-8 shadow-xl"
                 style={{
-                  background: "linear-gradient(135deg, color-mix(in oklab, var(--card) 60%, transparent), color-mix(in oklab, var(--background) 30%, transparent))",
+                  background:
+                    "linear-gradient(135deg, color-mix(in oklab, var(--card) 60%, transparent), color-mix(in oklab, var(--background) 30%, transparent))",
                   border: "1px solid color-mix(in oklab, var(--accent) 18%, transparent)",
                   backdropFilter: "blur(12px)",
                 }}
@@ -472,7 +642,8 @@ function QuickDesk() {
                 </div>
 
                 <p className="mb-6 font-serif text-sm leading-relaxed text-foreground/75">
-                  Access submission templates, author instructions, the editorial board directory, and start review paperwork.
+                  Access submission templates, author instructions, the editorial board directory,
+                  and start review paperwork.
                 </p>
 
                 {/* 2x2 Grid of Beautiful Link Cards */}
@@ -513,10 +684,11 @@ function QuickDesk() {
           {/* News & Events Right Column - Compact Scroller */}
           <div className="lg:col-span-6">
             <Reveal delay={120}>
-              <div 
+              <div
                 className="relative rounded-3xl p-6 sm:p-8 shadow-xl"
                 style={{
-                  background: "linear-gradient(135deg, color-mix(in oklab, var(--card) 60%, transparent), color-mix(in oklab, var(--background) 30%, transparent))",
+                  background:
+                    "linear-gradient(135deg, color-mix(in oklab, var(--card) 60%, transparent), color-mix(in oklab, var(--background) 30%, transparent))",
                   border: "1px solid color-mix(in oklab, var(--accent) 18%, transparent)",
                   backdropFilter: "blur(12px)",
                 }}
@@ -541,7 +713,9 @@ function QuickDesk() {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
                     </span>
-                    <span className="font-sans text-[0.62rem] font-bold tracking-wider uppercase">Live Feed</span>
+                    <span className="font-sans text-[0.62rem] font-bold tracking-wider uppercase">
+                      Live Feed
+                    </span>
                   </div>
                 </div>
 
@@ -569,7 +743,7 @@ function QuickDesk() {
                         return (
                           <div key={idx} className="relative group/item z-10">
                             {/* Simple text block inside interactive card */}
-                            <div 
+                            <div
                               className="rounded-xl p-4 transition-all duration-300"
                               style={{
                                 background: "rgba(255, 255, 255, 0.01)",
@@ -592,11 +766,9 @@ function QuickDesk() {
                     </div>
                   </div>
                 </div>
-
               </div>
             </Reveal>
           </div>
-
         </div>
       </div>
     </section>
@@ -626,7 +798,11 @@ function CallForPapersBand() {
             {callForPapers.themeNote}
           </p>
           <div className="mt-9 flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button
+              asChild
+              size="lg"
+              className="bg-accent text-accent-foreground hover:bg-accent/90"
+            >
               <Link to="/call-for-papers">Read the call</Link>
             </Button>
             <Button

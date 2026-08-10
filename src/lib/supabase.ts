@@ -1,8 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = "https://ykzbptfiyyzskfijbniu.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY =
-  "sb_publishable_kFHKnlrAzSQrr0fvXQ0h2A_yCeBt1Fy";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_kFHKnlrAzSQrr0fvXQ0h2A_yCeBt1Fy";
 
 /**
  * Resolve a WebSocket constructor that works in every environment:
@@ -10,7 +9,7 @@ const SUPABASE_PUBLISHABLE_KEY =
  *   - SSR / Vite module-runner (Node 24): falls back to a no-op stub
  *     because we never use Supabase Realtime; only REST + Storage APIs are used.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const WebSocketImpl: any =
   typeof globalThis !== "undefined" && typeof (globalThis as any).WebSocket !== "undefined"
     ? (globalThis as any).WebSocket
@@ -28,6 +27,7 @@ const WebSocketImpl: any =
         addEventListener() {}
         removeEventListener() {}
       };
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   realtime: {
@@ -52,6 +52,7 @@ export type EditorialBoardMember = {
   designation: string | null;
   description: string | null;
   email: string | null;
+  photo_url: string | null;
   sort_order: number;
   created_at: string;
   updated_at: string;
@@ -107,10 +108,7 @@ export function getAdminSession(): boolean {
 }
 
 export function setAdminSession() {
-  localStorage.setItem(
-    SESSION_KEY,
-    JSON.stringify({ authenticated: true, ts: Date.now() }),
-  );
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ authenticated: true, ts: Date.now() }));
 }
 
 export function clearAdminSession() {
