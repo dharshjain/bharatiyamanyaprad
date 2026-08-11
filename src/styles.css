@@ -157,6 +157,37 @@
 
   html {
     scroll-behavior: smooth;
+    font-size: 14.5px;
+  }
+
+  @media (min-width: 640px) {
+    html {
+      font-size: 15px;
+    }
+  }
+
+  @media (min-width: 768px) {
+    html {
+      font-size: 15.5px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    html {
+      font-size: 16px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    html {
+      font-size: 16.5px;
+    }
+  }
+
+  @media (min-width: 1536px) {
+    html {
+      font-size: 17.5px;
+    }
   }
 
   body {
@@ -299,6 +330,25 @@
   to {
     transform: translateX(-50%);
   }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@utility animate-spin-slow {
+  animation: spin-slow 12s linear infinite;
+}
+
+@utility animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: bm-marquee 95s linear infinite;
 }
 
 /* ---- Museum frames, plaques & sketches ---- */

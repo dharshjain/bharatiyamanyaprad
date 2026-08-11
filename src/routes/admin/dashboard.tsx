@@ -26,6 +26,9 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  CreditCard,
+  ExternalLink,
+  RefreshCw,
 } from "lucide-react";
 import {
   supabase,
@@ -36,6 +39,7 @@ import {
   type EditorialBoardDocument,
   type NewsEvent,
   type Publication,
+  type Subscription,
 } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin/dashboard")({
@@ -48,7 +52,7 @@ export const Route = createFileRoute("/admin/dashboard")({
   },
 });
 
-type Tab = "editorial" | "news" | "publications" | "settings";
+type Tab = "editorial" | "news" | "publications" | "subscriptions" | "settings";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -187,6 +191,7 @@ function AdminDashboard() {
     { id: "editorial", label: "Editorial Board", icon: <BookOpen className="h-4 w-4" /> },
     { id: "news", label: "News & Events", icon: <Newspaper className="h-4 w-4" /> },
     { id: "publications", label: "Publications", icon: <FileText className="h-4 w-4" /> },
+    { id: "subscriptions", label: "Subscriptions", icon: <CreditCard className="h-4 w-4" /> },
     { id: "settings", label: "Settings", icon: <Settings className="h-4 w-4" /> },
   ];
 
@@ -256,6 +261,7 @@ function AdminDashboard() {
         {activeTab === "editorial" && <EditorialTab showToast={showToast} />}
         {activeTab === "news" && <NewsTab showToast={showToast} />}
         {activeTab === "publications" && <PublicationsTab showToast={showToast} />}
+        {activeTab === "subscriptions" && <SubscriptionsTab showToast={showToast} />}
         {activeTab === "settings" && <SettingsTab showToast={showToast} />}
       </main>
     </div>
@@ -933,7 +939,49 @@ function EditMemberForm({
 
 // ─── News & Events Tab ─────────────────────────────────────────────────────────
 
+// ─── News & Events Tab ─────────────────────────────────────────────────────────
+
+type NewsSubTab = "notices" | "events";
+
 function NewsTab({ showToast }: { showToast: (m: string, t?: "success" | "error") => void }) {
+  const [subTab, setSubTab] = useState<NewsSubTab>("notices");
+
+  return (
+    <div className="space-y-6">
+      {/* Sub-tab selection */}
+      <div className="flex border-b border-accent/10 pb-px mb-6">
+        <button
+          onClick={() => setSubTab("notices")}
+          className="mr-6 pb-2 text-sm font-semibold tracking-wider transition-all uppercase border-b-2"
+          style={{
+            borderColor: subTab === "notices" ? "var(--accent)" : "transparent",
+            color: subTab === "notices" ? "var(--accent)" : "#6b6450",
+          }}
+        >
+          Notices (Ticker)
+        </button>
+        <button
+          onClick={() => setSubTab("events")}
+          className="pb-2 text-sm font-semibold tracking-wider transition-all uppercase border-b-2"
+          style={{
+            borderColor: subTab === "events" ? "var(--accent)" : "transparent",
+            color: subTab === "events" ? "var(--accent)" : "#6b6450",
+          }}
+        >
+          Detailed Events
+        </button>
+      </div>
+
+      {subTab === "notices" ? (
+        <NoticesManager showToast={showToast} />
+      ) : (
+        <EventsManager showToast={showToast} />
+      )}
+    </div>
+  );
+}
+
+function NoticesManager({ showToast }: { showToast: (m: string, t?: "success" | "error") => void }) {
   const [items, setItems] = useState<NewsEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -1017,9 +1065,9 @@ function NewsTab({ showToast }: { showToast: (m: string, t?: "success" | "error"
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold" style={{ color: "#f5f0e8" }}>
-          News & Events
-        </h1>
+        <h2 className="text-xl font-semibold" style={{ color: "#f5f0e8" }}>
+          Notices (Ticker)
+        </h2>
         <button
           id="news-add-btn"
           onClick={() => setShowAdd(true)}
@@ -1148,6 +1196,376 @@ function NewsTab({ showToast }: { showToast: (m: string, t?: "success" | "error"
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+interface EventItem {
+  id: string;
+  title: string;
+  location: string | null;
+  description: string | null;
+  event_date: string;
+  tags: string[] | null;
+  cover_url: string | null;
+  sort_order: number;
+}
+
+function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "error") => void }) {
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  // Form states
+  const [form, setForm] = useState({
+    title: "",
+    location: "",
+    description: "",
+    event_date: new Date().toISOString().split("T")[0],
+    tags: "",
+    cover_url: "",
+    sort_order: 0,
+  });
+
+  async function load() {
+    setLoading(true);
+    const { data } = await supabase.from("events").select("*").order("event_date", { ascending: true });
+    if (data) {
+      setEvents(data as EventItem[]);
+    } else {
+      setEvents([]);
+    }
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function addItem() {
+    if (!form.title.trim()) return showToast("Title is required.", "error");
+    if (!form.event_date) return showToast("Date is required.", "error");
+    setSaving(true);
+    
+    const tagArray = form.tags
+      ? form.tags.split(",").map((t) => t.trim().toUpperCase()).filter(Boolean)
+      : [];
+
+    const { error } = await supabase.from("events").insert({
+      title: form.title,
+      location: form.location || null,
+      description: form.description || null,
+      event_date: form.event_date,
+      tags: tagArray,
+      cover_url: form.cover_url || null,
+      sort_order: form.sort_order || 0,
+    });
+
+    setSaving(false);
+    if (error) return showToast(error.message, "error");
+    showToast("Event added successfully.");
+    setShowAdd(false);
+    setForm({
+      title: "",
+      location: "",
+      description: "",
+      event_date: new Date().toISOString().split("T")[0],
+      tags: "",
+      cover_url: "",
+      sort_order: 0,
+    });
+    load();
+  }
+
+  async function startEdit(ev: EventItem) {
+    setEditingId(ev.id);
+    setForm({
+      title: ev.title,
+      location: ev.location || "",
+      description: ev.description || "",
+      event_date: ev.event_date,
+      tags: ev.tags ? ev.tags.join(", ") : "",
+      cover_url: ev.cover_url || "",
+      sort_order: ev.sort_order || 0,
+    });
+  }
+
+  async function saveEdit(id: string) {
+    if (!form.title.trim()) return showToast("Title is required.", "error");
+    if (!form.event_date) return showToast("Date is required.", "error");
+    setSaving(true);
+
+    const tagArray = form.tags
+      ? form.tags.split(",").map((t) => t.trim().toUpperCase()).filter(Boolean)
+      : [];
+
+    const { error } = await supabase
+      .from("events")
+      .update({
+        title: form.title,
+        location: form.location || null,
+        description: form.description || null,
+        event_date: form.event_date,
+        tags: tagArray,
+        cover_url: form.cover_url || null,
+        sort_order: form.sort_order || 0,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    setSaving(false);
+    if (error) return showToast(error.message, "error");
+    showToast("Event updated successfully.");
+    setEditingId(null);
+    load();
+  }
+
+  async function deleteItem(id: string) {
+    if (!confirm("Are you sure you want to delete this event?")) return;
+    const { error } = await supabase.from("events").delete().eq("id", id);
+    if (error) return showToast(error.message, "error");
+    showToast("Event deleted.");
+    load();
+  }
+
+  async function handleFileUpload(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `event-cover-${Date.now()}.${ext}`;
+
+    const { error: upErr } = await supabase.storage
+      .from("editorial-documents")
+      .upload(path, file, { upsert: true });
+
+    if (upErr) {
+      setUploading(false);
+      return showToast(upErr.message, "error");
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("editorial-documents")
+      .getPublicUrl(path);
+
+    setForm((prev) => ({ ...prev, cover_url: urlData.publicUrl }));
+    setUploading(false);
+    showToast("Cover image uploaded.");
+  }
+
+  if (loading) return <LoadingSpinner />;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold" style={{ color: "#f5f0e8" }}>
+          Events List
+        </h2>
+        {!showAdd && editingId === null && (
+          <button
+            onClick={() => {
+              setForm({
+                title: "",
+                location: "",
+                description: "",
+                event_date: new Date().toISOString().split("T")[0],
+                tags: "",
+                cover_url: "",
+                sort_order: events.length + 1,
+              });
+              setShowAdd(true);
+            }}
+            className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:opacity-90"
+            style={{
+              background: "rgba(184,134,11,0.2)",
+              color: "#d4a843",
+              border: "1px solid rgba(184,134,11,0.3)",
+            }}
+          >
+            <Plus className="h-4 w-4" /> Add Event
+          </button>
+        )}
+      </div>
+
+      {/* Add / Edit Form */}
+      {(showAdd || editingId !== null) && (
+        <Section title={showAdd ? "Add New Event" : "Edit Event"}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <InputRow
+              label="Event Title"
+              value={form.title}
+              onChange={(v) => setForm((prev) => ({ ...prev, title: v }))}
+              placeholder="e.g. National Colloquium on Indian Studies"
+            />
+            <div>
+              <label className="text-xs font-medium uppercase tracking-wider block mb-1.5" style={{ color: "#9a8a6a" }}>
+                Event Date
+              </label>
+              <input
+                type="date"
+                value={form.event_date}
+                onChange={(e) => setForm((prev) => ({ ...prev, event_date: e.target.value }))}
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(184,134,11,0.2)",
+                  color: "#f5f0e8",
+                  borderRadius: 8,
+                  padding: "10px 12px",
+                  width: "100%",
+                  fontSize: 14,
+                  outline: "none",
+                }}
+              />
+            </div>
+            <InputRow
+              label="Location"
+              value={form.location}
+              onChange={(v) => setForm((prev) => ({ ...prev, location: v }))}
+              placeholder="e.g. Gujarat University, Ahmedabad Kendra"
+            />
+            <InputRow
+              label="Tags (Comma separated)"
+              value={form.tags}
+              onChange={(v) => setForm((prev) => ({ ...prev, tags: v }))}
+              placeholder="e.g. SEMINAR, DIASPORA, LAUNCH"
+            />
+            <div className="sm:col-span-2">
+              <InputRow
+                label="Full Description"
+                value={form.description}
+                onChange={(v) => setForm((prev) => ({ ...prev, description: v }))}
+                placeholder="Details of the event..."
+                multiline
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-xs font-medium uppercase tracking-wider block mb-1.5" style={{ color: "#9a8a6a" }}>
+                Cover Image (optional - defaults to event number)
+              </label>
+              <div className="flex items-center gap-4">
+                {form.cover_url ? (
+                  <div className="relative size-16 shrink-0 rounded-lg border border-accent/40 overflow-hidden bg-background">
+                    <img src={form.cover_url} alt="Preview" className="size-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, cover_url: "" }))}
+                      className="absolute inset-0 bg-black/60 flex items-center justify-center text-red-400 opacity-0 hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="size-16 shrink-0 rounded-lg border border-dashed border-accent/35 flex items-center justify-center text-accent/60 bg-secondary/10">
+                    <Upload className="size-5" />
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                  className="text-xs text-foreground/75"
+                />
+                {uploading && <Loader2 className="size-4 animate-spin text-accent" />}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 flex gap-3">
+            <SaveBtn
+              onClick={showAdd ? addItem : () => saveEdit(editingId!)}
+              loading={saving}
+            />
+            <button
+              onClick={() => {
+                setShowAdd(false);
+                setEditingId(null);
+              }}
+              className="rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80"
+              style={{ color: "#6b6450" }}
+            >
+              Cancel
+            </button>
+          </div>
+        </Section>
+      )}
+
+      {/* Events List View */}
+      {editingId === null && !showAdd && (
+        <div className="space-y-4">
+          {events.length === 0 ? (
+            <div className="text-center py-10 font-serif italic text-muted-foreground">
+              No events found in database. The user facing pages are currently rendering fallback events.
+            </div>
+          ) : (
+            events.map((ev, index) => (
+              <div
+                key={ev.id}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl p-5"
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(184,134,11,0.12)",
+                }}
+              >
+                <div className="flex items-start gap-4 min-w-0">
+                  {/* Event list image or dummy counter preview */}
+                  <div className="size-16 shrink-0 rounded-lg overflow-hidden border border-accent/25 bg-background select-none flex items-center justify-center text-accent relative font-sans text-xs">
+                    {ev.cover_url ? (
+                      <img src={ev.cover_url} alt={ev.title} className="size-full object-cover" />
+                    ) : (
+                      <div className="size-full bg-secondary/15 flex items-center justify-center text-accent/60 relative">
+                        <span className="font-display text-xl font-bold">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-base truncate" style={{ color: "#f5f0e8" }}>
+                      {ev.title}
+                    </h3>
+                    <p className="text-xs mt-1" style={{ color: "#b8860b" }}>
+                      {ev.event_date} {ev.location ? `| ${ev.location}` : ""}
+                    </p>
+                    {ev.tags && ev.tags.length > 0 && (
+                      <div className="flex gap-1 mt-2">
+                        {ev.tags.map((t) => (
+                          <span key={t} className="bg-accent/10 border border-accent/20 text-accent text-[0.58rem] font-bold px-1.5 py-0.5 rounded">
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-2 self-end sm:self-center shrink-0">
+                  <button
+                    onClick={() => startEdit(ev)}
+                    className="rounded-lg p-2.5 transition hover:opacity-80"
+                    style={{ background: "rgba(184,134,11,0.15)", color: "#d4a843" }}
+                    aria-label="Edit event"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => deleteItem(ev.id)}
+                    className="rounded-lg p-2.5 transition hover:opacity-80"
+                    style={{ background: "rgba(220,38,38,0.15)", color: "#f87171" }}
+                    aria-label="Delete event"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -1610,6 +2028,215 @@ function SettingsTab({ showToast }: { showToast: (m: string, t?: "success" | "er
           No old password required. After changing, your current session remains active.
         </p>
       </Section>
+    </div>
+  );
+}
+
+// ─── Subscriptions Tab ─────────────────────────────────────────────────────────
+
+function SubscriptionsTab({
+  showToast,
+}: {
+  showToast: (m: string, t?: "success" | "error") => void;
+}) {
+  const [subs, setSubs] = useState<Subscription[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  async function load() {
+    setLoading(true);
+    const { data } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (data) setSubs(data as Subscription[]);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function handleStatusChange(id: string, newStatus: "Pending" | "Approved" | "Rejected") {
+    const { error } = await supabase
+      .from("subscriptions")
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      .eq("id", id);
+
+    if (error) {
+      showToast("Failed to update status: " + error.message, "error");
+    } else {
+      showToast("Status updated to " + newStatus, "success");
+      setSubs((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, status: newStatus } : s))
+      );
+    }
+  }
+
+  async function deleteSub(id: string, receiptName: string | null) {
+    if (!confirm("Are you sure you want to delete this subscription record?")) return;
+
+    if (receiptName) {
+      await supabase.storage.from("subscriptions").remove([receiptName]);
+    }
+
+    const { error } = await supabase.from("subscriptions").delete().eq("id", id);
+    if (error) {
+      showToast("Failed to delete record: " + error.message, "error");
+    } else {
+      showToast("Subscription record deleted", "success");
+      setSubs((prev) => prev.filter((s) => s.id !== id));
+    }
+  }
+
+  if (loading) return <LoadingSpinner />;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold" style={{ color: "#f5f0e8" }}>
+          Subscriptions Registry
+        </h1>
+        <button
+          onClick={load}
+          className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold transition hover:opacity-85"
+          style={{ background: "rgba(184,134,11,0.15)", color: "#d4a843" }}
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+          Refresh
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        {subs.length === 0 ? (
+          <p className="text-sm italic" style={{ color: "#6b6450" }}>
+            No subscriptions have been registered yet.
+          </p>
+        ) : (
+          subs.map((s) => (
+            <div
+              key={s.id}
+              className="flex flex-col gap-5 rounded-xl p-6"
+              style={{
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(184,134,11,0.12)",
+              }}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-4 border-b border-accent/10 pb-4">
+                <div>
+                  <h3 className="font-semibold text-lg" style={{ color: "#f5f0e8" }}>
+                    {s.name}
+                  </h3>
+                  <p className="text-sm" style={{ color: "#9a8a6a" }}>
+                    {s.email} · {s.mobile}
+                  </p>
+                  <p className="text-xs mt-1 text-muted-foreground">
+                    Registered: {new Date(s.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[0.62rem] uppercase tracking-wider font-semibold" style={{ color: "#6b6450" }}>
+                      Payment Status
+                    </label>
+                    <select
+                      value={s.status}
+                      onChange={(e) => handleStatusChange(s.id, e.target.value as any)}
+                      className="rounded-lg border px-3 py-1.5 text-xs font-semibold focus:outline-none transition-colors cursor-pointer"
+                      style={{
+                        background:
+                          s.status === "Approved"
+                            ? "rgba(16,185,129,0.1)"
+                            : s.status === "Rejected"
+                              ? "rgba(239,68,68,0.1)"
+                              : "rgba(245,158,11,0.1)",
+                        color:
+                          s.status === "Approved"
+                            ? "#10b981"
+                            : s.status === "Rejected"
+                              ? "#ef4444"
+                              : "#f59e0b",
+                        borderColor:
+                          s.status === "Approved"
+                            ? "rgba(16,185,129,0.2)"
+                            : s.status === "Rejected"
+                              ? "rgba(239,68,68,0.2)"
+                              : "rgba(245,158,11,0.2)",
+                      }}
+                    >
+                      <option value="Pending" style={{ background: "#1c1917", color: "#f59e0b" }}>Pending</option>
+                      <option value="Approved" style={{ background: "#1c1917", color: "#10b981" }}>Approved</option>
+                      <option value="Rejected" style={{ background: "#1c1917", color: "#ef4444" }}>Rejected</option>
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={() => deleteSub(s.id, s.receipt_name)}
+                    className="mt-4 rounded-lg p-2 transition hover:opacity-80 shrink-0"
+                    style={{ background: "rgba(220,38,38,0.15)", color: "#f87171" }}
+                    aria-label="Delete registry record"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 text-sm font-serif">
+                <div>
+                  <p className="text-[0.62rem] font-sans uppercase tracking-wider" style={{ color: "#6b6450" }}>
+                    Subscription Type
+                  </p>
+                  <p className="font-medium text-foreground/90 mt-1">{s.type} ({s.period})</p>
+                </div>
+                <div>
+                  <p className="text-[0.62rem] font-sans uppercase tracking-wider" style={{ color: "#6b6450" }}>
+                    Payment Method
+                  </p>
+                  <p className="font-medium text-foreground/90 mt-1">{s.payment}</p>
+                </div>
+                <div>
+                  <p className="text-[0.62rem] font-sans uppercase tracking-wider" style={{ color: "#6b6450" }}>
+                    Transferred Amount
+                  </p>
+                  <p className="font-medium text-accent mt-1">₹{s.amount || "N/A"}</p>
+                </div>
+                <div>
+                  <p className="text-[0.62rem] font-sans uppercase tracking-wider" style={{ color: "#6b6450" }}>
+                    Bank &amp; Payment Date
+                  </p>
+                  <p className="font-medium text-foreground/90 mt-1">
+                    {s.bank || "N/A"} {s.date ? `(${s.date})` : ""}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-3 border-t border-accent/5">
+                <div className="max-w-xl">
+                  <p className="text-[0.62rem] font-sans uppercase tracking-wider" style={{ color: "#6b6450" }}>
+                    Postal Dispatch Address
+                  </p>
+                  <p className="font-serif text-xs text-foreground/80 mt-1 leading-relaxed">
+                    {s.address}, {s.country}
+                  </p>
+                </div>
+
+                {s.receipt_url && (
+                  <a
+                    href={s.receipt_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold transition hover:opacity-85 self-start md:self-center"
+                    style={{ background: "rgba(184,134,11,0.15)", color: "#d4a843" }}
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    View Payment Receipt
+                  </a>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }

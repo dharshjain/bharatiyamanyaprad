@@ -230,7 +230,7 @@ function FeaturedMemberCard({
       <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 sm:p-4">
         {/* Rectangular Framed Photo or Fallback Badge */}
         {member.photo_url ? (
-          <div className="relative size-32 sm:size-40 shrink-0 rounded-2xl border-2 border-accent p-1 bg-background/50 shadow-md overflow-hidden">
+          <div className="relative size-40 sm:size-52 shrink-0 rounded-2xl border-2 border-accent p-1 bg-background/50 shadow-md overflow-hidden">
             <img
               src={member.photo_url}
               alt={member.name}
@@ -238,7 +238,7 @@ function FeaturedMemberCard({
             />
           </div>
         ) : (
-          <div className="relative grid size-32 sm:size-40 shrink-0 place-items-center rounded-2xl border border-accent/35 bg-accent/5 text-accent font-display text-3xl tracking-wider font-semibold shadow-[0_0_20px_rgba(184,134,11,0.12)] select-none">
+          <div className="relative grid size-40 sm:size-52 shrink-0 place-items-center rounded-2xl border border-accent/35 bg-accent/5 text-accent font-display text-3xl sm:text-4xl tracking-wider font-semibold shadow-[0_0_20px_rgba(184,134,11,0.12)] select-none">
             <div className="absolute inset-1.5 rounded-xl border border-accent/10 pointer-events-none" />
             <span>{getInitials(member.name)}</span>
           </div>
@@ -299,12 +299,12 @@ function AdvisoryMemberCard({ member }: { member: EditorialBoardMember }) {
       {/* Portrait Framed Image */}
       <div className="relative shrink-0">
         {member.photo_url ? (
-          <div className="size-28 rounded-xl overflow-hidden border border-accent/25 shadow-md">
+          <div className="size-36 rounded-xl overflow-hidden border border-accent/25 shadow-md">
             <img src={member.photo_url} alt={member.name} className="size-full object-cover" />
           </div>
         ) : (
-          <div className="size-28 rounded-xl bg-accent/5 border border-accent/15 flex flex-col items-center justify-center text-accent select-none shadow-md">
-            <span className="font-display text-xl tracking-wider font-semibold text-accent/80">
+          <div className="size-36 rounded-xl bg-accent/5 border border-accent/15 flex flex-col items-center justify-center text-accent select-none shadow-md">
+            <span className="font-display text-2xl tracking-wider font-semibold text-accent/80">
               {getInitials(member.name)}
             </span>
           </div>

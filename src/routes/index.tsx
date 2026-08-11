@@ -113,7 +113,6 @@ function Home() {
       <About />
       <Publications publications={publications} />
       <EditorialGlimpse />
-      <QuickDesk />
       <CallForPapersBand />
       <ContactStrip />
     </>
@@ -195,7 +194,7 @@ function EditorialGlimpse() {
 
                 <div className="relative z-10 flex flex-col items-center space-y-5 py-4">
                   {m.photo_url ? (
-                    <div className="relative size-24 shrink-0 rounded-full border border-accent/40 p-0.5 bg-background shadow-md">
+                    <div className="relative size-32 shrink-0 rounded-full border border-accent/40 p-0.5 bg-background shadow-md">
                       <img
                         src={m.photo_url}
                         alt={m.name}
@@ -203,7 +202,7 @@ function EditorialGlimpse() {
                       />
                     </div>
                   ) : (
-                    <div className="relative grid size-20 shrink-0 place-items-center rounded-full border border-accent/30 bg-accent/5 text-accent font-display text-xl tracking-wider font-semibold select-none">
+                    <div className="relative grid size-28 shrink-0 place-items-center rounded-full border border-accent/30 bg-accent/5 text-accent font-display text-2xl tracking-wider font-semibold select-none">
                       <div className="absolute inset-1 rounded-full border border-accent/10 pointer-events-none" />
                       <span>{getInitials(m.name)}</span>
                     </div>
@@ -348,16 +347,16 @@ function Hero() {
           <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
             <Link
               to="/publication"
-              className="group inline-flex items-center gap-3 rounded-full bg-accent px-6 py-3 font-sans text-sm font-semibold text-accent-foreground shadow-[var(--shadow-glow)] transition-transform hover:-translate-y-0.5"
+              className="group inline-flex items-center gap-2.5 rounded-full bg-accent pl-5 pr-2 py-2 font-sans text-xs sm:text-sm font-semibold text-accent-foreground shadow-[var(--shadow-glow)] transition-transform hover:-translate-y-0.5"
             >
               View Publications
-              <span className="grid size-8 place-items-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:rotate-45">
-                <ArrowRight className="size-4" />
+              <span className="grid size-6 place-items-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:rotate-45">
+                <ArrowRight className="size-3" />
               </span>
             </Link>
             <Link
               to="/call-for-papers"
-              className="engraved inline-flex items-center rounded-full px-6 py-3 font-sans text-sm font-semibold"
+              className="engraved inline-flex items-center rounded-full px-5 py-2.5 font-sans text-xs sm:text-sm font-semibold"
             >
               Call for Papers
             </Link>
@@ -372,19 +371,46 @@ function Hero() {
 }
 
 function Notices({ notices }: { notices: string[] }) {
+  if (!notices || notices.length === 0) return null;
+
+  // Duplicate notices to ensure a seamless scrolling loop
+  const duplicatedNotices = [...notices, ...notices, ...notices, ...notices];
+
   return (
-    <section className="bg-primary py-10 text-primary-foreground">
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 md:grid-cols-3">
-        {notices.map((n, i) => (
-          <Reveal key={n} delay={i * 90}>
-            <div className="flex h-full items-start gap-3 border-l border-accent/50 pl-4">
-              <LotusMark className="mt-1 size-5 shrink-0 text-accent" />
-              <p className="font-serif text-base leading-relaxed text-primary-foreground/90">{n}</p>
+    <Link to="/events" className="block focus:outline-none group/marquee">
+      <section className="relative overflow-hidden border-y border-accent/20 bg-secondary/25 py-3 text-foreground shadow-sm hover:bg-secondary/35 transition-colors cursor-pointer">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 flex items-center gap-4 sm:gap-6">
+          {/* Pulsing Live Badge */}
+          <div className="z-10 flex items-center gap-2 rounded-full bg-accent px-3.5 py-1.5 font-sans text-[0.68rem] font-bold uppercase tracking-wider text-accent-foreground shrink-0 select-none shadow-[0_3px_12px_rgba(200,155,60,0.2)] border border-accent/10 group-hover/marquee:scale-102 transition-transform">
+            <span className="relative flex size-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-foreground opacity-75"></span>
+              <span className="relative inline-flex size-1.5 rounded-full bg-accent-foreground"></span>
+            </span>
+            <span>News & Events</span>
+          </div>
+
+          {/* Marquee Ticker */}
+          <div className="relative overflow-hidden w-full">
+            {/* Edge Gradients for Smooth In/Out Fading */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-background via-background/40 to-transparent z-10" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-background via-background/40 to-transparent z-10" />
+
+            {/* Animating Track */}
+            <div className="flex gap-16 whitespace-nowrap animate-marquee hover:[animation-play-state:paused] py-1 cursor-default select-none">
+              {duplicatedNotices.map((n, i) => (
+                <div
+                  key={i}
+                  className="inline-flex items-center gap-3 font-serif text-base sm:text-lg lg:text-xl text-primary font-bold transition-colors"
+                >
+                  <span className="text-accent">✦</span>
+                  <span>{n}</span>
+                </div>
+              ))}
             </div>
-          </Reveal>
-        ))}
-      </div>
-    </section>
+          </div>
+        </div>
+      </section>
+    </Link>
   );
 }
 
@@ -406,7 +432,7 @@ function About() {
             {aboutParagraphs.map((p) => (
               <p
                 key={p.slice(0, 30)}
-                className="font-serif text-lg leading-relaxed text-foreground/85"
+                className="font-serif text-lg leading-relaxed text-foreground/85 text-justify"
               >
                 {p}
               </p>
@@ -437,7 +463,7 @@ function About() {
                   </span>
                 </div>
 
-                <p className="font-serif text-base leading-relaxed text-foreground/90 italic">
+                <p className="font-serif text-base sm:text-lg leading-relaxed text-primary font-bold">
                   "{heritageNote}"
                 </p>
               </div>

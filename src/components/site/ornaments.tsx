@@ -23,34 +23,8 @@ export function MandalaDivider({ className = "" }: { className?: string }) {
 
 export function CarvedBorder({ className = "" }: { className?: string }) {
   return (
-    <div className={`overflow-hidden ${className}`} aria-hidden="true">
-      <svg
-        viewBox="0 0 120 16"
-        preserveAspectRatio="none"
-        className="h-4.5 w-full text-accent/45"
-        fill="none"
-      >
-        <pattern id="carve" width="24" height="16" patternUnits="userSpaceOnUse">
-          {/* Base border line */}
-          <line x1="0" y1="15" x2="24" y2="15" stroke="currentColor" strokeWidth="0.8" />
-          
-          {/* Ornate flowing vine scroll curves */}
-          <path d="M 0 15 C 6 15, 6 11, 12 15" stroke="currentColor" strokeWidth="0.6" />
-          <path d="M 12 15 C 18 15, 18 11, 24 15" stroke="currentColor" strokeWidth="0.6" />
-          
-          {/* Traditional 3-petal Lotus Bud shape (Kamal Mala) */}
-          {/* Center Petal */}
-          <path d="M 12 15 C 9.5 11, 9.5 4, 12 1 C 14.5 4, 14.5 11, 12 15" stroke="currentColor" strokeWidth="0.85" />
-          {/* Left Petal */}
-          <path d="M 12 15 C 7.5 11, 7.5 5, 11 2.5" stroke="currentColor" strokeWidth="0.7" />
-          {/* Right Petal */}
-          <path d="M 12 15 C 16.5 11, 16.5 5, 13 2.5" stroke="currentColor" strokeWidth="0.7" />
-          
-          {/* Small decorative accent dot inside bud */}
-          <circle cx="12" cy="9" r="0.6" fill="currentColor" opacity="0.8" />
-        </pattern>
-        <rect width="120" height="16" fill="url(#carve)" />
-      </svg>
+    <div className={`w-full ${className}`} aria-hidden="true">
+      <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
     </div>
   );
 }

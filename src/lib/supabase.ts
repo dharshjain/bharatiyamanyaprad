@@ -87,6 +87,26 @@ export type Publication = {
   updated_at: string;
 };
 
+export type Subscription = {
+  id: string;
+  name: string;
+  email: string;
+  address: string;
+  country: string;
+  mobile: string;
+  type: string;
+  period: string;
+  payment: string;
+  bank: string | null;
+  amount: string | null;
+  date: string | null;
+  receipt_url: string | null;
+  receipt_name: string | null;
+  status: "Pending" | "Approved" | "Rejected";
+  created_at: string;
+  updated_at: string;
+};
+
 // ── Auth helpers ─────────────────────────────────────────────
 
 const SESSION_KEY = "bm_admin_session";

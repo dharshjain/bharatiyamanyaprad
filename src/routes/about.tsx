@@ -72,7 +72,7 @@ function About() {
               {/* Core Text Paragraphs */}
               <div className="space-y-6 font-serif text-lg leading-relaxed text-foreground/90">
                 {aboutParagraphs.map((p, idx) => (
-                  <p key={idx} className="indent-4 sm:indent-8">
+                  <p key={idx} className="indent-4 sm:indent-8 text-justify">
                     {p}
                   </p>
                 ))}

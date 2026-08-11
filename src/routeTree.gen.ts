@@ -15,6 +15,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CallForPapersRouteImport } from './routes/call-for-papers'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as EditorialBoardRouteImport } from './routes/editorial-board'
+import { Route as EventsRouteImport } from './routes/events'
 import { Route as InstructionsToAuthorsRouteImport } from './routes/instructions-to-authors'
 import { Route as PublicationRouteImport } from './routes/publication'
 import { Route as PublicationEthicsRouteImport } from './routes/publication-ethics'
@@ -22,6 +23,7 @@ import { Route as SubmissionRouteImport } from './routes/submission'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -51,6 +53,11 @@ const ContactRoute = ContactRouteImport.update({
 const EditorialBoardRoute = EditorialBoardRouteImport.update({
   id: '/editorial-board',
   path: '/editorial-board',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsRoute = EventsRouteImport.update({
+  id: '/events',
+  path: '/events',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InstructionsToAuthorsRoute = InstructionsToAuthorsRouteImport.update({
@@ -88,6 +95,11 @@ const AdminDashboardRoute = AdminDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AdminRoute,
 } as any)
+const EventsEventIdRoute = EventsEventIdRouteImport.update({
+  id: '/$eventId',
+  path: '/$eventId',
+  getParentRoute: () => EventsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -96,12 +108,14 @@ export interface FileRoutesByFullPath {
   '/call-for-papers': typeof CallForPapersRoute
   '/contact': typeof ContactRoute
   '/editorial-board': typeof EditorialBoardRoute
+  '/events': typeof EventsRouteWithChildren
   '/instructions-to-authors': typeof InstructionsToAuthorsRoute
   '/publication': typeof PublicationRoute
   '/publication-ethics': typeof PublicationEthicsRoute
   '/submission': typeof SubmissionRoute
   '/subscription': typeof SubscriptionRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/events/$eventId': typeof EventsEventIdRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
@@ -110,12 +124,14 @@ export interface FileRoutesByTo {
   '/call-for-papers': typeof CallForPapersRoute
   '/contact': typeof ContactRoute
   '/editorial-board': typeof EditorialBoardRoute
+  '/events': typeof EventsRouteWithChildren
   '/instructions-to-authors': typeof InstructionsToAuthorsRoute
   '/publication': typeof PublicationRoute
   '/publication-ethics': typeof PublicationEthicsRoute
   '/submission': typeof SubmissionRoute
   '/subscription': typeof SubscriptionRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/events/$eventId': typeof EventsEventIdRoute
   '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
@@ -126,12 +142,14 @@ export interface FileRoutesById {
   '/call-for-papers': typeof CallForPapersRoute
   '/contact': typeof ContactRoute
   '/editorial-board': typeof EditorialBoardRoute
+  '/events': typeof EventsRouteWithChildren
   '/instructions-to-authors': typeof InstructionsToAuthorsRoute
   '/publication': typeof PublicationRoute
   '/publication-ethics': typeof PublicationEthicsRoute
   '/submission': typeof SubmissionRoute
   '/subscription': typeof SubscriptionRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/events/$eventId': typeof EventsEventIdRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -143,12 +161,14 @@ export interface FileRouteTypes {
     | '/call-for-papers'
     | '/contact'
     | '/editorial-board'
+    | '/events'
     | '/instructions-to-authors'
     | '/publication'
     | '/publication-ethics'
     | '/submission'
     | '/subscription'
     | '/admin/dashboard'
+    | '/events/$eventId'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -157,12 +177,14 @@ export interface FileRouteTypes {
     | '/call-for-papers'
     | '/contact'
     | '/editorial-board'
+    | '/events'
     | '/instructions-to-authors'
     | '/publication'
     | '/publication-ethics'
     | '/submission'
     | '/subscription'
     | '/admin/dashboard'
+    | '/events/$eventId'
     | '/admin'
   id:
     | '__root__'
@@ -172,12 +194,14 @@ export interface FileRouteTypes {
     | '/call-for-papers'
     | '/contact'
     | '/editorial-board'
+    | '/events'
     | '/instructions-to-authors'
     | '/publication'
     | '/publication-ethics'
     | '/submission'
     | '/subscription'
     | '/admin/dashboard'
+    | '/events/$eventId'
     | '/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -188,6 +212,7 @@ export interface RootRouteChildren {
   CallForPapersRoute: typeof CallForPapersRoute
   ContactRoute: typeof ContactRoute
   EditorialBoardRoute: typeof EditorialBoardRoute
+  EventsRoute: typeof EventsRouteWithChildren
   InstructionsToAuthorsRoute: typeof InstructionsToAuthorsRoute
   PublicationRoute: typeof PublicationRoute
   PublicationEthicsRoute: typeof PublicationEthicsRoute
@@ -239,6 +264,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EditorialBoardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/events': {
+      id: '/events'
+      path: '/events'
+      fullPath: '/events'
+      preLoaderRoute: typeof EventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/instructions-to-authors': {
       id: '/instructions-to-authors'
       path: '/instructions-to-authors'
@@ -288,6 +320,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/events/$eventId': {
+      id: '/events/$eventId'
+      path: '/$eventId'
+      fullPath: '/events/$eventId'
+      preLoaderRoute: typeof EventsEventIdRouteImport
+      parentRoute: typeof EventsRoute
+    }
   }
 }
 
@@ -303,6 +342,17 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface EventsRouteChildren {
+  EventsEventIdRoute: typeof EventsEventIdRoute
+}
+
+const EventsRouteChildren: EventsRouteChildren = {
+  EventsEventIdRoute: EventsEventIdRoute,
+}
+
+const EventsRouteWithChildren =
+  EventsRoute._addFileChildren(EventsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -310,6 +360,7 @@ const rootRouteChildren: RootRouteChildren = {
   CallForPapersRoute: CallForPapersRoute,
   ContactRoute: ContactRoute,
   EditorialBoardRoute: EditorialBoardRoute,
+  EventsRoute: EventsRouteWithChildren,
   InstructionsToAuthorsRoute: InstructionsToAuthorsRoute,
   PublicationRoute: PublicationRoute,
   PublicationEthicsRoute: PublicationEthicsRoute,

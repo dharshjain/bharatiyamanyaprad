@@ -139,7 +139,7 @@ function RootShell({ children }: { children: ReactNode }) {
             __html: `
               (function() {
                 var stored = localStorage.getItem('bm-theme');
-                var isDark = stored ? stored === 'dark' : true;
+                var isDark = stored ? stored === 'dark' : false;
                 if (isDark) {
                   document.documentElement.classList.add('dark');
                 } else {

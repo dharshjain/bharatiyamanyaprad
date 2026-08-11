@@ -6,7 +6,8 @@ import { Reveal } from "@/components/site/reveal";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { bankDetails, contact, subscriptionRates } from "@/data/journal";
-import { Download, CreditCard, Landmark, Check, ChevronDown } from "lucide-react";
+import { Download, CreditCard, Landmark, Check, ChevronDown, Upload, Paperclip, Loader2, AlertCircle } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/subscription")({
   component: Subscription,
@@ -43,7 +44,7 @@ function CustomSelect({ label, value, options, onChange }: CustomSelectProps) {
 
   return (
     <div className="flex flex-col relative">
-      <span className="font-serif text-sm font-semibold text-accent-foreground">{label}</span>
+      <span className="font-serif text-sm font-semibold text-primary">{label}</span>
       
       {/* Trigger Button (looks like the underlined guideline) */}
       <button
@@ -134,11 +135,110 @@ function Subscription() {
     mobile: "+91",
     type: "Individual",
     period: "Annual",
-    payment: "Bank DD",
+    payment: "Cheque",
     bank: "",
     amount: "",
     date: ""
   });
+  const [file, setFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (!selected) {
+      setFile(null);
+      setFileError(null);
+      return;
+    }
+    // Check size: 5MB
+    if (selected.size > 5 * 1024 * 1024) {
+      setFileError("File size must be less than 5MB.");
+      setFile(null);
+      return;
+    }
+    // Check type: image or pdf
+    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"];
+    if (!validTypes.includes(selected.type)) {
+      setFileError("Invalid file type. Only images or PDFs are accepted.");
+      setFile(null);
+      return;
+    }
+    setFile(selected);
+    setFileError(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!file) {
+      setFileError("Payment receipt file is required.");
+      return;
+    }
+
+    setUploading(true);
+    setFileError(null);
+    try {
+      // 1. Upload to Supabase Storage
+      const fileExt = file.name.split(".").pop();
+      const fileName = `receipt-${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from("subscriptions")
+        .upload(fileName, file);
+
+      if (uploadError) {
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
+
+      // Get public url
+      const { data: { publicUrl } } = supabase.storage
+        .from("subscriptions")
+        .getPublicUrl(fileName);
+
+      // 2. Save subscription details
+      const { error: dbError } = await supabase
+        .from("subscriptions")
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          address: formData.address,
+          country: formData.country,
+          mobile: formData.mobile,
+          type: formData.type,
+          period: formData.period,
+          payment: formData.payment,
+          bank: formData.bank || null,
+          amount: formData.amount || null,
+          date: formData.date || null,
+          receipt_url: publicUrl,
+          receipt_name: fileName,
+          status: "Pending"
+        });
+
+      if (dbError) {
+        throw dbError;
+      }
+
+      setSent(true);
+      setFile(null);
+      setFormData({
+        name: "",
+        email: "",
+        address: "",
+        country: "",
+        mobile: "+91",
+        type: "Individual",
+        period: "Annual",
+        payment: "Bank DD",
+        bank: "",
+        amount: "",
+        date: ""
+      });
+    } catch (err: any) {
+      setFileError(err.message || "Failed to submit subscription.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <>
@@ -157,10 +257,7 @@ function Subscription() {
             style={{
               background: "linear-gradient(135deg, var(--card), var(--background))",
             }}
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSent(true);
-            }}
+            onSubmit={handleSubmit}
           >
             {/* Double thin border for historic charter look */}
             <div className="absolute inset-2 sm:inset-3.5 rounded-[22px] border border-accent/15 pointer-events-none" />
@@ -186,7 +283,7 @@ function Subscription() {
               {/* Form Rows (Underlined Guidelines) */}
               <div className="grid gap-6 sm:grid-cols-2">
                 <div className="flex flex-col">
-                  <Label htmlFor="s-name" className="font-serif text-sm font-semibold text-accent-foreground">Name of Subscriber</Label>
+                  <Label htmlFor="s-name" className="font-serif text-sm font-semibold text-primary">Name of Subscriber</Label>
                   <input
                     id="s-name"
                     type="text"
@@ -198,7 +295,7 @@ function Subscription() {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <Label htmlFor="s-email" className="font-serif text-sm font-semibold text-accent-foreground">Email Address</Label>
+                  <Label htmlFor="s-email" className="font-serif text-sm font-semibold text-primary">Email Address</Label>
                   <input
                     id="s-email"
                     type="email"
@@ -212,7 +309,7 @@ function Subscription() {
               </div>
 
               <div className="flex flex-col">
-                <Label htmlFor="s-address" className="font-serif text-sm font-semibold text-accent-foreground">Full Postal Address (for dispatch)</Label>
+                <Label htmlFor="s-address" className="font-serif text-sm font-semibold text-primary">Full Postal Address (for dispatch)</Label>
                 <textarea
                   id="s-address"
                   required
@@ -226,7 +323,7 @@ function Subscription() {
 
               <div className="grid gap-6 sm:grid-cols-2">
                 <div className="flex flex-col">
-                  <Label htmlFor="s-country" className="font-serif text-sm font-semibold text-accent-foreground">Country</Label>
+                  <Label htmlFor="s-country" className="font-serif text-sm font-semibold text-primary">Country</Label>
                   <input
                     id="s-country"
                     type="text"
@@ -238,7 +335,7 @@ function Subscription() {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <Label htmlFor="s-mobile" className="font-serif text-sm font-semibold text-accent-foreground">Mobile Contact Number</Label>
+                  <Label htmlFor="s-mobile" className="font-serif text-sm font-semibold text-primary">Mobile Contact Number</Label>
                   <input
                     id="s-mobile"
                     type="text"
@@ -262,20 +359,20 @@ function Subscription() {
                 <CustomSelect
                   label="Duration Period"
                   value={formData.period}
-                  options={["Annual", "Two years", "Three years"]}
+                  options={["Annual", "5 Years"]}
                   onChange={(val) => setFormData({ ...formData, period: val })}
                 />
                 <CustomSelect
                   label="Payment Method"
                   value={formData.payment}
-                  options={["Bank DD", "Multicity cheque", "Direct bank deposit"]}
+                  options={["Cheque", "Draft", "NEFT"]}
                   onChange={(val) => setFormData({ ...formData, payment: val })}
                 />
               </div>
 
               <div className="grid gap-6 sm:grid-cols-3">
                 <div className="flex flex-col">
-                  <Label htmlFor="s-bank" className="font-serif text-sm font-semibold text-accent-foreground">Bank Name</Label>
+                  <Label htmlFor="s-bank" className="font-serif text-sm font-semibold text-primary">Bank Name</Label>
                   <input
                     id="s-bank"
                     type="text"
@@ -286,7 +383,7 @@ function Subscription() {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <Label htmlFor="s-amount" className="font-serif text-sm font-semibold text-accent-foreground">Amount Transferred</Label>
+                  <Label htmlFor="s-amount" className="font-serif text-sm font-semibold text-primary">Amount Transferred</Label>
                   <input
                     id="s-amount"
                     type="text"
@@ -297,7 +394,7 @@ function Subscription() {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <Label htmlFor="s-date" className="font-serif text-sm font-semibold text-accent-foreground">Payment Date</Label>
+                  <Label htmlFor="s-date" className="font-serif text-sm font-semibold text-primary">Payment Date</Label>
                   <input
                     id="s-date"
                     type="date"
@@ -307,18 +404,74 @@ function Subscription() {
                   />
                 </div>
               </div>
+              {/* Receipt File Upload Field */}
+              <div className="flex flex-col gap-2">
+                <Label className="font-serif text-sm font-semibold text-primary">
+                  Attach Payment Receipt <span className="text-red-500">*</span>
+                </Label>
+                <div
+                  className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-all ${
+                    file
+                      ? "border-accent/60 bg-accent/5"
+                      : fileError
+                        ? "border-red-500/40 bg-red-500/5"
+                        : "border-accent/25 bg-secondary/10 hover:border-accent/40"
+                  }`}
+                >
+                  <input
+                    id="receipt-file"
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={handleFileChange}
+                    className="absolute inset-0 cursor-pointer opacity-0"
+                    disabled={uploading}
+                  />
+                  <div className="flex flex-col items-center gap-2">
+                    {uploading ? (
+                      <Loader2 className="size-8 animate-spin text-accent" />
+                    ) : file ? (
+                      <Paperclip className="size-8 text-accent animate-pulse" />
+                    ) : (
+                      <Upload className="size-8 text-accent/60" />
+                    )}
+                    
+                    <div className="font-serif text-sm">
+                      {file ? (
+                        <span className="font-semibold text-primary">{file.name}</span>
+                      ) : (
+                        <span className="text-foreground/85">
+                          Click or drag receipt file here
+                        </span>
+                      )}
+                    </div>
+                    
+                    <p className="text-xs text-muted-foreground">
+                      Accepts images (PNG, JPEG, WebP, GIF) or PDFs up to 5MB.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
               <div className="pt-2 text-center">
-                <Button type="submit" variant="outline" className="engraved w-full sm:w-auto px-10 py-5">
-                  Submit Subscription Registry
+                <Button 
+                  type="submit" 
+                  variant="outline" 
+                  className="engraved w-full sm:w-auto px-10 py-5"
+                  disabled={uploading}
+                >
+                  {uploading ? "Submitting..." : "Submit Subscription Registry"}
                 </Button>
                 
-                <div aria-live="polite" className="h-6 mt-4 flex items-center justify-center">
-                  {sent && (
+                <div aria-live="polite" className="min-h-6 mt-4 flex flex-col items-center justify-center">
+                  {sent ? (
                     <span className="inline-flex items-center gap-1.5 text-sm font-serif font-semibold text-accent tracking-wide animate-fade-in">
                       <Check className="size-4" /> Thank you — the editorial office will confirm your subscription receipt.
                     </span>
-                  )}
+                  ) : fileError ? (
+                    <span className="inline-flex items-center gap-1.5 text-sm font-serif font-semibold text-red-500 tracking-wide animate-fade-in">
+                      <AlertCircle className="size-4 shrink-0" /> {fileError}
+                    </span>
+                  ) : null}
                 </div>
               </div>
 
@@ -368,8 +521,8 @@ function Subscription() {
 
                 <CarvedBorder className="opacity-45 my-3 rotate-180" />
 
-                <p className="mt-4 font-serif text-xs leading-relaxed text-muted-foreground/95">
-                  Please send the subscription remittance through a bank demand draft (DD) or multicity cheque drawn in favor of Editor, <span className="italic text-primary font-bold">"Bharatiya Manyaprad"</span>, payable at Ahmedabad.
+                <p className="mt-5 font-serif text-sm sm:text-base leading-relaxed text-foreground/85">
+                  Please send the subscription remittance through a bank cheque, demand draft (DD), or NEFT transfer drawn in favor of Editor, <span className="italic text-accent font-bold">"Bharatiya Manyaprad"</span>, payable at Ahmedabad.
                 </p>
               </div>
             </div>
@@ -396,16 +549,16 @@ function Subscription() {
 
                 <CarvedBorder className="opacity-45 my-3" />
 
-                <dl className="space-y-3 mt-4 text-sm font-serif">
+                <dl className="space-y-3 mt-4 text-sm font-sans">
                   {bankDetails.map((b) => (
                     <div key={b.label} className="flex justify-between items-baseline gap-4 border-b border-accent/10 pb-1.5">
-                      <dt className="text-[0.68rem] font-sans tracking-wider uppercase text-accent font-semibold">{b.label}</dt>
-                      <dd className="text-right text-[0.92rem] font-medium text-primary font-serif">{b.value}</dd>
+                      <dt className="text-[0.75rem] sm:text-[0.8rem] font-sans tracking-wider uppercase text-accent font-semibold">{b.label}</dt>
+                      <dd className="text-right text-sm sm:text-base font-medium text-primary font-sans">{b.value}</dd>
                     </div>
                   ))}
                 </dl>
 
-                <p className="mt-5 font-serif text-xs leading-relaxed text-muted-foreground/90">
+                <p className="mt-6 font-serif text-sm sm:text-base leading-relaxed text-foreground/85">
                   You may also download the offline subscription enrollment paper, complete the fields, and dispatch it to our central postal registry.
                 </p>
 
