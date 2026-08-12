@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { ScrollProgress } from "@/components/site/scroll-progress";
+import { VisitorCounter } from "@/components/site/visitor-counter";
 
 function NotFoundComponent() {
   return (
@@ -157,7 +158,6 @@ function RootShell({ children }: { children: ReactNode }) {
     </html>
   );
 }
-
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const location = useLocation();
@@ -171,6 +171,7 @@ function RootComponent() {
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
       </main>
+      {!isAdminRoute && <VisitorCounter />}
       {!isAdminRoute && <SiteFooter />}
     </QueryClientProvider>
   );

@@ -86,6 +86,8 @@ export type Publication = {
   author: string | null;
   pdf_url: string | null;
   pdf_name: string | null;
+  cover_url: string | null;
+  cover_name: string | null;
   sort_order: number;
   created_at: string;
   updated_at: string;

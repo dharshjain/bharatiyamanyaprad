@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Download } from "lucide-react";
 import { useEffect, useState } from "react";
+import { PublicationCard } from "./publication";
 import cover from "@/assets/issue-cover.jpg";
 import heroBg from "@/assets/hero-manuscript.jpg";
 import nalanda from "@/assets/nalanda-illustration.jpg";
@@ -30,7 +31,6 @@ import {
   contact,
   heritageNote,
   notices as staticNotices,
-  publications as staticPublications,
   quickLinks,
 } from "@/data/journal";
 import {
@@ -90,21 +90,7 @@ function Home() {
 
   const notices = liveNotices.length > 0 ? liveNotices.map((n) => n.content) : staticNotices;
 
-  const publications =
-    livePublications.length > 0
-      ? livePublications
-      : staticPublications.map((p, i) => ({
-          id: String(i),
-          title: p.title,
-          volume: p.volume,
-          period: p.period,
-          year: p.year,
-          pdf_url: null,
-          pdf_name: null,
-          sort_order: i,
-          created_at: "",
-          updated_at: "",
-        }));
+  const publications = livePublications;
 
   return (
     <>
@@ -515,97 +501,10 @@ function Publications({
           <MandalaDivider className="mt-6" />
         </Reveal>
 
-        <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {publications.slice(0, 6).map((p, i) => (
-            <Reveal key={p.id} delay={i * 70} as="li">
-              <article
-                className="relative rounded-3xl p-6 pt-16 hover:translate-y-[-6px] hover:shadow-[0_20px_40px_rgba(184,134,11,0.12)] transition-all duration-500 flex flex-col justify-between h-full group text-center border border-accent/25 overflow-hidden"
-                style={{
-                  background: "linear-gradient(135deg, var(--card), var(--background))",
-                }}
-              >
-                {/* Double thin border for historic charter look */}
-                <div className="absolute inset-2 rounded-[22px] border border-accent/15 pointer-events-none" />
-
-                {/* Corner flourishes in all four corners */}
-                <CornerFlourish className="pointer-events-none absolute top-3.5 left-3.5 size-4 text-accent/40" />
-                <CornerFlourish className="pointer-events-none absolute top-3.5 right-3.5 size-4 rotate-90 text-accent/40" />
-                <CornerFlourish className="pointer-events-none absolute bottom-3.5 left-3.5 size-4 -rotate-90 text-accent/40" />
-                <CornerFlourish className="pointer-events-none absolute bottom-3.5 right-3.5 size-4 rotate-180 text-accent/40" />
-
-                {/* Period heading - top-left */}
-                <div className="absolute top-5 left-7 flex flex-col items-start gap-0.5">
-                  <span className="font-display text-[0.68rem] tracking-[0.18em] uppercase text-accent-foreground font-semibold">
-                    {p.period}
-                  </span>
-                  <div className="flex items-center gap-1 opacity-45">
-                    <span className="h-[0.5px] w-3.5 bg-accent" />
-                    <span className="text-[0.4rem] text-accent">✦</span>
-                    <span className="h-[0.5px] w-3.5 bg-accent" />
-                  </div>
-                </div>
-
-                {/* Lotus Medallion - top-right */}
-                <div className="absolute top-5 right-7 size-10 rounded-full border border-accent/20 bg-accent/5 flex items-center justify-center text-accent/70 shadow-[0_0_12px_rgba(184,134,11,0.08)] hover:scale-105 transition-transform duration-300">
-                  <LotusMark className="size-4.5" />
-                </div>
-
-                {/* Center Glowing Lotus Flower Image */}
-                <div className="flex flex-col items-center pt-4 pb-2">
-                  <div className="relative w-40 h-24 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-accent/10 blur-xl rounded-full scale-110 pointer-events-none opacity-40 dark:opacity-65" />
-                    <img
-                      src={heritageLotus}
-                      alt="Golden Lotus"
-                      className="w-full h-full object-contain relative z-10 transition-transform duration-500 group-hover:scale-105 invert hue-rotate-[180deg] brightness-[0.45] contrast-[1.2] dark:invert-0 dark:hue-rotate-0 dark:brightness-100 dark:contrast-100"
-                    />
-                  </div>
-                </div>
-
-                {/* Card Info Texts */}
-                <div className="space-y-1">
-                  <h3 className="font-display text-xs tracking-[0.22em] text-accent/90 uppercase font-semibold">
-                    Bharatiya Manyaprad
-                  </h3>
-
-                  <h4 className="font-display text-lg leading-snug text-primary group-hover:text-accent transition-colors duration-300">
-                    {p.title.replace(/Bharatiya Manyaprad\s*/i, "")}
-                  </h4>
-
-                  <p className="font-serif text-sm italic text-foreground/75">{p.volume}</p>
-
-                  <div className="flex items-center justify-center gap-1.5 opacity-45 pt-1">
-                    <span className="h-[0.5px] w-5 bg-accent" />
-                    <span className="text-[0.4rem] text-accent">✦</span>
-                    <span className="h-[0.5px] w-5 bg-accent" />
-                  </div>
-                </div>
-
-                {/* Action button */}
-                <div className="mt-6 z-10">
-                  {p.pdf_url ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="engraved w-full py-5 rounded-xl border-accent/20 hover:border-accent"
-                      asChild
-                    >
-                      <a href={p.pdf_url} target="_blank" rel="noopener noreferrer" download>
-                        <Download className="size-3.5 mr-1.5" /> Download volume
-                      </a>
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="engraved w-full py-5 rounded-xl border-accent/20"
-                      disabled
-                    >
-                      <Download className="size-3.5 mr-1.5" /> Download volume
-                    </Button>
-                  )}
-                </div>
-              </article>
+        <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
+          {publications.slice(0, 4).map((p, i) => (
+            <Reveal key={p.id} delay={i * 70} as="li" className="flex">
+              <PublicationCard publication={p} />
             </Reveal>
           ))}
         </ul>

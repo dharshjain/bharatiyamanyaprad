@@ -29,6 +29,7 @@ import {
   CreditCard,
   ExternalLink,
   RefreshCw,
+  ImageIcon,
 } from "lucide-react";
 import {
   supabase,
@@ -1592,11 +1593,15 @@ function PublicationsTab({
     pages: "",
     author: "",
     period: "",
+    cover_url: "",
   });
   const [uploading, setUploading] = useState<string | null>(null); // id of pub being uploaded
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const addFileRef = useRef<HTMLInputElement>(null);
   const [addPdfFile, setAddPdfFile] = useState<File | null>(null);
+  const addCoverRef = useRef<HTMLInputElement>(null);
+  const [addCoverFile, setAddCoverFile] = useState<File | null>(null);
+  const [coverUploading, setCoverUploading] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -1626,6 +1631,23 @@ function PublicationsTab({
     return { url: data.publicUrl, name: file.name };
   }
 
+  async function uploadCoverImage(
+    pubId: string,
+    file: File,
+  ): Promise<{ url: string; name: string } | null> {
+    const ext = file.name.split(".").pop();
+    const path = `cover-${pubId}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("publications")
+      .upload(path, file, { upsert: true });
+    if (error) {
+      showToast(error.message, "error");
+      return null;
+    }
+    const { data } = supabase.storage.from("publications").getPublicUrl(path);
+    return { url: data.publicUrl, name: file.name };
+  }
+
   async function saveEdit(id: string) {
     setSaving(true);
     const fileInput = fileRefs.current[id];
@@ -1634,6 +1656,19 @@ function PublicationsTab({
       const res = await uploadPdf(id, fileInput.files[0]);
       if (res) pdfData = { pdf_url: res.url, pdf_name: res.name };
     }
+    // Handle cover image from edit form file input
+    const coverInput = fileRefs.current[`cover-${id}`];
+    let coverData: { cover_url: string; cover_name: string } | undefined;
+    if (coverInput?.files?.[0]) {
+      const res = await uploadCoverImage(id, coverInput.files[0]);
+      if (res) coverData = { cover_url: res.url, cover_name: res.name };
+    }
+    // If cover was explicitly removed, set to null
+    const coverUpdate = coverData
+      ? coverData
+      : editForm.cover_url === ""
+        ? { cover_url: null, cover_name: null }
+        : {};
     const { error } = await supabase
       .from("publications")
       .update({
@@ -1646,6 +1681,7 @@ function PublicationsTab({
         author: editForm.author || null,
         period: editForm.period,
         ...(pdfData ?? {}),
+        ...coverUpdate,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);
@@ -1679,6 +1715,7 @@ function PublicationsTab({
         pages: addForm.pages || null,
         author: addForm.author || null,
         period: addForm.period || `${addForm.year}`,
+        cover_url: addForm.cover_url || null,
         sort_order: maxOrder,
       })
       .select()
@@ -1695,6 +1732,16 @@ function PublicationsTab({
         await supabase.from("publications").update(pdfData).eq("id", data.id);
       }
     }
+    // Upload cover image if provided
+    if (addCoverFile) {
+      const coverRes = await uploadCoverImage(data.id, addCoverFile);
+      if (coverRes) {
+        await supabase
+          .from("publications")
+          .update({ cover_url: coverRes.url, cover_name: coverRes.name })
+          .eq("id", data.id);
+      }
+    }
     setSaving(false);
     showToast("Publication added.");
     setShowAdd(false);
@@ -1707,8 +1754,10 @@ function PublicationsTab({
       pages: "",
       author: "",
       period: "",
+      cover_url: "",
     });
     setAddPdfFile(null);
+    setAddCoverFile(null);
     load();
   }
 
@@ -1827,6 +1876,80 @@ function PublicationsTab({
                 onChange={(e) => setAddPdfFile(e.target.files?.[0] ?? null)}
               />
             </div>
+            <div className="sm:col-span-2">
+              <label
+                className="text-xs font-medium uppercase tracking-wider block mb-1.5"
+                style={{ color: "#9a8a6a" }}
+              >
+                Cover Page Image (optional)
+              </label>
+              <div className="flex items-center gap-4">
+                {addForm.cover_url ? (
+                  <div className="relative size-20 shrink-0 rounded-lg border border-accent/40 overflow-hidden bg-background">
+                    <img src={addForm.cover_url} alt="Cover preview" className="size-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAddForm((f) => ({ ...f, cover_url: "" }));
+                        setAddCoverFile(null);
+                      }}
+                      className="absolute inset-0 bg-black/60 flex items-center justify-center text-red-400 opacity-0 hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="size-20 shrink-0 rounded-lg border border-dashed border-accent/35 flex items-center justify-center text-accent/60 bg-secondary/10">
+                    <ImageIcon className="size-6" />
+                  </div>
+                )}
+                <div className="flex flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={() => addCoverRef.current?.click()}
+                    disabled={coverUploading}
+                    className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80 disabled:opacity-50"
+                    style={{
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(184,134,11,0.2)",
+                      color: "#9a8a6a",
+                    }}
+                  >
+                    {coverUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    {addCoverFile ? addCoverFile.name : "Choose cover image…"}
+                  </button>
+                  <p className="text-[0.65rem]" style={{ color: "#3d3728" }}>If not provided, a default ornamental card design will be shown</p>
+                </div>
+                <input
+                  ref={addCoverRef}
+                  type="file"
+                  accept="image/*,.pdf"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setAddCoverFile(file);
+                    // Preview: upload immediately for preview URL
+                    setCoverUploading(true);
+                    const ext = file.name.split(".").pop();
+                    const path = `cover-preview-${Date.now()}.${ext}`;
+                    const { error: upErr } = await supabase.storage
+                      .from("publications")
+                      .upload(path, file, { upsert: true });
+                    if (upErr) {
+                      setCoverUploading(false);
+                      return showToast(upErr.message, "error");
+                    }
+                    const { data: urlData } = supabase.storage
+                      .from("publications")
+                      .getPublicUrl(path);
+                    setAddForm((f) => ({ ...f, cover_url: urlData.publicUrl }));
+                    setCoverUploading(false);
+                    showToast("Cover image uploaded.");
+                  }}
+                />
+              </div>
+            </div>
           </div>
           <div className="mt-4 flex gap-3">
             <SaveBtn onClick={addPub} loading={saving} />
@@ -1924,6 +2047,75 @@ function PublicationsTab({
                       className="hidden"
                     />
                   </div>
+                  <div className="sm:col-span-2">
+                    <label
+                      className="text-xs font-medium uppercase tracking-wider block mb-1.5"
+                      style={{ color: "#9a8a6a" }}
+                    >
+                      Cover Page Image (optional)
+                    </label>
+                    <div className="flex items-center gap-4">
+                      {editForm.cover_url ? (
+                        <div className="relative size-20 shrink-0 rounded-lg border border-accent/40 overflow-hidden bg-background">
+                          <img src={editForm.cover_url} alt="Cover preview" className="size-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setEditForm((f) => ({ ...f, cover_url: "" }))}
+                            className="absolute inset-0 bg-black/60 flex items-center justify-center text-red-400 opacity-0 hover:opacity-100 transition-opacity"
+                          >
+                            <Trash2 className="size-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="size-20 shrink-0 rounded-lg border border-dashed border-accent/35 flex items-center justify-center text-accent/60 bg-secondary/10">
+                          <ImageIcon className="size-6" />
+                        </div>
+                      )}
+                      <div className="flex flex-col gap-1">
+                        <button
+                          type="button"
+                          onClick={() => fileRefs.current[`cover-${pub.id}`]?.click()}
+                          className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80"
+                          style={{
+                            background: "rgba(255,255,255,0.05)",
+                            border: "1px solid rgba(184,134,11,0.2)",
+                            color: "#9a8a6a",
+                          }}
+                        >
+                          <Upload className="h-4 w-4" /> {editForm.cover_url ? "Replace cover" : "Choose cover image…"}
+                        </button>
+                        <p className="text-[0.65rem]" style={{ color: "#3d3728" }}>If removed, the default ornamental design will be shown</p>
+                      </div>
+                      <input
+                        ref={(el) => {
+                          fileRefs.current[`cover-${pub.id}`] = el;
+                        }}
+                        type="file"
+                        accept="image/*,.pdf"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setCoverUploading(true);
+                          const ext = file.name.split(".").pop();
+                          const path = `cover-edit-${Date.now()}.${ext}`;
+                          const { error: upErr } = await supabase.storage
+                            .from("publications")
+                            .upload(path, file, { upsert: true });
+                          if (upErr) {
+                            setCoverUploading(false);
+                            return showToast(upErr.message, "error");
+                          }
+                          const { data: urlData } = supabase.storage
+                            .from("publications")
+                            .getPublicUrl(path);
+                          setEditForm((f) => ({ ...f, cover_url: urlData.publicUrl }));
+                          setCoverUploading(false);
+                          showToast("Cover image uploaded.");
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div className="flex gap-3">
                   <SaveBtn onClick={() => saveEdit(pub.id)} loading={saving} />
@@ -1938,41 +2130,51 @@ function PublicationsTab({
               </div>
             ) : (
               <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-widest" style={{ color: "#b8860b" }}>
-                    {pub.journal_name || "Bharatiya Manyaprad"}
-                  </p>
-                  <p className="mt-0.5 text-xs" style={{ color: "#9a8a6a" }}>
-                    {[pub.volume, pub.issue_no, String(pub.year), pub.pages]
-                      .filter(Boolean)
-                      .join(", ")}
-                  </p>
-                  <p className="mt-1 font-semibold" style={{ color: "#f5f0e8" }}>
-                    {pub.title}
-                  </p>
-                  {pub.author && (
-                    <p className="text-sm" style={{ color: "#6b6450" }}>
-                      by {pub.author}
+                <div className="flex items-start gap-4 min-w-0 flex-1">
+                  {/* Cover thumbnail */}
+                  <div className="size-14 shrink-0 rounded-lg overflow-hidden border border-accent/25 bg-background flex items-center justify-center">
+                    {pub.cover_url ? (
+                      <img src={pub.cover_url} alt={`Cover ${pub.volume}`} className="size-full object-cover" />
+                    ) : (
+                      <ImageIcon className="size-5 text-accent/30" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs uppercase tracking-widest" style={{ color: "#b8860b" }}>
+                      {pub.journal_name || "Bharatiya Manyaprad"}
                     </p>
-                  )}
-                  {pub.pdf_url ? (
-                    <a
-                      href={pub.pdf_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 inline-flex items-center gap-1.5 text-xs hover:underline"
-                      style={{ color: "#d4a843" }}
-                    >
-                      <Download className="h-3.5 w-3.5" /> {pub.pdf_name ?? "Download PDF"}
-                    </a>
-                  ) : (
-                    <span
-                      className="mt-2 inline-flex items-center gap-1.5 text-xs"
-                      style={{ color: "#3d3728" }}
-                    >
-                      No PDF uploaded
-                    </span>
-                  )}
+                    <p className="mt-0.5 text-xs" style={{ color: "#9a8a6a" }}>
+                      {[pub.volume, pub.issue_no, String(pub.year), pub.pages]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </p>
+                    <p className="mt-1 font-semibold" style={{ color: "#f5f0e8" }}>
+                      {pub.title}
+                    </p>
+                    {pub.author && (
+                      <p className="text-sm" style={{ color: "#6b6450" }}>
+                        by {pub.author}
+                      </p>
+                    )}
+                    {pub.pdf_url ? (
+                      <a
+                        href={pub.pdf_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex items-center gap-1.5 text-xs hover:underline"
+                        style={{ color: "#d4a843" }}
+                      >
+                        <Download className="h-3.5 w-3.5" /> {pub.pdf_name ?? "Download PDF"}
+                      </a>
+                    ) : (
+                      <span
+                        className="mt-2 inline-flex items-center gap-1.5 text-xs"
+                        style={{ color: "#3d3728" }}
+                      >
+                        No PDF uploaded
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex shrink-0 gap-2 flex-wrap justify-end">
                   <button
@@ -2017,6 +2219,8 @@ function PublicationsTab({
                         year: pub.year,
                         pages: pub.pages ?? "",
                         author: pub.author ?? "",
+                        cover_url: pub.cover_url ?? "",
+                        cover_name: pub.cover_name ?? "",
                       });
                     }}
                     className="rounded-lg p-2 transition hover:opacity-80"

@@ -7,6 +7,7 @@ import { LotusMark } from "@/components/site/ornaments";
 const nav = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
+  { label: "Publication", to: "/publication" },
   { label: "Subscription", to: "/subscription" },
   { label: "Responsibilities", to: "/publication-ethics" },
   { label: "Contact", to: "/contact" },
@@ -15,7 +16,6 @@ const nav = [
 const aboutDropdownItems = [
   { label: "About Us", to: "/about" },
   { label: "Editorial Board", to: "/editorial-board" },
-  { label: "Publication", to: "/publication" },
   { label: "Call for Papers", to: "/call-for-papers" },
   { label: "Events", to: "/events" },
   { label: "Author's Guidelines", to: "/instructions-to-authors" },
@@ -130,7 +130,6 @@ export function SiteHeader() {
                 const isAboutActive = [
                   "/about",
                   "/editorial-board",
-                  "/publication",
                   "/call-for-papers",
                   "/events",
                   "/instructions-to-authors",
