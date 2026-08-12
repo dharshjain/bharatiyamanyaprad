@@ -1584,10 +1584,14 @@ function PublicationsTab({
   const [saving, setSaving] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState({
+    journal_name: "Bharatiya Manyaprad",
     title: "",
     volume: "",
-    period: "",
+    issue_no: "",
     year: new Date().getFullYear(),
+    pages: "",
+    author: "",
+    period: "",
   });
   const [uploading, setUploading] = useState<string | null>(null); // id of pub being uploaded
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -1633,9 +1637,15 @@ function PublicationsTab({
     const { error } = await supabase
       .from("publications")
       .update({
-        ...editForm,
-        ...(pdfData ?? {}),
+        journal_name: editForm.journal_name,
+        title: editForm.title,
+        volume: editForm.volume,
+        issue_no: editForm.issue_no || null,
         year: Number(editForm.year),
+        pages: editForm.pages || null,
+        author: editForm.author || null,
+        period: editForm.period,
+        ...(pdfData ?? {}),
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);
@@ -1660,7 +1670,17 @@ function PublicationsTab({
     const maxOrder = pubs.length ? Math.max(...pubs.map((p) => p.sort_order)) + 1 : 1;
     const { data, error } = await supabase
       .from("publications")
-      .insert({ ...addForm, year: Number(addForm.year), sort_order: maxOrder })
+      .insert({
+        journal_name: addForm.journal_name,
+        title: addForm.title,
+        volume: addForm.volume,
+        issue_no: addForm.issue_no || null,
+        year: Number(addForm.year),
+        pages: addForm.pages || null,
+        author: addForm.author || null,
+        period: addForm.period || `${addForm.year}`,
+        sort_order: maxOrder,
+      })
       .select()
       .single();
     if (error || !data) {
@@ -1678,7 +1698,16 @@ function PublicationsTab({
     setSaving(false);
     showToast("Publication added.");
     setShowAdd(false);
-    setAddForm({ title: "", volume: "", period: "", year: new Date().getFullYear() });
+    setAddForm({
+      journal_name: "Bharatiya Manyaprad",
+      title: "",
+      volume: "",
+      issue_no: "",
+      year: new Date().getFullYear(),
+      pages: "",
+      author: "",
+      period: "",
+    });
     setAddPdfFile(null);
     load();
   }
@@ -1724,23 +1753,31 @@ function PublicationsTab({
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <InputRow
-                label="Title"
+                label="Journal Name"
+                value={addForm.journal_name}
+                onChange={(v) => setAddForm((f) => ({ ...f, journal_name: v }))}
+                placeholder="Bharatiya Manyaprad"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <InputRow
+                label="Title (Article / Paper)"
                 value={addForm.title}
                 onChange={(v) => setAddForm((f) => ({ ...f, title: v }))}
-                placeholder="Bharatiya Manyaprad Vol XII…"
+                placeholder="Introduction: Telling the Tale"
               />
             </div>
             <InputRow
               label="Volume"
               value={addForm.volume}
               onChange={(v) => setAddForm((f) => ({ ...f, volume: v }))}
-              placeholder="Vol. XII"
+              placeholder="Volume 1"
             />
             <InputRow
-              label="Period"
-              value={addForm.period}
-              onChange={(v) => setAddForm((f) => ({ ...f, period: v }))}
-              placeholder="May 2025"
+              label="No."
+              value={addForm.issue_no}
+              onChange={(v) => setAddForm((f) => ({ ...f, issue_no: v }))}
+              placeholder="No.2"
             />
             <InputRow
               label="Year"
@@ -1748,6 +1785,20 @@ function PublicationsTab({
               type="number"
               onChange={(v) => setAddForm((f) => ({ ...f, year: Number(v) }))}
             />
+            <InputRow
+              label="pp."
+              value={addForm.pages}
+              onChange={(v) => setAddForm((f) => ({ ...f, pages: v }))}
+              placeholder="pp. 9-18"
+            />
+            <div className="sm:col-span-2">
+              <InputRow
+                label="Author Name"
+                value={addForm.author}
+                onChange={(v) => setAddForm((f) => ({ ...f, author: v }))}
+                placeholder="Dr. Neerja A Gupta"
+              />
+            </div>
             <div className="flex flex-col gap-1.5">
               <label
                 className="text-xs font-medium uppercase tracking-wider"
@@ -1805,7 +1856,14 @@ function PublicationsTab({
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="sm:col-span-2">
                     <InputRow
-                      label="Title"
+                      label="Journal Name"
+                      value={editForm.journal_name ?? "Bharatiya Manyaprad"}
+                      onChange={(v) => setEditForm((f) => ({ ...f, journal_name: v }))}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <InputRow
+                      label="Title (Article / Paper)"
                       value={editForm.title ?? ""}
                       onChange={(v) => setEditForm((f) => ({ ...f, title: v }))}
                     />
@@ -1816,9 +1874,9 @@ function PublicationsTab({
                     onChange={(v) => setEditForm((f) => ({ ...f, volume: v }))}
                   />
                   <InputRow
-                    label="Period"
-                    value={editForm.period ?? ""}
-                    onChange={(v) => setEditForm((f) => ({ ...f, period: v }))}
+                    label="No."
+                    value={editForm.issue_no ?? ""}
+                    onChange={(v) => setEditForm((f) => ({ ...f, issue_no: v }))}
                   />
                   <InputRow
                     label="Year"
@@ -1826,6 +1884,18 @@ function PublicationsTab({
                     type="number"
                     onChange={(v) => setEditForm((f) => ({ ...f, year: Number(v) }))}
                   />
+                  <InputRow
+                    label="pp."
+                    value={editForm.pages ?? ""}
+                    onChange={(v) => setEditForm((f) => ({ ...f, pages: v }))}
+                  />
+                  <div className="sm:col-span-2">
+                    <InputRow
+                      label="Author Name"
+                      value={editForm.author ?? ""}
+                      onChange={(v) => setEditForm((f) => ({ ...f, author: v }))}
+                    />
+                  </div>
                   <div className="flex flex-col gap-1.5">
                     <label
                       className="text-xs font-medium uppercase tracking-wider"
@@ -1870,14 +1940,21 @@ function PublicationsTab({
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-widest" style={{ color: "#b8860b" }}>
-                    {pub.period}
+                    {pub.journal_name || "Bharatiya Manyaprad"}
+                  </p>
+                  <p className="mt-0.5 text-xs" style={{ color: "#9a8a6a" }}>
+                    {[pub.volume, pub.issue_no, String(pub.year), pub.pages]
+                      .filter(Boolean)
+                      .join(", ")}
                   </p>
                   <p className="mt-1 font-semibold" style={{ color: "#f5f0e8" }}>
                     {pub.title}
                   </p>
-                  <p className="text-sm" style={{ color: "#6b6450" }}>
-                    {pub.volume}
-                  </p>
+                  {pub.author && (
+                    <p className="text-sm" style={{ color: "#6b6450" }}>
+                      by {pub.author}
+                    </p>
+                  )}
                   {pub.pdf_url ? (
                     <a
                       href={pub.pdf_url}
@@ -1932,10 +2009,14 @@ function PublicationsTab({
                     onClick={() => {
                       setEditingId(pub.id);
                       setEditForm({
+                        journal_name: pub.journal_name || "Bharatiya Manyaprad",
                         title: pub.title,
                         volume: pub.volume,
+                        issue_no: pub.issue_no ?? "",
                         period: pub.period,
                         year: pub.year,
+                        pages: pub.pages ?? "",
+                        author: pub.author ?? "",
                       });
                     }}
                     className="rounded-lg p-2 transition hover:opacity-80"

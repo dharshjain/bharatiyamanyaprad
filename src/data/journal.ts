@@ -3,6 +3,10 @@ export type Publication = {
   volume: string;
   period: string;
   year: number;
+  journal_name?: string;
+  issue_no?: string;
+  pages?: string;
+  author?: string;
 };
 
 /** The published volumes, exactly as listed on the journal's publication page. */

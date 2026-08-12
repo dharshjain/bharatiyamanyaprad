@@ -76,10 +76,14 @@ export type NewsEvent = {
 
 export type Publication = {
   id: string;
+  journal_name: string;
   title: string;
   volume: string;
   period: string;
   year: number;
+  issue_no: string | null;
+  pages: string | null;
+  author: string | null;
   pdf_url: string | null;
   pdf_name: string | null;
   sort_order: number;

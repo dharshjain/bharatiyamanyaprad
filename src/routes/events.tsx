@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useMatch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { MapPin, ArrowUpRight } from "lucide-react";
 import { PageHero } from "@/components/site/page-hero";
@@ -117,6 +117,14 @@ function EventsList() {
     groupedEvents[groupKey].push(ev);
   });
 
+  // Check if a child route (e.g. /events/$eventId) is active
+  const childMatch = useMatch({ from: "/events/$eventId", shouldThrow: false });
+
+  // If a child route is matched, render only the child via Outlet
+  if (childMatch) {
+    return <Outlet />;
+  }
+
   return (
     <>
       <PageHero
@@ -151,7 +159,8 @@ function EventsList() {
                   return (
                     <Reveal key={ev.id} delay={idx * 60}>
                       <Link
-                        to={`/events/${ev.id}`}
+                        to="/events/$eventId"
+                        params={{ eventId: ev.id }}
                         className="group flex flex-col sm:flex-row items-stretch gap-6 py-8 hover:bg-secondary/15 px-4 rounded-2xl transition-all duration-300"
                       >
                         {/* 1. Date Plaque */}
