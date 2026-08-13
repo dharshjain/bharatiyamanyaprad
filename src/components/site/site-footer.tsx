@@ -25,7 +25,7 @@ export function SiteFooter() {
         </div>
 
         <nav aria-label="Journal">
-          <h2 className="eyebrow text-accent">Journal</h2>
+          <h2 className="eyebrow text-terracotta font-extrabold">Journal</h2>
           <ul className="mt-4 space-y-2 text-sm">
             {[
               { label: "About", to: "/about" },
@@ -43,7 +43,7 @@ export function SiteFooter() {
         </nav>
 
         <nav aria-label="Authors">
-          <h2 className="eyebrow text-accent">Authors</h2>
+          <h2 className="eyebrow text-terracotta font-extrabold">Authors</h2>
           <ul className="mt-4 space-y-2 text-sm">
             {[
               { label: "Author's Instructions", to: "/instructions-to-authors" },
@@ -63,7 +63,7 @@ export function SiteFooter() {
 
 
         <div>
-          <h2 className="eyebrow text-accent">Indexing &amp; Contact</h2>
+          <h2 className="eyebrow text-terracotta font-extrabold">Indexing &amp; Contact</h2>
           <ul className="mt-4 space-y-2 text-sm text-primary-foreground/85">
             <li>Index Copernicus International</li>
             <li>International E-library (libgenesis.org)</li>

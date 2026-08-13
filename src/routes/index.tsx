@@ -213,7 +213,7 @@ function EditorialGlimpse() {
                   </div>
 
                   {m.description && (
-                    <p className="font-serif text-sm leading-relaxed text-foreground/80 line-clamp-3 italic">
+                    <p className="font-serif text-sm sm:text-base leading-relaxed text-foreground font-semibold line-clamp-3">
                       "{m.description}"
                     </p>
                   )}
@@ -702,7 +702,7 @@ function QuickDesk() {
 
 function CallForPapersBand() {
   return (
-    <section className="relative isolate overflow-hidden bg-primary py-20 text-primary-foreground">
+    <section className="paper-grain relative isolate overflow-hidden bg-secondary/50 py-20 text-foreground">
       <img
         src={nalanda}
         alt=""
@@ -710,23 +710,27 @@ function CallForPapersBand() {
         loading="lazy"
         width={1408}
         height={912}
-        className="absolute inset-0 -z-10 size-full object-cover opacity-[0.12] mix-blend-screen"
+        className="absolute inset-0 -z-10 size-full object-cover opacity-[0.12] mix-blend-multiply dark:mix-blend-screen"
       />
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
         <Reveal>
-          <p className="eyebrow text-accent">Call for Papers</p>
-          <h2 className="mt-4 font-display text-3xl sm:text-5xl">{callForPapers.volume}</h2>
-          <p className="mt-4 font-display text-sm tracking-[0.22em] uppercase text-accent">
+          <p className="eyebrow text-terracotta font-extrabold text-xs sm:text-sm tracking-[0.24em]">
+            Call for Papers
+          </p>
+          <h2 className="mt-4 font-display text-3xl text-primary font-bold sm:text-5xl">
+            {callForPapers.volume}
+          </h2>
+          <p className="mt-4 font-display text-sm sm:text-base tracking-[0.22em] uppercase text-terracotta font-extrabold">
             Theme · {callForPapers.theme}
           </p>
-          <p className="mt-6 font-serif text-xl leading-relaxed text-primary-foreground/85">
+          <p className="mt-6 font-serif text-lg sm:text-xl leading-relaxed text-foreground/90 font-medium">
             {callForPapers.themeNote}
           </p>
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             <Button
               asChild
               size="lg"
-              className="bg-accent text-accent-foreground hover:bg-accent/90"
+              className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold shadow-md"
             >
               <Link to="/call-for-papers">Read the call</Link>
             </Button>
@@ -734,7 +738,7 @@ function CallForPapersBand() {
               asChild
               size="lg"
               variant="outline"
-              className="border-accent/60 bg-transparent text-primary-foreground hover:bg-accent/15"
+              className="engraved border-accent/40 text-foreground hover:border-accent font-bold"
             >
               <Link to="/submission">Submit review paper</Link>
             </Button>

@@ -139,10 +139,10 @@ function PublicationPage() {
           </div>
 
           {!loading && filtered.length > 0 && (
-            <p className="text-xs text-muted-foreground font-serif">
-              Showing <span className="text-accent font-semibold">{Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, filtered.length)}</span>–
-              <span className="text-accent font-semibold">{Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)}</span> of{" "}
-              <span className="text-accent font-semibold">{filtered.length}</span> volumes
+            <p className="text-sm sm:text-base text-foreground/90 font-semibold font-serif">
+              Showing <span className="text-accent font-bold">{Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, filtered.length)}</span>–
+              <span className="text-accent font-bold">{Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)}</span> of{" "}
+              <span className="text-accent font-bold">{filtered.length}</span> volumes
             </p>
           )}
         </div>
@@ -255,22 +255,39 @@ export function PublicationCard({ publication: p }: { publication: Publication }
         </div>
 
         {/* Metadata section */}
-        <div className="relative z-10 space-y-1 my-2">
+        <div className="relative z-10 space-y-2 my-2">
           {/* Volume — hero emphasis */}
-          <h2 className="font-display text-base leading-snug text-accent font-semibold tracking-wide line-clamp-1">
+          <h2 className="font-display text-lg sm:text-xl font-extrabold tracking-wider text-accent uppercase line-clamp-1">
             {p.volume}
           </h2>
 
-          {/* Title — secondary */}
-          <h3 className="font-serif text-xs text-primary/80 line-clamp-2 leading-relaxed">
+          {/* Title — secondary, bold & clean */}
+          <h3 className="font-sans text-sm sm:text-base font-bold text-foreground line-clamp-2 leading-snug">
             {p.title}
           </h3>
 
-          <p className="font-serif text-[0.68rem] text-foreground/50 italic truncate">
-            {[p.journal_name || "Bharatiya Manyaprad", p.period]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
+          <div className="space-y-1 text-xs sm:text-sm">
+            <p className="font-sans font-semibold text-foreground/90 truncate">
+              {[p.journal_name || "Bharatiya Manyaprad", p.period || p.year]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+            {(p.issue_no || p.pages || p.author) && (
+              <p className="font-sans font-bold text-accent truncate">
+                {[
+                  p.issue_no ? `Issue ${p.issue_no}` : null,
+                  p.pages
+                    ? p.pages.toLowerCase().includes("pp")
+                      ? p.pages
+                      : `pp. ${p.pages}`
+                    : null,
+                  p.author ? `by ${p.author}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" • ")}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Download action button — anchored cleanly inside card */}
@@ -279,7 +296,7 @@ export function PublicationCard({ publication: p }: { publication: Publication }
             <Button
               variant="outline"
               size="sm"
-              className="engraved w-full py-4 rounded-xl border-accent/20 hover:border-accent text-xs"
+              className="engraved w-full py-4 rounded-xl border-accent/20 hover:border-accent text-xs font-semibold"
               asChild
             >
               <a href={p.pdf_url} target="_blank" rel="noopener noreferrer" download>
@@ -290,7 +307,7 @@ export function PublicationCard({ publication: p }: { publication: Publication }
             <Button
               variant="outline"
               size="sm"
-              className="engraved w-full py-4 rounded-xl border-accent/20 text-xs"
+              className="engraved w-full py-4 rounded-xl border-accent/20 text-xs font-semibold"
               disabled
             >
               <Download className="size-3.5 mr-1.5" /> Download volume
@@ -322,38 +339,46 @@ export function PublicationCard({ publication: p }: { publication: Publication }
       {/* Card Content — flex-1 pushes button to bottom */}
       <div className="flex-1 flex flex-col justify-center relative z-10 space-y-3">
         {/* Lotus icon at the top */}
-        <MajesticLotus className="mx-auto w-24 h-16 text-accent/50" />
+        <MajesticLotus className="mx-auto w-20 h-14 text-accent/60" />
 
         {/* Journal Name — Top */}
-        <h3 className="font-display text-sm tracking-[0.18em] text-accent/90 uppercase font-semibold truncate">
+        <h3 className="font-display text-xs sm:text-sm tracking-[0.2em] text-accent uppercase font-bold truncate">
           {p.journal_name || "Bharatiya Manyaprad"}
         </h3>
 
-        {/* Volume — hero emphasis (swapped with title) */}
-        <h2 className="font-display text-xl leading-snug text-primary group-hover:text-accent transition-colors duration-300 line-clamp-2">
+        {/* Volume — hero emphasis */}
+        <h2 className="font-display text-xl sm:text-2xl font-extrabold leading-snug text-primary group-hover:text-accent transition-colors duration-300 line-clamp-2">
           {p.volume}
         </h2>
 
-        <div className="flex items-center justify-center gap-1.5 opacity-45">
-          <span className="h-[0.5px] w-5 bg-accent" />
+        <div className="flex items-center justify-center gap-1.5 opacity-60">
+          <span className="h-[0.5px] w-6 bg-accent" />
           <span className="text-[0.4rem] text-accent">✦</span>
-          <span className="h-[0.5px] w-5 bg-accent" />
+          <span className="h-[0.5px] w-6 bg-accent" />
         </div>
 
-        {/* Title — secondary, smaller */}
-        <p className="font-serif text-sm text-foreground/75 italic line-clamp-3">
+        {/* Title — bold text */}
+        <h3 className="font-sans text-sm sm:text-base font-bold text-foreground line-clamp-3 leading-snug">
           {p.title}
-        </p>
+        </h3>
 
         {/* Volume / No. / Year / pp. meta line */}
-        <p className="font-serif text-xs text-foreground/55 truncate">
-          {[p.issue_no, String(p.year), p.pages]
+        <p className="font-sans text-xs sm:text-sm font-bold text-accent truncate">
+          {[
+            p.issue_no ? `Issue ${p.issue_no}` : null,
+            p.period || String(p.year),
+            p.pages
+              ? p.pages.toLowerCase().includes("pp")
+                ? p.pages
+                : `pp. ${p.pages}`
+              : null,
+          ]
             .filter(Boolean)
-            .join(", ")}
+            .join(" • ")}
         </p>
 
         {/* Author — always reserves space */}
-        <p className="font-serif text-sm text-muted-foreground min-h-[1.4em] truncate">
+        <p className="font-sans text-xs sm:text-sm font-semibold text-foreground/80 min-h-[1.4em] truncate">
           {p.author ? `by ${p.author}` : "\u00A0"}
         </p>
       </div>
@@ -364,7 +389,7 @@ export function PublicationCard({ publication: p }: { publication: Publication }
           <Button
             variant="outline"
             size="sm"
-            className="engraved w-full py-5 rounded-xl border-accent/20 hover:border-accent"
+            className="engraved w-full py-5 rounded-xl border-accent/20 hover:border-accent text-xs font-semibold"
             asChild
           >
             <a href={p.pdf_url} target="_blank" rel="noopener noreferrer" download>
@@ -375,7 +400,7 @@ export function PublicationCard({ publication: p }: { publication: Publication }
           <Button
             variant="outline"
             size="sm"
-            className="engraved w-full py-5 rounded-xl border-accent/20"
+            className="engraved w-full py-5 rounded-xl border-accent/20 text-xs font-semibold"
             disabled
           >
             <Download className="size-3.5 mr-1.5" /> Download volume

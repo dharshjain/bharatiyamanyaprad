@@ -15,7 +15,7 @@ export function PageHero({
       <PillarSketch className="sketch-float top-16 left-6 hidden h-40 w-16 sm:block" />
       <PillarSketch className="sketch-float top-16 right-6 hidden h-40 w-16 sm:block" />
       <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
-        <p className="eyebrow">{eyebrow}</p>
+        <p className="eyebrow text-terracotta font-extrabold">{eyebrow}</p>
         <h1 className="mt-4 font-display text-3xl leading-tight text-primary sm:text-5xl">
           {title}
         </h1>

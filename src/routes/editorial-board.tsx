@@ -260,7 +260,7 @@ function FeaturedMemberCard({
           </div>
 
           {member.description && (
-            <p className="font-sans text-sm sm:text-base leading-relaxed text-foreground/90">
+            <p className="font-serif text-sm sm:text-base leading-relaxed text-foreground font-semibold">
               "{member.description}"
             </p>
           )}
@@ -329,7 +329,7 @@ function AdvisoryMemberCard({ member }: { member: EditorialBoardMember }) {
           </div>
 
           {member.description && (
-            <p className="font-sans text-xs leading-relaxed text-foreground/80">
+            <p className="font-serif text-xs sm:text-sm leading-relaxed text-foreground font-semibold">
               {member.description}
             </p>
           )}
