@@ -33,6 +33,19 @@ export const Route = createFileRoute("/publication")({
 
 const ITEMS_PER_PAGE = 6;
 
+function getPaginationPages(current: number, total: number): (number | "...")[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  if (current <= 3) {
+    return [1, 2, 3, 4, "...", total];
+  }
+  if (current >= total - 2) {
+    return [1, "...", total - 3, total - 2, total - 1, total];
+  }
+  return [1, "...", current - 1, current, current + 1, "...", total];
+}
+
 function PublicationPage() {
   const [selectedYear, setSelectedYear] = useState<number | "all">("all");
   const [publications, setPublications] = useState<Publication[]>([]);
@@ -163,7 +176,7 @@ function PublicationPage() {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="mt-12 flex items-center justify-center gap-2">
+              <div className="mt-12 flex flex-wrap items-center justify-center gap-2 max-w-full">
                 <button
                   onClick={() => {
                     setCurrentPage((prev) => Math.max(prev - 1, 1));
@@ -176,23 +189,29 @@ function PublicationPage() {
                   <ChevronLeft className="size-4" /> Prev
                 </button>
 
-                <div className="flex items-center gap-1.5 px-2">
-                  {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
-                    <button
-                      key={pageNum}
-                      onClick={() => {
-                        setCurrentPage(pageNum);
-                        window.scrollTo({ top: 300, behavior: "smooth" });
-                      }}
-                      className={`size-9 rounded-lg text-xs font-semibold transition-all ${
-                        currentPage === pageNum
-                          ? "bg-accent text-accent-foreground shadow-[0_0_12px_rgba(184,134,11,0.4)]"
-                          : "border border-accent/20 text-muted-foreground hover:border-accent/60 hover:text-foreground"
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  ))}
+                <div className="flex flex-wrap items-center justify-center gap-1.5 px-2 max-w-full">
+                  {getPaginationPages(currentPage, totalPages).map((page, idx) =>
+                    page === "..." ? (
+                      <span key={`ellipsis-${idx}`} className="px-1 text-xs text-muted-foreground font-bold select-none">
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={`page-${page}`}
+                        onClick={() => {
+                          setCurrentPage(page);
+                          window.scrollTo({ top: 300, behavior: "smooth" });
+                        }}
+                        className={`size-9 rounded-lg text-xs font-semibold transition-all ${
+                          currentPage === page
+                            ? "bg-accent text-accent-foreground shadow-[0_0_12px_rgba(184,134,11,0.4)]"
+                            : "border border-accent/20 text-muted-foreground hover:border-accent/60 hover:text-foreground"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  )}
                 </div>
 
                 <button
