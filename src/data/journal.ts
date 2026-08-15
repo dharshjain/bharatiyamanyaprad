@@ -102,17 +102,26 @@ export const callForPapers = {
 };
 
 export const subscriptionRates = {
-  india: { label: "India (₹)", individual: "600", institution: "900" },
-  overseas: { label: "Overseas ($)", individual: "$ 21", institution: "$ 90" },
+  india: {
+    label: "India (₹)",
+    annual: { individual: "₹ 600", institution: "₹ 900" },
+    threeYears: { individual: "₹ 1200", institution: "₹ 1800" },
+  },
+  overseas: {
+    label: "Overseas ($)",
+    annual: { individual: "$ 21", institution: "$ 90" },
+    threeYears: { individual: "$ 40", institution: "$ 170" },
+  },
 };
 
 export const bankDetails = [
-  { label: "Name of the bank", value: "UCO Bank" },
-  { label: "Branch", value: "Khanpur, Ahmedabad" },
-  { label: "Account holder", value: "Bharatiya Manyaprad" },
-  { label: "Account number", value: "08060210001516" },
-  { label: "MICR code", value: "380028005" },
-  { label: "IFS code", value: "UCBA0000806" },
+  { label: "Bank", value: "State Bank of India" },
+  { label: "Branch", value: "Lal Darwaja, Ahmedabad" },
+  { label: "Account holder", value: "Neerja Gupta" },
+  { label: "Account number", value: "20092293840" },
+  { label: "MICR code", value: "380002002" },
+  { label: "IFSC code", value: "SBIN0000301" },
+  { label: "UPI Number", value: "9825012985" },
 ];
 
 export const quickLinks = [
@@ -131,7 +140,7 @@ export const contact = {
   phone: "+91-79-2560312 / 25600311",
   mobile: "+91 79065 15851",
   whatsapp: "+91 79065 15851",
-  email: "drneerjaarun@gmail.com",
+  email: "bhartiyamanyaprad@gmail.com",
   website: "www.bharatiyamanyaprad.com",
   issn: "2321-8444",
 };

@@ -45,7 +45,7 @@ export function SiteHeader() {
 
   useEffect(() => {
     const stored = localStorage.getItem("bm-theme");
-    const isDark = stored ? stored === "dark" : false;
+    const isDark = stored ? stored === "dark" : true;
     setDark(isDark);
     document.documentElement.classList.toggle("dark", isDark);
   }, []);
@@ -250,7 +250,7 @@ export function SiteHeader() {
                       <ul className="relative z-10 space-y-0.5 py-1">
                         {responsibilitiesDropdownItems.map((sub, idx) => (
                           <li
-                            key={sub.to}
+                            key={sub.label}
                             className={`transition-all duration-300 ${
                               respDropdownOpen
                                 ? "opacity-100 translate-x-0"
@@ -347,7 +347,7 @@ export function SiteHeader() {
                     </span>
                     <ul className="pl-3.5 space-y-1.5 border-l border-accent/25">
                       {responsibilitiesDropdownItems.map((sub) => (
-                        <li key={sub.to}>
+                        <li key={sub.label}>
                           <Link
                             to={sub.to}
                             onClick={() => setOpen(false)}

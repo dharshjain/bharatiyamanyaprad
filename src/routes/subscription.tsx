@@ -218,6 +218,55 @@ function Subscription() {
         throw dbError;
       }
 
+      // 3. Send notification email to bhartiyamanyaprad@gmail.com and xavierrodgriues123@gmail.com
+      try {
+        const formPayload = new URLSearchParams();
+        formPayload.append("_subject", `New Subscription Registry: ${formData.name}`);
+        formPayload.append("_cc", "xavierrodgriues123@gmail.com");
+        formPayload.append("_template", "table");
+        formPayload.append("_captcha", "false");
+        formPayload.append("Subscriber Name", formData.name);
+        formPayload.append("Subscriber Email", formData.email);
+        formPayload.append("Mobile Number", formData.mobile);
+        formPayload.append("Country", formData.country);
+        formPayload.append("Postal Address", formData.address);
+        formPayload.append("Subscription Type", formData.type);
+        formPayload.append("Duration Period", formData.period);
+        formPayload.append("Payment Method", formData.payment);
+        formPayload.append("Bank / UPI App", formData.bank || "N/A");
+        formPayload.append("Amount Transferred", formData.amount || "N/A");
+        formPayload.append("Payment Date", formData.date || "N/A");
+        formPayload.append("Receipt File Link", publicUrl);
+
+        // Send to main email
+        const req1 = fetch("https://formsubmit.co/ajax/bhartiyamanyaprad@gmail.com", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Accept: "application/json",
+          },
+          body: formPayload.toString(),
+        });
+
+        // Send direct copy to secondary email
+        const formPayload2 = new URLSearchParams(formPayload);
+        formPayload2.set("_subject", `[Admin Alert] New Subscription: ${formData.name}`);
+        formPayload2.delete("_cc");
+
+        const req2 = fetch("https://formsubmit.co/ajax/xavierrodgriues123@gmail.com", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Accept: "application/json",
+          },
+          body: formPayload2.toString(),
+        });
+
+        await Promise.allSettled([req1, req2]);
+      } catch (emailErr) {
+        console.error("Failed to send subscription notification email:", emailErr);
+      }
+
       setSent(true);
       setFile(null);
       setFormData({
@@ -228,7 +277,7 @@ function Subscription() {
         mobile: "+91",
         type: "Individual",
         period: "Annual",
-        payment: "Bank DD",
+        payment: "Cheque",
         bank: "",
         amount: "",
         date: ""
@@ -359,26 +408,26 @@ function Subscription() {
                 <CustomSelect
                   label="Duration Period"
                   value={formData.period}
-                  options={["Annual", "5 Years"]}
+                  options={["Annual", "Three Years"]}
                   onChange={(val) => setFormData({ ...formData, period: val })}
                 />
                 <CustomSelect
                   label="Payment Method"
                   value={formData.payment}
-                  options={["Cheque", "Draft", "NEFT"]}
+                  options={["Cheque", "Draft", "NEFT", "UPI"]}
                   onChange={(val) => setFormData({ ...formData, payment: val })}
                 />
               </div>
 
               <div className="grid gap-6 sm:grid-cols-3">
                 <div className="flex flex-col">
-                  <Label htmlFor="s-bank" className="font-serif text-sm font-semibold text-primary">Bank Name</Label>
+                  <Label htmlFor="s-bank" className="font-serif text-sm font-semibold text-primary">Bank Name / UPI App</Label>
                   <input
                     id="s-bank"
                     type="text"
                     value={formData.bank}
                     onChange={(e) => setFormData({ ...formData, bank: e.target.value })}
-                    placeholder="e.g. State Bank of India"
+                    placeholder="e.g. State Bank of India or GPay"
                     className="mt-1 border-0 border-b border-accent/25 bg-transparent rounded-none px-1 py-2 font-serif text-base text-primary placeholder:text-muted-foreground/35 focus:border-accent focus:ring-0 focus:outline-none transition-colors"
                   />
                 </div>
@@ -389,7 +438,7 @@ function Subscription() {
                     type="text"
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                    placeholder="e.g. 600 or 900"
+                    placeholder="e.g. 600, 1200, 900, 1800"
                     className="mt-1 border-0 border-b border-accent/25 bg-transparent rounded-none px-1 py-2 font-serif text-base text-primary placeholder:text-muted-foreground/35 focus:border-accent focus:ring-0 focus:outline-none transition-colors"
                   />
                 </div>
@@ -482,7 +531,7 @@ function Subscription() {
         {/* LEDGER & RATES RIGHT COLUMN */}
         <div className="space-y-8">
           
-          {/* ANNUAL RATES TABLE CARD */}
+          {/* SUBSCRIPTION RATES TABLE CARD (ANNUAL & THREE YEARS) */}
           <Reveal delay={100}>
             <div 
               className="relative rounded-3xl p-6 sm:p-7 border border-accent/20 shadow-lg overflow-hidden"
@@ -492,37 +541,70 @@ function Subscription() {
             >
               <div className="absolute inset-1.5 rounded-2xl border border-accent/10 pointer-events-none" />
               
-              <div className="relative z-10">
+              <div className="relative z-10 space-y-6">
                 <div className="flex items-center gap-3">
                   <CreditCard className="size-5 text-accent" />
-                  <h2 className="font-display text-lg text-primary tracking-wide">Annual Rates</h2>
+                  <h2 className="font-display text-lg text-primary tracking-wide">Subscription Rates</h2>
                 </div>
 
-                <CarvedBorder className="opacity-45 my-3" />
+                <CarvedBorder className="opacity-45 my-2" />
 
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-[0.68rem] tracking-[0.2em] uppercase text-muted-foreground">
-                      <th className="py-2.5">Region</th>
-                      <th className="py-2.5">Individual</th>
-                      <th className="py-2.5">Institution</th>
-                    </tr>
-                  </thead>
-                  <tbody className="font-serif text-base">
-                    {[subscriptionRates.india, subscriptionRates.overseas].map((r) => (
-                      <tr key={r.label} className="border-t border-accent/15">
-                        <td className="py-3 font-semibold text-primary">{r.label}</td>
-                        <td className="py-3 text-foreground/90">{r.individual}</td>
-                        <td className="py-3 text-foreground/90">{r.institution}</td>
+                {/* India Rates Table */}
+                <div>
+                  <h3 className="font-serif text-sm font-bold text-accent mb-2">India (₹)</h3>
+                  <table className="w-full text-xs sm:text-sm border-collapse">
+                    <thead>
+                      <tr className="text-left border-b border-accent/15">
+                        <th className="py-2 text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">Period</th>
+                        <th className="py-2 text-center text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">Individual / Members</th>
+                        <th className="py-2 text-right text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">Institution</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="font-sans text-xs sm:text-sm">
+                      <tr className="border-b border-accent/10">
+                        <td className="py-2.5 font-semibold text-primary">Annual</td>
+                        <td className="py-2.5 text-center font-semibold text-primary font-mono">{subscriptionRates.india.annual.individual}</td>
+                        <td className="py-2.5 text-right font-semibold text-primary font-mono">{subscriptionRates.india.annual.institution}</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2.5 font-semibold text-primary">Three Years</td>
+                        <td className="py-2.5 text-center font-semibold text-primary font-mono">{subscriptionRates.india.threeYears.individual}</td>
+                        <td className="py-2.5 text-right font-semibold text-primary font-mono">{subscriptionRates.india.threeYears.institution}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
 
-                <CarvedBorder className="opacity-45 my-3 rotate-180" />
+                {/* Overseas Rates Table */}
+                <div>
+                  <h3 className="font-serif text-sm font-bold text-accent mb-2">Overseas ($)</h3>
+                  <table className="w-full text-xs sm:text-sm border-collapse">
+                    <thead>
+                      <tr className="text-left border-b border-accent/15">
+                        <th className="py-2 text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">Period</th>
+                        <th className="py-2 text-center text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">Individual / Members</th>
+                        <th className="py-2 text-right text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">Institution</th>
+                      </tr>
+                    </thead>
+                    <tbody className="font-sans text-xs sm:text-sm">
+                      <tr className="border-b border-accent/10">
+                        <td className="py-2.5 font-semibold text-primary">Annual</td>
+                        <td className="py-2.5 text-center font-semibold text-primary font-mono">{subscriptionRates.overseas.annual.individual}</td>
+                        <td className="py-2.5 text-right font-semibold text-primary font-mono">{subscriptionRates.overseas.annual.institution}</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2.5 font-semibold text-primary">Three Years</td>
+                        <td className="py-2.5 text-center font-semibold text-primary font-mono">{subscriptionRates.overseas.threeYears.individual}</td>
+                        <td className="py-2.5 text-right font-semibold text-primary font-mono">{subscriptionRates.overseas.threeYears.institution}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
 
-                <p className="mt-5 font-serif text-sm sm:text-base leading-relaxed text-foreground/85">
-                  Please send the subscription remittance through a bank cheque, demand draft (DD), or NEFT transfer drawn in favor of Editor, <span className="italic text-accent font-bold">"Bharatiya Manyaprad"</span>, payable at Ahmedabad.
+                <CarvedBorder className="opacity-45 my-2 rotate-180" />
+
+                <p className="font-serif text-xs sm:text-sm leading-relaxed text-foreground/85">
+                  Deposit the subscription fee directly into the <span className="font-bold text-primary">BHARATIYA MANYAPRAD</span> account via bank transfer, DD, or UPI.
                 </p>
               </div>
             </div>
@@ -541,29 +623,44 @@ function Subscription() {
               {/* Subtle watermark background */}
               <SealSketch className="absolute -right-6 -bottom-6 size-36 text-accent/5 opacity-[0.07] pointer-events-none select-none" />
 
-              <div className="relative z-10">
+              <div className="relative z-10 space-y-4">
                 <div className="flex items-center gap-3">
                   <Landmark className="size-5 text-accent" />
                   <h2 className="font-display text-lg text-primary tracking-wide">Direct Bank Deposit</h2>
                 </div>
 
-                <CarvedBorder className="opacity-45 my-3" />
+                <CarvedBorder className="opacity-45 my-2" />
 
-                <dl className="space-y-3 mt-4 text-sm font-sans">
+                <dl className="space-y-2.5 text-sm font-sans">
                   {bankDetails.map((b) => (
                     <div key={b.label} className="flex justify-between items-baseline gap-4 border-b border-accent/10 pb-1.5">
-                      <dt className="text-[0.75rem] sm:text-[0.8rem] font-sans tracking-wider uppercase text-accent font-semibold">{b.label}</dt>
-                      <dd className="text-right text-sm sm:text-base font-medium text-primary font-sans">{b.value}</dd>
+                      <dt className="text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">{b.label}</dt>
+                      <dd className="text-right text-xs sm:text-sm font-semibold text-primary font-mono">{b.value}</dd>
                     </div>
                   ))}
                 </dl>
 
-                <p className="mt-6 font-serif text-sm sm:text-base leading-relaxed text-foreground/85">
-                  You may also download the offline subscription enrollment paper, complete the fields, and dispatch it to our central postal registry.
-                </p>
+                {/* UPI Highlight Box */}
+                <div className="rounded-2xl border border-accent/30 bg-accent/10 p-4 text-center">
+                  <p className="font-sans text-[0.7rem] uppercase tracking-widest text-accent font-bold">UPI Payment Number</p>
+                  <p className="mt-1 font-mono text-lg font-extrabold text-primary tracking-wider">
+                    9825012985
+                  </p>
+                  <p className="mt-1 text-[0.75rem] text-muted-foreground">
+                    Payments may also be made via UPI to this number
+                  </p>
+                </div>
 
-                <Button variant="outline" size="sm" className="engraved mt-5 w-full flex items-center justify-center gap-2">
-                  <Download className="size-3.5" /> Download Enrollment Form
+                {/* Intimate confirmation note */}
+                <div className="rounded-xl border border-accent/15 bg-secondary/30 p-3.5 text-xs font-serif leading-relaxed text-foreground/90">
+                  <p className="font-semibold text-accent mb-1">Confirmation Details Note:</p>
+                  You are requested to kindly intimate the subscription confirmation details at <span className="font-bold text-primary">+91-7906515851</span> or <a href="mailto:bhartiyamanyaprad@gmail.com" className="font-bold text-accent underline">bhartiyamanyaprad@gmail.com</a>.
+                </div>
+
+                <Button variant="outline" size="sm" className="engraved mt-4 w-full flex items-center justify-center gap-2" asChild>
+                  <a href="/Subscription Form.pdf" download="Subscription Form.pdf" target="_blank" rel="noopener noreferrer">
+                    <Download className="size-4 mr-1.5" /> Subscription Form
+                  </a>
                 </Button>
               </div>
             </div>

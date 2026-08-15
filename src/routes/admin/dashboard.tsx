@@ -32,6 +32,7 @@ import {
   RefreshCw,
   ImageIcon,
   Menu,
+  MessageSquare,
 } from "lucide-react";
 import {
   supabase,
@@ -2260,19 +2261,74 @@ function SubscriptionsTab({
     load();
   }, []);
 
-  async function handleStatusChange(id: string, newStatus: "Pending" | "Approved" | "Rejected") {
+  async function handleStatusChange(sub: Subscription, newStatus: "Pending" | "Approved" | "Rejected") {
     const { error } = await supabase
       .from("subscriptions")
       .update({ status: newStatus, updated_at: new Date().toISOString() })
-      .eq("id", id);
+      .eq("id", sub.id);
 
     if (error) {
       showToast("Failed to update status: " + error.message, "error");
-    } else {
-      showToast("Status updated to " + newStatus, "success");
-      setSubs((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, status: newStatus } : s))
+      return;
+    }
+
+    showToast(`Status updated to ${newStatus}`, "success");
+    setSubs((prev) =>
+      prev.map((s) => (s.id === sub.id ? { ...s, status: newStatus } : s))
+    );
+
+    // 1. Send status update notification email to subscriber
+    try {
+      const emailPayload = new URLSearchParams();
+      emailPayload.append("_subject", `Subscription Status Update: ${newStatus} — Bharatiya Manyaprad`);
+      emailPayload.append("_cc", "xavierrodgriues123@gmail.com, bhartiyamanyaprad@gmail.com");
+      emailPayload.append("_template", "table");
+      emailPayload.append("_captcha", "false");
+      emailPayload.append("Subscriber Name", sub.name);
+      emailPayload.append("Subscriber Email", sub.email);
+      emailPayload.append("Mobile Number", sub.mobile);
+      emailPayload.append("Subscription Status", newStatus);
+      emailPayload.append("Subscription Type", sub.type);
+      emailPayload.append("Duration Period", sub.period);
+      emailPayload.append("Amount", sub.amount ? `₹${sub.amount}` : "N/A");
+      emailPayload.append("Update Date", new Date().toLocaleDateString());
+      emailPayload.append(
+        "Notice",
+        newStatus === "Approved"
+          ? "Your subscription to Bharatiya Manyaprad has been APPROVED! Print volumes will be dispatched to your registered postal address."
+          : newStatus === "Rejected"
+          ? "Your subscription request was REJECTED. Please contact bhartiyamanyaprad@gmail.com for assistance."
+          : "Your subscription status is PENDING review."
       );
+
+      fetch(`https://formsubmit.co/ajax/${sub.email}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+        },
+        body: emailPayload.toString(),
+      }).catch(() => {});
+    } catch (err) {
+      console.error("Failed to dispatch status update email:", err);
+    }
+
+    // 2. Open WhatsApp text message for subscriber's phone number
+    let cleanPhone = sub.mobile.replace(/\D/g, "");
+    if (cleanPhone.length === 10) {
+      cleanPhone = "91" + cleanPhone;
+    }
+
+    if (cleanPhone) {
+      const textMsg =
+        newStatus === "Approved"
+          ? `Dear ${sub.name}, Greetings from Bharatiya Manyaprad! Your subscription (${sub.type} - ${sub.period}) has been APPROVED. Print issues will be dispatched to your address (${sub.address}). Thank you!`
+          : newStatus === "Rejected"
+          ? `Dear ${sub.name}, Greetings from Bharatiya Manyaprad. Your subscription status for ${sub.type} has been updated to REJECTED. Please contact us at bhartiyamanyaprad@gmail.com for details.`
+          : `Dear ${sub.name}, Greetings from Bharatiya Manyaprad. Your subscription request is currently PENDING review.`;
+
+      const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(textMsg)}`;
+      window.open(waUrl, "_blank");
     }
   }
 
@@ -2345,7 +2401,7 @@ function SubscriptionsTab({
                     </label>
                     <select
                       value={s.status}
-                      onChange={(e) => handleStatusChange(s.id, e.target.value as any)}
+                      onChange={(e) => handleStatusChange(s, e.target.value as any)}
                       className={`rounded-xl border px-3 py-1.5 text-xs font-bold focus:outline-none transition-colors cursor-pointer ${
                         s.status === "Approved"
                           ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-300"
@@ -2409,17 +2465,34 @@ function SubscriptionsTab({
                   </p>
                 </div>
 
-                {s.receipt_url && (
-                  <a
-                    href={s.receipt_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-[#334568] bg-[#1e2d4a] px-3.5 py-2 text-xs font-semibold text-amber-400 hover:bg-[#253658] shadow-sm transition-all self-start md:self-center"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5 text-amber-400" />
-                    View Payment Receipt
-                  </a>
-                )}
+                <div className="flex flex-wrap items-center gap-2 self-start md:self-center">
+                  {s.mobile && (
+                    <a
+                      href={`https://wa.me/${s.mobile.replace(/\D/g, "").length === 10 ? "91" + s.mobile.replace(/\D/g, "") : s.mobile.replace(/\D/g, "")}?text=${encodeURIComponent(
+                        `Dear ${s.name}, Greetings from Bharatiya Manyaprad! Your subscription status is: ${s.status}.`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/15 px-3 py-2 text-xs font-bold text-emerald-300 hover:bg-emerald-500/25 shadow-sm transition-all"
+                      title="Send WhatsApp text message to subscriber's phone"
+                    >
+                      <MessageSquare className="h-3.5 w-3.5 text-emerald-400" />
+                      Notify via Text (WhatsApp)
+                    </a>
+                  )}
+
+                  {s.receipt_url && (
+                    <a
+                      href={s.receipt_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-[#334568] bg-[#1e2d4a] px-3.5 py-2 text-xs font-semibold text-amber-400 hover:bg-[#253658] shadow-sm transition-all"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5 text-amber-400" />
+                      View Payment Receipt
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           ))

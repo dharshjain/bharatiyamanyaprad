@@ -132,7 +132,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
         <script
@@ -140,18 +140,29 @@ function RootShell({ children }: { children: ReactNode }) {
             __html: `
               (function() {
                 var stored = localStorage.getItem('bm-theme');
-                var isDark = stored ? stored === 'dark' : false;
+                var isDark = stored ? stored === 'dark' : true;
                 if (isDark) {
                   document.documentElement.classList.add('dark');
                 } else {
                   document.documentElement.classList.remove('dark');
+                }
+                if (typeof window !== 'undefined') {
+                  window.addEventListener('unhandledrejection', function(event) {
+                    if (
+                      event.reason &&
+                      typeof event.reason.message === 'string' &&
+                      event.reason.message.indexOf('message channel closed') !== -1
+                    ) {
+                      event.preventDefault();
+                    }
+                  });
                 }
               })();
             `,
           }}
         />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         <Scripts />
       </body>
