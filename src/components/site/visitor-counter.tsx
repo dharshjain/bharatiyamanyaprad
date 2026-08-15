@@ -90,12 +90,9 @@ export function VisitorCounter() {
 
   return (
     <div
-      className="fixed bottom-5 right-5 z-40 flex items-center gap-2.5 rounded-full px-3.5 py-2 shadow-2xl transition-all duration-500 hover:scale-105 select-none"
+      className="fixed bottom-5 right-5 z-40 flex items-center gap-2.5 rounded-full border border-amber-600/40 bg-[#fffbeb] text-slate-900 px-4 py-2 shadow-2xl backdrop-blur-md transition-all duration-300 hover:scale-105 select-none"
       style={{
-        background: "rgba(18, 16, 13, 0.85)",
-        border: "1px solid rgba(184, 134, 11, 0.35)",
-        backdropFilter: "blur(12px)",
-        boxShadow: "0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(184, 134, 11, 0.15)",
+        boxShadow: "0 10px 30px -10px rgba(0, 0, 0, 0.3), 0 0 15px rgba(180, 83, 9, 0.2)",
       }}
       title={
         isNewVisitor
@@ -107,39 +104,39 @@ export function VisitorCounter() {
       <div className="relative flex items-center justify-center size-3.5">
         {/* Outer expanding light wave aura */}
         <span
-          className="absolute inset-0 rounded-full bg-accent/40 animate-ping"
+          className="absolute inset-0 rounded-full bg-amber-600/40 animate-ping"
           style={{ animationDuration: "3s" }}
         />
         {/* Secondary soft pulsing glow ring */}
         <span
-          className="absolute -inset-1 rounded-full bg-accent/25 animate-pulse"
+          className="absolute -inset-1 rounded-full bg-amber-600/25 animate-pulse"
           style={{ animationDuration: "2s" }}
         />
         {/* Core luminous gold beacon dot */}
-        <span className="relative size-2 rounded-full bg-accent shadow-[0_0_8px_#b8860b]" />
+        <span className="relative size-2 rounded-full bg-amber-600 shadow-[0_0_8px_#b45309]" />
       </div>
 
       {/* Mini Light Equalizer / Soundwave Light Bars Effect */}
-      <div className="flex items-end gap-0.5 h-3 opacity-80" aria-hidden="true">
+      <div className="flex items-end gap-0.5 h-3 opacity-90" aria-hidden="true">
         <span
-          className="w-0.5 bg-accent rounded-full animate-pulse"
+          className="w-0.5 bg-amber-700 rounded-full animate-pulse"
           style={{ height: "60%", animationDuration: "1.2s", animationDelay: "0ms" }}
         />
         <span
-          className="w-0.5 bg-accent rounded-full animate-pulse"
+          className="w-0.5 bg-amber-700 rounded-full animate-pulse"
           style={{ height: "100%", animationDuration: "1.6s", animationDelay: "200ms" }}
         />
         <span
-          className="w-0.5 bg-accent rounded-full animate-pulse"
+          className="w-0.5 bg-amber-700 rounded-full animate-pulse"
           style={{ height: "40%", animationDuration: "1.4s", animationDelay: "400ms" }}
         />
       </div>
 
       {/* Counter label & count */}
-      <div className="flex items-center gap-1.5 font-serif text-xs tracking-wide">
-        <Users className="size-3.5 text-accent/90" />
-        <span className="text-foreground/75 text-[0.72rem] hidden sm:inline">Visitors:</span>
-        <span className="font-display font-semibold text-accent text-sm tracking-wider">
+      <div className="flex items-center gap-1.5 font-sans text-xs tracking-wide">
+        <Users className="size-3.5 text-amber-800 shrink-0 stroke-[2.5]" />
+        <span className="text-slate-900 font-extrabold text-xs tracking-wider">Visitors:</span>
+        <span className="font-display font-extrabold text-amber-900 text-sm tracking-wider">
           {visitorCount.toLocaleString()}
         </span>
       </div>

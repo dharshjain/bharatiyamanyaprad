@@ -5,6 +5,13 @@ import { CornerFlourish, MajesticLotus } from "@/components/site/ornaments";
 import { PageHero } from "@/components/site/page-hero";
 import { Reveal } from "@/components/site/reveal";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase, type Publication } from "@/lib/supabase";
 import { publications as staticPublications } from "@/data/journal";
 
@@ -122,37 +129,70 @@ function PublicationPage() {
 
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         {/* Year Filter Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by year">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-full overflow-x-hidden border-b border-accent/15 pb-6">
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by year">
             <button
               onClick={() => handleYearChange("all")}
               aria-pressed={selectedYear === "all"}
-              className={`min-h-10 rounded-md border px-4 text-sm transition-colors ${
+              className={`min-h-10 rounded-lg border px-4 text-sm font-sans font-medium tracking-wide transition-all shadow-sm ${
                 selectedYear === "all"
-                  ? "border-accent bg-secondary text-primary font-semibold"
-                  : "border-border text-muted-foreground hover:border-accent/60"
+                  ? "border-accent bg-accent text-accent-foreground font-bold shadow-[0_0_10px_rgba(184,134,11,0.3)]"
+                  : "border-accent/25 text-muted-foreground hover:border-accent/60 hover:text-foreground"
               }`}
             >
               All years
             </button>
-            {availableYears.map((year) => (
+
+            {availableYears.slice(0, 4).map((year) => (
               <button
                 key={year}
                 onClick={() => handleYearChange(year)}
                 aria-pressed={selectedYear === year}
-                className={`min-h-10 rounded-md border px-4 text-sm transition-colors ${
+                className={`min-h-10 rounded-lg border px-3.5 text-sm font-sans font-medium transition-all shadow-sm ${
                   selectedYear === year
-                    ? "border-accent bg-secondary text-primary font-semibold"
-                    : "border-border text-muted-foreground hover:border-accent/60"
+                    ? "border-accent bg-accent text-accent-foreground font-bold shadow-[0_0_10px_rgba(184,134,11,0.3)]"
+                    : "border-accent/25 text-muted-foreground hover:border-accent/60 hover:text-foreground"
                 }`}
               >
                 {year}
               </button>
             ))}
+
+            {/* Styled Dropdown Select for All / Older Years */}
+            <Select
+              value={String(selectedYear)}
+              onValueChange={(val) =>
+                handleYearChange(val === "all" ? "all" : Number(val))
+              }
+            >
+              <SelectTrigger
+                aria-label="Select specific year"
+                className="min-h-10 w-[140px] rounded-lg border border-accent/30 bg-secondary px-3.5 text-sm font-sans font-medium text-primary outline-none transition-all focus:ring-1 focus:ring-accent/30 cursor-pointer shadow-sm engraved"
+              >
+                <SelectValue placeholder="More years…" />
+              </SelectTrigger>
+              <SelectContent className="max-h-60 rounded-xl border border-accent/30 bg-card text-card-foreground shadow-2xl backdrop-blur-md z-50 p-1">
+                <SelectItem
+                  value="all"
+                  className="text-sm font-sans font-bold text-accent py-2 px-3 cursor-pointer focus:bg-accent focus:text-accent-foreground rounded-lg"
+                >
+                  All years
+                </SelectItem>
+                {availableYears.map((year) => (
+                  <SelectItem
+                    key={year}
+                    value={String(year)}
+                    className="text-sm font-sans font-medium text-foreground py-2 px-3 cursor-pointer focus:bg-accent focus:text-accent-foreground rounded-lg"
+                  >
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {!loading && filtered.length > 0 && (
-            <p className="text-sm sm:text-base text-foreground/90 font-semibold font-serif">
+            <p className="text-xs sm:text-sm text-foreground/90 font-semibold font-serif shrink-0 sm:text-right">
               Showing <span className="text-accent font-bold">{Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, filtered.length)}</span>–
               <span className="text-accent font-bold">{Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)}</span> of{" "}
               <span className="text-accent font-bold">{filtered.length}</span> volumes
@@ -274,25 +314,30 @@ export function PublicationCard({ publication: p }: { publication: Publication }
         </div>
 
         {/* Metadata section */}
-        <div className="relative z-10 space-y-2 my-2">
+        <div className="relative z-10 space-y-1.5 my-2">
           {/* Volume — hero emphasis */}
-          <h2 className="font-display text-lg sm:text-xl font-extrabold tracking-wider text-accent uppercase line-clamp-1">
+          <h2 className="font-display text-base sm:text-lg font-extrabold tracking-wider text-accent uppercase line-clamp-1">
             {p.volume}
           </h2>
 
-          {/* Title — secondary, bold & clean */}
-          <h3 className="font-sans text-sm sm:text-base font-bold text-foreground line-clamp-2 leading-snug">
+          {/* Title — slightly smaller, clean bold typography */}
+          <h3 className="font-sans text-xs sm:text-sm font-bold text-foreground line-clamp-2 leading-snug">
             {p.title}
           </h3>
 
-          <div className="space-y-1 text-xs sm:text-sm">
-            <p className="font-sans font-semibold text-foreground/90 truncate">
+          {/* Author Name — Dedicated Row */}
+          <p className="font-sans text-xs font-medium text-foreground/80 min-h-[1.3em] truncate">
+            {p.author ? `by ${p.author}` : "\u00A0"}
+          </p>
+
+          <div className="space-y-0.5 text-xs">
+            <p className="font-sans font-medium text-foreground/70 truncate">
               {[p.journal_name || "Bharatiya Manyaprad", p.period || p.year]
                 .filter(Boolean)
                 .join(" · ")}
             </p>
-            {(p.issue_no || p.pages || p.author) && (
-              <p className="font-sans font-bold text-accent truncate">
+            {(p.issue_no || p.pages) && (
+              <p className="font-sans font-semibold text-accent truncate">
                 {[
                   p.issue_no ? `Issue ${p.issue_no}` : null,
                   p.pages
@@ -300,7 +345,6 @@ export function PublicationCard({ publication: p }: { publication: Publication }
                       ? p.pages
                       : `pp. ${p.pages}`
                     : null,
-                  p.author ? `by ${p.author}` : null,
                 ]
                   .filter(Boolean)
                   .join(" • ")}
@@ -356,7 +400,7 @@ export function PublicationCard({ publication: p }: { publication: Publication }
       <CornerFlourish className="pointer-events-none absolute bottom-3.5 right-3.5 size-4 rotate-180 text-accent/40" />
 
       {/* Card Content — flex-1 pushes button to bottom */}
-      <div className="flex-1 flex flex-col justify-center relative z-10 space-y-3">
+      <div className="flex-1 flex flex-col justify-center relative z-10 space-y-2.5">
         {/* Lotus icon at the top */}
         <MajesticLotus className="mx-auto w-20 h-14 text-accent/60" />
 
@@ -366,7 +410,7 @@ export function PublicationCard({ publication: p }: { publication: Publication }
         </h3>
 
         {/* Volume — hero emphasis */}
-        <h2 className="font-display text-xl sm:text-2xl font-extrabold leading-snug text-primary group-hover:text-accent transition-colors duration-300 line-clamp-2">
+        <h2 className="font-display text-lg sm:text-xl font-extrabold leading-snug text-primary group-hover:text-accent transition-colors duration-300 line-clamp-2">
           {p.volume}
         </h2>
 
@@ -376,13 +420,18 @@ export function PublicationCard({ publication: p }: { publication: Publication }
           <span className="h-[0.5px] w-6 bg-accent" />
         </div>
 
-        {/* Title — bold text */}
-        <h3 className="font-sans text-sm sm:text-base font-bold text-foreground line-clamp-3 leading-snug">
+        {/* Title — slightly smaller, clean bold typography */}
+        <h3 className="font-sans text-xs sm:text-sm font-bold text-foreground line-clamp-3 leading-snug">
           {p.title}
         </h3>
 
-        {/* Volume / No. / Year / pp. meta line */}
-        <p className="font-sans text-xs sm:text-sm font-bold text-accent truncate">
+        {/* Author — Dedicated Separate Row */}
+        <p className="font-sans text-xs font-medium text-foreground/80 min-h-[1.4em] truncate">
+          {p.author ? `by ${p.author}` : "\u00A0"}
+        </p>
+
+        {/* Issue / Period / Pages meta line */}
+        <p className="font-sans text-xs font-semibold text-accent truncate">
           {[
             p.issue_no ? `Issue ${p.issue_no}` : null,
             p.period || String(p.year),
@@ -394,11 +443,6 @@ export function PublicationCard({ publication: p }: { publication: Publication }
           ]
             .filter(Boolean)
             .join(" • ")}
-        </p>
-
-        {/* Author — always reserves space */}
-        <p className="font-sans text-xs sm:text-sm font-semibold text-foreground/80 min-h-[1.4em] truncate">
-          {p.author ? `by ${p.author}` : "\u00A0"}
         </p>
       </div>
 
