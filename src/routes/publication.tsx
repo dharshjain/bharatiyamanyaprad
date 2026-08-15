@@ -124,7 +124,7 @@ function PublicationPage() {
       <PageHero
         eyebrow="Publication"
         title="Published volumes"
-        intro="Every volume of Bharatiya Manyaprad since 2013, available to read and download."
+        intro="Each volume of Bharatiya Manyaprad since 2013, available to read and download."
       />
 
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
