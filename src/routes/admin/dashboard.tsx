@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import type {
   ReactNode,
-  CSSProperties,
   ChangeEvent,
   Dispatch,
   SetStateAction,
@@ -25,11 +24,14 @@ import {
   EyeOff,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Loader2,
   CreditCard,
   ExternalLink,
   RefreshCw,
   ImageIcon,
+  Menu,
 } from "lucide-react";
 import {
   supabase,
@@ -57,6 +59,19 @@ type Tab = "editorial" | "news" | "publications" | "subscriptions" | "settings";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+function getPaginationPages(current: number, total: number): (number | "...")[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  if (current <= 3) {
+    return [1, 2, 3, 4, "...", total];
+  }
+  if (current >= total - 2) {
+    return [1, "...", total - 3, total - 2, total - 1, total];
+  }
+  return [1, "...", current - 1, current, current + 1, "...", total];
+}
+
 function Toast({
   msg,
   type,
@@ -72,15 +87,17 @@ function Toast({
   }, [onDone]);
   return (
     <div
-      className="fixed top-5 right-5 z-50 flex items-center gap-2 rounded-xl px-4 py-3 text-sm shadow-lg"
-      style={{
-        background: type === "success" ? "rgba(21,128,61,0.9)" : "rgba(185,28,28,0.9)",
-        border: `1px solid ${type === "success" ? "rgba(74,222,128,0.4)" : "rgba(248,113,113,0.4)"}`,
-        color: "#fff",
-        backdropFilter: "blur(8px)",
-      }}
+      className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm font-medium shadow-2xl transition-all ${
+        type === "success"
+          ? "bg-[#1e2d4a] text-slate-100 border border-emerald-500/40 shadow-emerald-500/10"
+          : "bg-rose-950 text-rose-100 border border-rose-500/40 shadow-rose-500/10"
+      }`}
     >
-      {type === "success" ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+      {type === "success" ? (
+        <Check className="h-4 w-4 text-emerald-400" />
+      ) : (
+        <X className="h-4 w-4 text-rose-300" />
+      )}
       {msg}
     </div>
   );
@@ -88,17 +105,8 @@ function Toast({
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div
-      className="rounded-2xl p-6"
-      style={{
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(184,134,11,0.12)",
-      }}
-    >
-      <h2
-        className="mb-5 text-sm font-semibold uppercase tracking-widest"
-        style={{ color: "#b8860b" }}
-      >
+    <div className="rounded-2xl border border-[#2d3a54] bg-[#131c2e] p-5 sm:p-6 shadow-xl shadow-black/30">
+      <h2 className="mb-5 text-xs font-bold uppercase tracking-wider text-amber-400">
         {title}
       </h2>
       {children}
@@ -121,20 +129,11 @@ function InputRow({
   placeholder?: string;
   multiline?: boolean;
 }) {
-  const base: CSSProperties = {
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(184,134,11,0.2)",
-    color: "#f5f0e8",
-    borderRadius: 8,
-    padding: "10px 12px",
-    width: "100%",
-    fontSize: 14,
-    outline: "none",
-    fontFamily: "inherit",
-  };
+  const baseClass =
+    "w-full rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition-all focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 font-sans";
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-medium uppercase tracking-wider" style={{ color: "#9a8a6a" }}>
+      <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
         {label}
       </label>
       {multiline ? (
@@ -143,7 +142,7 @@ function InputRow({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          style={base}
+          className={baseClass}
         />
       ) : (
         <input
@@ -151,7 +150,7 @@ function InputRow({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          style={base}
+          className={baseClass}
         />
       )}
     </div>
@@ -163,8 +162,7 @@ function SaveBtn({ onClick, loading }: { onClick: () => void; loading: boolean }
     <button
       onClick={onClick}
       disabled={loading}
-      className="flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition hover:opacity-90 disabled:opacity-50"
-      style={{ background: "linear-gradient(135deg,#b8860b,#d4a843)", color: "#0d0d0f" }}
+      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 px-4 py-2.5 text-sm font-bold shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98] disabled:opacity-50"
     >
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
       {loading ? "Saving…" : "Save"}
@@ -178,6 +176,7 @@ function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>("editorial");
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   function showToast(msg: string, type: "success" | "error" = "success") {
     setToast({ msg, type });
@@ -197,45 +196,103 @@ function AdminDashboard() {
   ];
 
   return (
-    <div className="flex min-h-screen" style={{ background: "#0d0d0f", color: "#f5f0e8" }}>
+    <div className="flex min-h-screen bg-[#0b0f17] text-slate-100 font-sans flex-col md:flex-row">
       {toast && <Toast msg={toast.msg} type={toast.type} onDone={() => setToast(null)} />}
 
-      {/* Sidebar */}
-      <aside
-        className="flex w-64 shrink-0 flex-col"
-        style={{
-          background: "rgba(255,255,255,0.02)",
-          borderRight: "1px solid rgba(184,134,11,0.12)",
-        }}
-      >
-        {/* Logo */}
-        <div className="px-6 py-6" style={{ borderBottom: "1px solid rgba(184,134,11,0.12)" }}>
-          <p className="text-xs uppercase tracking-widest" style={{ color: "#b8860b" }}>
-            Admin Panel
+      {/* Mobile Top Navbar */}
+      <header className="flex items-center justify-between border-b border-[#2d3a54] bg-[#131c2e] px-4 py-3 md:hidden sticky top-0 z-30 shadow-md">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 font-bold text-sm shadow-md">
+            BM
+          </div>
+          <div>
+            <p className="text-[0.65rem] uppercase tracking-wider text-amber-400 font-bold">Admin Portal</p>
+            <p className="text-sm font-bold text-slate-100 leading-none">Bharatiya Manyaprad</p>
+          </div>
+        </div>
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="rounded-xl p-2 text-slate-300 hover:bg-[#1e2d4a] hover:text-white transition-colors"
+          aria-label="Toggle navigation menu"
+        >
+          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      </header>
+
+      {/* Mobile Collapsible Navigation Menu */}
+      {mobileMenuOpen && (
+        <div className="border-b border-[#2d3a54] bg-[#131c2e] px-4 py-3 md:hidden space-y-1 shadow-2xl sticky top-[57px] z-20">
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => {
+                setActiveTab(t.id);
+                setMobileMenuOpen(false);
+              }}
+              className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all ${
+                activeTab === t.id
+                  ? "bg-amber-500 text-slate-950 shadow-md"
+                  : "text-slate-300 hover:bg-[#1e2d4a] hover:text-white"
+              }`}
+            >
+              {t.icon}
+              {t.label}
+            </button>
+          ))}
+          <div className="pt-2 border-t border-[#2d3a54]">
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-rose-400 hover:bg-rose-500/10 transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Horizontal Scrollable Tab Bar */}
+      <div className="flex overflow-x-auto scrollbar-none border-b border-[#2d3a54] bg-[#131c2e] px-3 py-2 md:hidden gap-1.5 sticky top-[57px] z-10">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+              activeTab === t.id
+                ? "bg-amber-500 text-slate-950 shadow-md"
+                : "bg-[#1e2d4a] text-slate-300 hover:bg-[#253658] hover:text-white"
+            }`}
+          >
+            {t.icon}
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-[#2d3a54] bg-[#131c2e] shadow-xl">
+        {/* Logo Header */}
+        <div className="px-6 py-5 border-b border-[#2d3a54]">
+          <p className="text-[0.65rem] font-bold uppercase tracking-wider text-amber-400">
+            Admin Portal
           </p>
-          <p className="mt-1 text-base font-semibold" style={{ color: "#f5f0e8" }}>
+          <p className="mt-1 text-base font-bold text-slate-100">
             Bharatiya Manyaprad
           </p>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 px-3 py-4">
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-4 space-y-1">
           {tabs.map((t) => (
             <button
               key={t.id}
               id={`admin-tab-${t.id}`}
               onClick={() => setActiveTab(t.id)}
-              className="mb-1 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all"
-              style={
+              className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
                 activeTab === t.id
-                  ? {
-                      background:
-                        "linear-gradient(135deg,rgba(184,134,11,0.25),rgba(212,168,67,0.15))",
-                      color: "#d4a843",
-                      border: "1px solid rgba(184,134,11,0.3)",
-                    }
-                  : { color: "#6b6450", border: "1px solid transparent" }
-              }
+                  ? "bg-[#1e2d4a] text-amber-400 border-l-4 border-amber-500 shadow-md"
+                  : "text-slate-400 hover:bg-[#1a263d] hover:text-slate-200"
+              }`}
             >
               {t.icon}
               {t.label}
@@ -243,13 +300,12 @@ function AdminDashboard() {
           ))}
         </nav>
 
-        {/* Logout */}
-        <div className="p-4" style={{ borderTop: "1px solid rgba(184,134,11,0.12)" }}>
+        {/* Logout button */}
+        <div className="p-4 border-t border-[#2d3a54]">
           <button
             id="admin-logout-btn"
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm transition hover:opacity-80"
-            style={{ color: "#6b6450" }}
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-400 hover:bg-rose-500/10 hover:text-rose-400 transition-all"
           >
             <LogOut className="h-4 w-4" />
             Logout
@@ -257,8 +313,8 @@ function AdminDashboard() {
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto p-8">
+      {/* Main Content Area */}
+      <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 min-w-0 max-w-full">
         {activeTab === "editorial" && <EditorialTab showToast={showToast} />}
         {activeTab === "news" && <NewsTab showToast={showToast} />}
         {activeTab === "publications" && <PublicationsTab showToast={showToast} />}
@@ -425,25 +481,25 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold" style={{ color: "#f5f0e8" }}>
-          Editorial Board
-        </h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-100">
+            Editorial Board
+          </h1>
+          <p className="text-sm text-slate-400 mt-0.5">
+            Manage board members and official editorial documentation
+          </p>
+        </div>
         <button
           id="editorial-add-btn"
           onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:opacity-90"
-          style={{
-            background: "rgba(184,134,11,0.2)",
-            color: "#d4a843",
-            border: "1px solid rgba(184,134,11,0.3)",
-          }}
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 px-4 py-2.5 text-sm font-bold shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98] self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" /> Add Member
         </button>
       </div>
 
-      {/* Click here to read more — document upload */}
+      {/* 'Click here to read more' Document Section */}
       <Section title="'Click here to read more' Document">
         <div className="flex items-center gap-4 flex-wrap">
           {boardDoc?.file_url ? (
@@ -451,18 +507,13 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
               href={boardDoc.file_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition hover:opacity-80"
-              style={{
-                background: "rgba(184,134,11,0.15)",
-                color: "#d4a843",
-                border: "1px solid rgba(184,134,11,0.3)",
-              }}
+              className="inline-flex items-center gap-2 rounded-xl border border-[#334568] bg-[#1e2d4a] px-4 py-2.5 text-sm font-semibold text-amber-400 hover:bg-[#253658] shadow-sm transition-all"
             >
-              <Download className="h-4 w-4" />
+              <Download className="h-4 w-4 text-amber-400" />
               {boardDoc.file_name ?? "View current file"}
             </a>
           ) : (
-            <p className="text-sm" style={{ color: "#6b6450" }}>
+            <p className="text-sm text-slate-400">
               No document uploaded yet.
             </p>
           )}
@@ -470,17 +521,12 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
             id="editorial-doc-upload-btn"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
-            style={{
-              background: "rgba(255,255,255,0.06)",
-              color: "#f5f0e8",
-              border: "1px solid rgba(255,255,255,0.1)",
-            }}
+            className="inline-flex items-center gap-2 rounded-xl bg-[#0b0f17] border border-[#2d3a54] text-slate-200 px-4 py-2.5 text-sm font-semibold hover:bg-[#1a263d] transition-all disabled:opacity-50"
           >
             {uploading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin text-amber-400" />
             ) : (
-              <Upload className="h-4 w-4" />
+              <Upload className="h-4 w-4 text-slate-400" />
             )}
             {boardDoc?.file_url ? "Replace document" : "Upload document"}
           </button>
@@ -492,7 +538,7 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
             onChange={uploadDocument}
           />
         </div>
-        <p className="mt-2 text-xs" style={{ color: "#3d3728" }}>
+        <p className="mt-2.5 text-xs text-slate-400">
           Accepted: PDF, DOC, DOCX · This file opens when visitors click "Click here to read more"
         </p>
       </Section>
@@ -502,32 +548,21 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
         <Section title="Add New Member">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <label
-                className="text-xs font-medium uppercase tracking-wider"
-                style={{ color: "#9a8a6a" }}
-              >
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
                 Role
               </label>
               <select
                 value={addForm.role}
                 onChange={(e) => setAddForm((f) => ({ ...f, role: e.target.value }))}
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(184,134,11,0.2)",
-                  color: "#f5f0e8",
-                  borderRadius: 8,
-                  padding: "10px 12px",
-                  fontSize: 14,
-                  outline: "none",
-                }}
+                className="w-full rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-3.5 py-2.5 text-sm text-slate-100 outline-none transition-all focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
               >
-                <option value="editor_in_chief" style={{ background: "#1a1a1c" }}>
-                  Editor in Chief & Publisher
+                <option value="editor_in_chief" className="bg-[#0b0f17]">
+                  Editor in Chief &amp; Publisher
                 </option>
-                <option value="executive_editor" style={{ background: "#1a1a1c" }}>
+                <option value="executive_editor" className="bg-[#0b0f17]">
                   Executive Editor
                 </option>
-                <option value="advisory" style={{ background: "#1a1a1c" }}>
+                <option value="advisory" className="bg-[#0b0f17]">
                   Advisory Board
                 </option>
               </select>
@@ -561,26 +596,23 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
               />
             </div>
             <div className="sm:col-span-2">
-              <label
-                className="text-xs font-medium uppercase tracking-wider block mb-1.5"
-                style={{ color: "#9a8a6a" }}
-              >
+              <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5 text-slate-300">
                 Photo
               </label>
               <div className="flex items-center gap-4">
                 {addForm.photo_url ? (
-                  <div className="relative size-16 shrink-0 rounded-full border border-accent/40 overflow-hidden">
+                  <div className="relative size-16 shrink-0 rounded-full border border-amber-500/40 overflow-hidden bg-[#0b0f17]">
                     <img src={addForm.photo_url} alt="Preview" className="size-full object-cover" />
                     <button
                       type="button"
                       onClick={() => setAddForm((f) => ({ ...f, photo_url: "" }))}
-                      className="absolute inset-0 bg-black/60 flex items-center justify-center text-red-400 opacity-0 hover:opacity-100 transition-opacity"
+                      className="absolute inset-0 bg-slate-950/80 flex items-center justify-center text-rose-400 opacity-0 hover:opacity-100 transition-opacity"
                     >
                       <Trash2 className="size-4" />
                     </button>
                   </div>
                 ) : (
-                  <div className="size-16 shrink-0 rounded-full border border-dashed border-accent/35 flex items-center justify-center text-accent/60">
+                  <div className="size-16 shrink-0 rounded-full border border-dashed border-[#334568] flex items-center justify-center text-slate-400 bg-[#0b0f17]">
                     <Upload className="size-5" />
                   </div>
                 )}
@@ -607,17 +639,16 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
                     setSaving(false);
                     showToast("Photo uploaded successfully.");
                   }}
-                  className="text-xs text-foreground/75"
+                  className="text-xs text-slate-400"
                 />
               </div>
             </div>
           </div>
-          <div className="mt-4 flex gap-3">
+          <div className="mt-5 flex gap-3">
             <SaveBtn onClick={addMember} loading={saving} />
             <button
               onClick={() => setShowAdd(false)}
-              className="rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80"
-              style={{ color: "#6b6450" }}
+              className="rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-[#1a263d] transition-all"
             >
               Cancel
             </button>
@@ -629,7 +660,7 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
       {(["editor_in_chief", "executive_editor", "advisory"] as const).map((role) =>
         grouped[role].length > 0 ? (
           <Section key={role} title={roleLabel[role] ?? role}>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {grouped[role].map((m) =>
                 editingId === m.id ? (
                   <EditMemberForm
@@ -684,10 +715,7 @@ function MemberCard({
   const [uploading, setUploading] = useState(false);
 
   return (
-    <div
-      className="flex items-start justify-between gap-4 rounded-xl p-4"
-      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
-    >
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-[#2d3a54] bg-[#0b0f17]/70 p-4 shadow-md hover:border-[#3d4d6e] transition-all">
       <div className="flex items-start gap-4 min-w-0 flex-1">
         <input
           type="file"
@@ -716,27 +744,27 @@ function MemberCard({
           }}
         />
 
-        <div className="relative size-12 shrink-0 rounded-full overflow-hidden group cursor-pointer border border-accent/20 hover:border-accent transition-colors">
+        <div className="relative size-12 shrink-0 rounded-full overflow-hidden group cursor-pointer border border-[#334568] hover:border-amber-500 transition-colors bg-[#131c2e]">
           {uploading ? (
-            <div className="size-full bg-black/60 flex items-center justify-center">
-              <Loader2 className="size-4 animate-spin text-accent" />
+            <div className="size-full bg-slate-950/70 flex items-center justify-center">
+              <Loader2 className="size-4 animate-spin text-amber-400" />
             </div>
           ) : (
             <>
               {member.photo_url ? (
                 <img src={member.photo_url} alt={member.name} className="size-full object-cover" />
               ) : (
-                <div className="size-full bg-accent/5 flex items-center justify-center text-accent text-xs font-semibold">
+                <div className="size-full bg-[#1e2d4a] flex items-center justify-center text-amber-400 text-xs font-bold">
                   {getInitials(member.name)}
                 </div>
               )}
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                className="absolute inset-0 bg-black/65 flex flex-col items-center justify-center text-[0.6rem] text-accent font-semibold opacity-0 group-hover:opacity-100 transition-opacity outline-none"
-                title="Upload profile"
+                className="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center text-[0.6rem] text-amber-400 font-semibold opacity-0 group-hover:opacity-100 transition-opacity outline-none"
+                title="Upload profile photo"
               >
-                <Upload className="size-3.5 mb-0.5 text-accent" />
+                <Upload className="size-3.5 mb-0.5 text-amber-400" />
                 <span>Upload</span>
               </button>
             </>
@@ -744,43 +772,40 @@ function MemberCard({
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="font-semibold" style={{ color: "#f5f0e8" }}>
+          <p className="font-bold text-slate-100 text-base">
             {member.name}
           </p>
           {member.designation && (
-            <p className="mt-0.5 text-sm" style={{ color: "#b8860b" }}>
+            <p className="mt-0.5 text-xs font-bold text-amber-400">
               {member.designation}
             </p>
           )}
           {member.description && (
-            <p className="mt-1 text-sm leading-relaxed" style={{ color: "#6b6450" }}>
+            <p className="mt-1 text-xs leading-relaxed text-slate-400">
               {member.description}
             </p>
           )}
           {member.email && (
             <a
               href={`mailto:${member.email}`}
-              className="mt-1 block text-xs hover:underline"
-              style={{ color: "#9a8a6a" }}
+              className="mt-1 block text-xs font-medium text-slate-400 hover:underline hover:text-amber-300"
             >
               {member.email}
             </a>
           )}
         </div>
       </div>
-      <div className="flex shrink-0 gap-2">
+      <div className="flex shrink-0 gap-2 self-end sm:self-center">
         <button
           onClick={onEdit}
-          className="rounded-lg p-2 transition hover:opacity-80"
-          style={{ background: "rgba(184,134,11,0.15)", color: "#d4a843" }}
+          className="rounded-xl border border-[#334568] bg-[#1e2d4a] p-2 text-amber-400 hover:bg-[#253658] transition-all shadow-sm"
           aria-label="Edit member"
         >
           <Pencil className="h-4 w-4" />
         </button>
         <button
           onClick={onDelete}
-          className="rounded-lg p-2 transition hover:opacity-80"
-          style={{ background: "rgba(220,38,38,0.15)", color: "#f87171" }}
+          className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-2 text-rose-400 hover:bg-rose-500/20 transition-all shadow-sm"
           aria-label="Delete member"
         >
           <Trash2 className="h-4 w-4" />
@@ -808,10 +833,7 @@ function EditMemberForm({
   showToast: (m: string, t?: "success" | "error") => void;
 }) {
   return (
-    <div
-      className="rounded-xl p-4 space-y-3"
-      style={{ background: "rgba(184,134,11,0.06)", border: "1px solid rgba(184,134,11,0.2)" }}
-    >
+    <div className="rounded-xl border border-amber-500/30 bg-[#0b0f17] p-4 sm:p-5 space-y-4 shadow-lg">
       <div className="grid gap-3 sm:grid-cols-2">
         <InputRow
           label="Name"
@@ -829,11 +851,8 @@ function EditMemberForm({
           type="email"
           onChange={(v) => setForm((f) => ({ ...f, email: v }))}
         />
-        <div>
-          <label
-            className="text-xs font-medium uppercase tracking-wider"
-            style={{ color: "#9a8a6a" }}
-          >
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
             Role
           </label>
           <select
@@ -841,27 +860,11 @@ function EditMemberForm({
             onChange={(e) =>
               setForm((f) => ({ ...f, role: e.target.value as EditorialBoardMember["role"] }))
             }
-            style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(184,134,11,0.2)",
-              color: "#f5f0e8",
-              borderRadius: 8,
-              padding: "10px 12px",
-              fontSize: 14,
-              outline: "none",
-              width: "100%",
-              marginTop: 6,
-            }}
+            className="w-full rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-3.5 py-2.5 text-sm text-slate-100 outline-none transition-all focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
           >
-            <option value="editor_in_chief" style={{ background: "#1a1a1c" }}>
-              Editor in Chief
-            </option>
-            <option value="executive_editor" style={{ background: "#1a1a1c" }}>
-              Executive Editor
-            </option>
-            <option value="advisory" style={{ background: "#1a1a1c" }}>
-              Advisory
-            </option>
+            <option value="editor_in_chief" className="bg-[#0b0f17]">Editor in Chief</option>
+            <option value="executive_editor" className="bg-[#0b0f17]">Executive Editor</option>
+            <option value="advisory" className="bg-[#0b0f17]">Advisory</option>
           </select>
         </div>
         <div className="sm:col-span-2">
@@ -873,26 +876,23 @@ function EditMemberForm({
           />
         </div>
         <div className="sm:col-span-2">
-          <label
-            className="text-xs font-medium uppercase tracking-wider block mb-1.5"
-            style={{ color: "#9a8a6a" }}
-          >
+          <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5 text-slate-300">
             Photo
           </label>
           <div className="flex items-center gap-4">
             {form.photo_url ? (
-              <div className="relative size-16 shrink-0 rounded-full border border-accent/40 overflow-hidden">
+              <div className="relative size-16 shrink-0 rounded-full border border-amber-500/40 overflow-hidden bg-[#0b0f17]">
                 <img src={form.photo_url} alt="Preview" className="size-full object-cover" />
                 <button
                   type="button"
                   onClick={() => setForm((f) => ({ ...f, photo_url: "" }))}
-                  className="absolute inset-0 bg-black/60 flex items-center justify-center text-red-400 opacity-0 hover:opacity-100 transition-opacity"
+                  className="absolute inset-0 bg-slate-950/80 flex items-center justify-center text-rose-400 opacity-0 hover:opacity-100 transition-opacity"
                 >
                   <Trash2 className="size-4" />
                 </button>
               </div>
             ) : (
-              <div className="size-16 shrink-0 rounded-full border border-dashed border-accent/35 flex items-center justify-center text-accent/60">
+              <div className="size-16 shrink-0 rounded-full border border-dashed border-[#334568] flex items-center justify-center text-slate-400 bg-[#0b0f17]">
                 <Upload className="size-5" />
               </div>
             )}
@@ -919,17 +919,16 @@ function EditMemberForm({
                 setSaving(false);
                 showToast("Photo uploaded successfully.");
               }}
-              className="text-xs text-foreground/75"
+              className="text-xs text-slate-400"
             />
           </div>
         </div>
       </div>
-      <div className="flex gap-3">
+      <div className="flex gap-3 pt-2">
         <SaveBtn onClick={onSave} loading={saving} />
         <button
           onClick={onCancel}
-          className="rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80"
-          style={{ color: "#6b6450" }}
+          className="rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-[#1a263d] transition-all"
         >
           Cancel
         </button>
@@ -937,8 +936,6 @@ function EditMemberForm({
     </div>
   );
 }
-
-// ─── News & Events Tab ─────────────────────────────────────────────────────────
 
 // ─── News & Events Tab ─────────────────────────────────────────────────────────
 
@@ -950,24 +947,24 @@ function NewsTab({ showToast }: { showToast: (m: string, t?: "success" | "error"
   return (
     <div className="space-y-6">
       {/* Sub-tab selection */}
-      <div className="flex border-b border-accent/10 pb-px mb-6">
+      <div className="flex border-b border-[#2d3a54] pb-px mb-6 gap-6">
         <button
           onClick={() => setSubTab("notices")}
-          className="mr-6 pb-2 text-sm font-semibold tracking-wider transition-all uppercase border-b-2"
-          style={{
-            borderColor: subTab === "notices" ? "var(--accent)" : "transparent",
-            color: subTab === "notices" ? "var(--accent)" : "#6b6450",
-          }}
+          className={`pb-3 text-sm font-bold tracking-wider transition-all uppercase border-b-2 ${
+            subTab === "notices"
+              ? "border-amber-500 text-amber-400"
+              : "border-transparent text-slate-400 hover:text-slate-200"
+          }`}
         >
           Notices (Ticker)
         </button>
         <button
           onClick={() => setSubTab("events")}
-          className="pb-2 text-sm font-semibold tracking-wider transition-all uppercase border-b-2"
-          style={{
-            borderColor: subTab === "events" ? "var(--accent)" : "transparent",
-            color: subTab === "events" ? "var(--accent)" : "#6b6450",
-          }}
+          className={`pb-3 text-sm font-bold tracking-wider transition-all uppercase border-b-2 ${
+            subTab === "events"
+              ? "border-amber-500 text-amber-400"
+              : "border-transparent text-slate-400 hover:text-slate-200"
+          }`}
         >
           Detailed Events
         </button>
@@ -1066,18 +1063,13 @@ function NoticesManager({ showToast }: { showToast: (m: string, t?: "success" | 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold" style={{ color: "#f5f0e8" }}>
+        <h2 className="text-xl font-bold text-slate-100">
           Notices (Ticker)
         </h2>
         <button
           id="news-add-btn"
           onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:opacity-90"
-          style={{
-            background: "rgba(184,134,11,0.2)",
-            color: "#d4a843",
-            border: "1px solid rgba(184,134,11,0.3)",
-          }}
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 px-4 py-2.5 text-sm font-bold shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98]"
         >
           <Plus className="h-4 w-4" /> Add Item
         </button>
@@ -1096,8 +1088,7 @@ function NoticesManager({ showToast }: { showToast: (m: string, t?: "success" | 
             <SaveBtn onClick={addItem} loading={saving} />
             <button
               onClick={() => setShowAdd(false)}
-              className="rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80"
-              style={{ color: "#6b6450" }}
+              className="rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-[#1a263d] transition-all"
             >
               Cancel
             </button>
@@ -1109,12 +1100,9 @@ function NoticesManager({ showToast }: { showToast: (m: string, t?: "success" | 
         {items.map((item, idx) => (
           <div
             key={item.id}
-            className="rounded-xl p-5"
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              border: `1px solid ${item.is_active ? "rgba(184,134,11,0.12)" : "rgba(255,255,255,0.04)"}`,
-              opacity: item.is_active ? 1 : 0.5,
-            }}
+            className={`rounded-xl border bg-[#131c2e] p-4 sm:p-5 shadow-md transition-all ${
+              item.is_active ? "border-[#2d3a54]" : "border-[#2d3a54]/40 opacity-50 bg-[#0b0f17]"
+            }`}
           >
             {editingId === item.id ? (
               <div className="space-y-3">
@@ -1123,27 +1111,25 @@ function NoticesManager({ showToast }: { showToast: (m: string, t?: "success" | 
                   <SaveBtn onClick={() => saveEdit(item.id)} loading={saving} />
                   <button
                     onClick={() => setEditingId(null)}
-                    className="rounded-lg px-4 py-2.5 text-sm"
-                    style={{ color: "#6b6450" }}
+                    className="rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-[#1a263d]"
                   >
                     Cancel
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="flex items-start gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex-1">
-                  <p className="text-sm leading-relaxed" style={{ color: "#f5f0e8" }}>
+                  <p className="text-sm font-medium leading-relaxed text-slate-200">
                     {item.content}
                   </p>
                 </div>
-                <div className="flex shrink-0 flex-col gap-1">
-                  <div className="flex gap-1">
+                <div className="flex shrink-0 items-center gap-1.5 self-end sm:self-center">
+                  <div className="flex gap-1 border-r border-[#2d3a54] pr-2 mr-1">
                     <button
                       onClick={() => moveItem(item.id, "up")}
                       disabled={idx === 0}
-                      className="rounded-lg p-1.5 transition hover:opacity-80 disabled:opacity-30"
-                      style={{ color: "#6b6450" }}
+                      className="rounded-xl border border-[#2d3a54] bg-[#0b0f17] p-1.5 text-slate-300 hover:bg-[#1a263d] disabled:opacity-30 shadow-sm"
                       aria-label="Move up"
                     >
                       <ChevronUp className="h-3.5 w-3.5" />
@@ -1151,46 +1137,40 @@ function NoticesManager({ showToast }: { showToast: (m: string, t?: "success" | 
                     <button
                       onClick={() => moveItem(item.id, "down")}
                       disabled={idx === items.length - 1}
-                      className="rounded-lg p-1.5 transition hover:opacity-80 disabled:opacity-30"
-                      style={{ color: "#6b6450" }}
+                      className="rounded-xl border border-[#2d3a54] bg-[#0b0f17] p-1.5 text-slate-300 hover:bg-[#1a263d] disabled:opacity-30 shadow-sm"
                       aria-label="Move down"
                     >
                       <ChevronDown className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => toggleActive(item)}
-                      className="rounded-lg p-1.5 transition hover:opacity-80"
-                      style={{ color: item.is_active ? "#6b6450" : "#d4a843" }}
-                      aria-label={item.is_active ? "Hide" : "Show"}
-                    >
-                      {item.is_active ? (
-                        <EyeOff className="h-3.5 w-3.5" />
-                      ) : (
-                        <Eye className="h-3.5 w-3.5" />
-                      )}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditingId(item.id);
-                        setEditContent(item.content);
-                      }}
-                      className="rounded-lg p-1.5 transition hover:opacity-80"
-                      style={{ color: "#d4a843" }}
-                      aria-label="Edit"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => deleteItem(item.id)}
-                      className="rounded-lg p-1.5 transition hover:opacity-80"
-                      style={{ color: "#f87171" }}
-                      aria-label="Delete"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => toggleActive(item)}
+                    className={`rounded-xl border p-2 text-xs font-semibold transition-all shadow-sm ${
+                      item.is_active
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+                        : "border-[#2d3a54] bg-[#0b0f17] text-slate-400 hover:bg-[#1a263d]"
+                    }`}
+                    aria-label={item.is_active ? "Hide" : "Show"}
+                  >
+                    {item.is_active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingId(item.id);
+                      setEditContent(item.content);
+                    }}
+                    className="rounded-xl border border-[#334568] bg-[#1e2d4a] p-2 text-amber-400 hover:bg-[#253658] shadow-sm"
+                    aria-label="Edit"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => deleteItem(item.id)}
+                    className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-2 text-rose-400 hover:bg-rose-500/20 shadow-sm"
+                    aria-label="Delete"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
             )}
@@ -1362,7 +1342,7 @@ function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold" style={{ color: "#f5f0e8" }}>
+        <h2 className="text-xl font-bold text-slate-100">
           Events List
         </h2>
         {!showAdd && editingId === null && (
@@ -1379,12 +1359,7 @@ function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "
               });
               setShowAdd(true);
             }}
-            className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:opacity-90"
-            style={{
-              background: "rgba(184,134,11,0.2)",
-              color: "#d4a843",
-              border: "1px solid rgba(184,134,11,0.3)",
-            }}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 px-4 py-2.5 text-sm font-bold shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" /> Add Event
           </button>
@@ -1402,23 +1377,14 @@ function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "
               placeholder="e.g. National Colloquium on Indian Studies"
             />
             <div>
-              <label className="text-xs font-medium uppercase tracking-wider block mb-1.5" style={{ color: "#9a8a6a" }}>
+              <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5 text-slate-300">
                 Event Date
               </label>
               <input
                 type="date"
                 value={form.event_date}
                 onChange={(e) => setForm((prev) => ({ ...prev, event_date: e.target.value }))}
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(184,134,11,0.2)",
-                  color: "#f5f0e8",
-                  borderRadius: 8,
-                  padding: "10px 12px",
-                  width: "100%",
-                  fontSize: 14,
-                  outline: "none",
-                }}
+                className="w-full rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-3.5 py-2.5 text-sm text-slate-100 outline-none transition-all focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
               />
             </div>
             <InputRow
@@ -1443,23 +1409,23 @@ function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-xs font-medium uppercase tracking-wider block mb-1.5" style={{ color: "#9a8a6a" }}>
-                Cover Image (optional - defaults to event number)
+              <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5 text-slate-300">
+                Cover Image (optional)
               </label>
               <div className="flex items-center gap-4">
                 {form.cover_url ? (
-                  <div className="relative size-16 shrink-0 rounded-lg border border-accent/40 overflow-hidden bg-background">
+                  <div className="relative size-16 shrink-0 rounded-xl border border-[#2d3a54] overflow-hidden bg-[#0b0f17]">
                     <img src={form.cover_url} alt="Preview" className="size-full object-cover" />
                     <button
                       type="button"
                       onClick={() => setForm((prev) => ({ ...prev, cover_url: "" }))}
-                      className="absolute inset-0 bg-black/60 flex items-center justify-center text-red-400 opacity-0 hover:opacity-100 transition-opacity"
+                      className="absolute inset-0 bg-slate-950/80 flex items-center justify-center text-rose-400 opacity-0 hover:opacity-100 transition-opacity"
                     >
                       <Trash2 className="size-4" />
                     </button>
                   </div>
                 ) : (
-                  <div className="size-16 shrink-0 rounded-lg border border-dashed border-accent/35 flex items-center justify-center text-accent/60 bg-secondary/10">
+                  <div className="size-16 shrink-0 rounded-xl border border-dashed border-[#334568] flex items-center justify-center text-slate-400 bg-[#0b0f17]">
                     <Upload className="size-5" />
                   </div>
                 )}
@@ -1468,9 +1434,9 @@ function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "
                   accept="image/*"
                   onChange={handleFileUpload}
                   disabled={uploading}
-                  className="text-xs text-foreground/75"
+                  className="text-xs text-slate-400"
                 />
-                {uploading && <Loader2 className="size-4 animate-spin text-accent" />}
+                {uploading && <Loader2 className="size-4 animate-spin text-amber-400" />}
               </div>
             </div>
           </div>
@@ -1485,8 +1451,7 @@ function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "
                 setShowAdd(false);
                 setEditingId(null);
               }}
-              className="rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80"
-              style={{ color: "#6b6450" }}
+              className="rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-[#1a263d]"
             >
               Cancel
             </button>
@@ -1496,46 +1461,39 @@ function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "
 
       {/* Events List View */}
       {editingId === null && !showAdd && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {events.length === 0 ? (
-            <div className="text-center py-10 font-serif italic text-muted-foreground">
-              No events found in database. The user facing pages are currently rendering fallback events.
+            <div className="text-center py-10 text-slate-500 italic text-sm">
+              No events found in database.
             </div>
           ) : (
             events.map((ev, index) => (
               <div
                 key={ev.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl p-5"
-                style={{
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(184,134,11,0.12)",
-                }}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-[#2d3a54] bg-[#131c2e] p-4 sm:p-5 shadow-md hover:border-[#3d4d6e] transition-all"
               >
                 <div className="flex items-start gap-4 min-w-0">
-                  {/* Event list image or dummy counter preview */}
-                  <div className="size-16 shrink-0 rounded-lg overflow-hidden border border-accent/25 bg-background select-none flex items-center justify-center text-accent relative font-sans text-xs">
+                  <div className="size-14 shrink-0 rounded-xl overflow-hidden border border-[#2d3a54] bg-[#0b0f17] flex items-center justify-center text-amber-400 relative font-sans text-xs">
                     {ev.cover_url ? (
                       <img src={ev.cover_url} alt={ev.title} className="size-full object-cover" />
                     ) : (
-                      <div className="size-full bg-secondary/15 flex items-center justify-center text-accent/60 relative">
-                        <span className="font-display text-xl font-bold">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
-                      </div>
+                      <span className="font-bold text-amber-400 text-lg">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
                     )}
                   </div>
                   
                   <div className="min-w-0">
-                    <h3 className="font-semibold text-base truncate" style={{ color: "#f5f0e8" }}>
+                    <h3 className="font-bold text-base text-slate-100 truncate">
                       {ev.title}
                     </h3>
-                    <p className="text-xs mt-1" style={{ color: "#b8860b" }}>
+                    <p className="text-xs font-bold text-amber-400 mt-0.5">
                       {ev.event_date} {ev.location ? `| ${ev.location}` : ""}
                     </p>
                     {ev.tags && ev.tags.length > 0 && (
-                      <div className="flex gap-1 mt-2">
+                      <div className="flex flex-wrap gap-1 mt-2">
                         {ev.tags.map((t) => (
-                          <span key={t} className="bg-accent/10 border border-accent/20 text-accent text-[0.58rem] font-bold px-1.5 py-0.5 rounded">
+                          <span key={t} className="bg-[#1e2d4a] border border-amber-500/30 text-amber-300 text-[0.65rem] font-bold px-2 py-0.5 rounded-full">
                             {t}
                           </span>
                         ))}
@@ -1547,16 +1505,14 @@ function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "
                 <div className="flex gap-2 self-end sm:self-center shrink-0">
                   <button
                     onClick={() => startEdit(ev)}
-                    className="rounded-lg p-2.5 transition hover:opacity-80"
-                    style={{ background: "rgba(184,134,11,0.15)", color: "#d4a843" }}
+                    className="rounded-xl border border-[#334568] bg-[#1e2d4a] p-2 text-amber-400 hover:bg-[#253658] shadow-sm"
                     aria-label="Edit event"
                   >
                     <Pencil className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => deleteItem(ev.id)}
-                    className="rounded-lg p-2.5 transition hover:opacity-80"
-                    style={{ background: "rgba(220,38,38,0.15)", color: "#f87171" }}
+                    className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-2 text-rose-400 hover:bg-rose-500/20 shadow-sm"
                     aria-label="Delete event"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -1573,6 +1529,8 @@ function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "
 
 // ─── Publications Tab ──────────────────────────────────────────────────────────
 
+const ITEMS_PER_PAGE = 6;
+
 function PublicationsTab({
   showToast,
 }: {
@@ -1580,6 +1538,7 @@ function PublicationsTab({
 }) {
   const [pubs, setPubs] = useState<Publication[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Publication>>({});
   const [saving, setSaving] = useState(false);
@@ -1595,7 +1554,7 @@ function PublicationsTab({
     period: "",
     cover_url: "",
   });
-  const [uploading, setUploading] = useState<string | null>(null); // id of pub being uploaded
+  const [uploading, setUploading] = useState<string | null>(null);
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const addFileRef = useRef<HTMLInputElement>(null);
   const [addPdfFile, setAddPdfFile] = useState<File | null>(null);
@@ -1656,14 +1615,12 @@ function PublicationsTab({
       const res = await uploadPdf(id, fileInput.files[0]);
       if (res) pdfData = { pdf_url: res.url, pdf_name: res.name };
     }
-    // Handle cover image from edit form file input
     const coverInput = fileRefs.current[`cover-${id}`];
     let coverData: { cover_url: string; cover_name: string } | undefined;
     if (coverInput?.files?.[0]) {
       const res = await uploadCoverImage(id, coverInput.files[0]);
       if (res) coverData = { cover_url: res.url, cover_name: res.name };
     }
-    // If cover was explicitly removed, set to null
     const coverUpdate = coverData
       ? coverData
       : editForm.cover_url === ""
@@ -1732,7 +1689,6 @@ function PublicationsTab({
         await supabase.from("publications").update(pdfData).eq("id", data.id);
       }
     }
-    // Upload cover image if provided
     if (addCoverFile) {
       const coverRes = await uploadCoverImage(data.id, addCoverFile);
       if (coverRes) {
@@ -1777,544 +1733,486 @@ function PublicationsTab({
 
   if (loading) return <LoadingSpinner />;
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold" style={{ color: "#f5f0e8" }}>
-          Publications
-        </h1>
-        <button
-          id="pub-add-btn"
-          onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:opacity-90"
-          style={{
-            background: "rgba(184,134,11,0.2)",
-            color: "#d4a843",
-            border: "1px solid rgba(184,134,11,0.3)",
-          }}
-        >
-          <Plus className="h-4 w-4" /> Add Publication
-        </button>
-      </div>
+      const totalPages = Math.max(1, Math.ceil(pubs.length / ITEMS_PER_PAGE));
+      const paginatedPubs = pubs.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE,
+      );
 
-      {showAdd && (
-        <Section title="Add New Publication">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <InputRow
-                label="Journal Name"
-                value={addForm.journal_name}
-                onChange={(v) => setAddForm((f) => ({ ...f, journal_name: v }))}
-                placeholder="Bharatiya Manyaprad"
-              />
+      return (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-100">
+                Publications
+              </h1>
+              <p className="text-sm text-slate-400 mt-0.5">
+                Manage printed volumes and downloadable PDFs ({pubs.length} total)
+              </p>
             </div>
-            <div className="sm:col-span-2">
-              <InputRow
-                label="Title (Article / Paper)"
-                value={addForm.title}
-                onChange={(v) => setAddForm((f) => ({ ...f, title: v }))}
-                placeholder="Introduction: Telling the Tale"
-              />
-            </div>
-            <InputRow
-              label="Volume"
-              value={addForm.volume}
-              onChange={(v) => setAddForm((f) => ({ ...f, volume: v }))}
-              placeholder="Volume 1"
-            />
-            <InputRow
-              label="No."
-              value={addForm.issue_no}
-              onChange={(v) => setAddForm((f) => ({ ...f, issue_no: v }))}
-              placeholder="No.2"
-            />
-            <InputRow
-              label="Year"
-              value={String(addForm.year)}
-              type="number"
-              onChange={(v) => setAddForm((f) => ({ ...f, year: Number(v) }))}
-            />
-            <InputRow
-              label="pp."
-              value={addForm.pages}
-              onChange={(v) => setAddForm((f) => ({ ...f, pages: v }))}
-              placeholder="pp. 9-18"
-            />
-            <div className="sm:col-span-2">
-              <InputRow
-                label="Author Name"
-                value={addForm.author}
-                onChange={(v) => setAddForm((f) => ({ ...f, author: v }))}
-                placeholder="Dr. Neerja A Gupta"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label
-                className="text-xs font-medium uppercase tracking-wider"
-                style={{ color: "#9a8a6a" }}
-              >
-                PDF File (optional)
-              </label>
-              <button
-                type="button"
-                onClick={() => addFileRef.current?.click()}
-                className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80"
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(184,134,11,0.2)",
-                  color: "#9a8a6a",
-                }}
-              >
-                <Upload className="h-4 w-4" />
-                {addPdfFile ? addPdfFile.name : "Choose PDF…"}
-              </button>
-              <input
-                ref={addFileRef}
-                type="file"
-                accept=".pdf"
-                className="hidden"
-                onChange={(e) => setAddPdfFile(e.target.files?.[0] ?? null)}
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <label
-                className="text-xs font-medium uppercase tracking-wider block mb-1.5"
-                style={{ color: "#9a8a6a" }}
-              >
-                Cover Page Image (optional)
-              </label>
-              <div className="flex items-center gap-4">
-                {addForm.cover_url ? (
-                  <div className="relative size-20 shrink-0 rounded-lg border border-accent/40 overflow-hidden bg-background">
-                    <img src={addForm.cover_url} alt="Cover preview" className="size-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAddForm((f) => ({ ...f, cover_url: "" }));
-                        setAddCoverFile(null);
-                      }}
-                      className="absolute inset-0 bg-black/60 flex items-center justify-center text-red-400 opacity-0 hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 className="size-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="size-20 shrink-0 rounded-lg border border-dashed border-accent/35 flex items-center justify-center text-accent/60 bg-secondary/10">
-                    <ImageIcon className="size-6" />
-                  </div>
-                )}
-                <div className="flex flex-col gap-1">
-                  <button
-                    type="button"
-                    onClick={() => addCoverRef.current?.click()}
-                    disabled={coverUploading}
-                    className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80 disabled:opacity-50"
-                    style={{
-                      background: "rgba(255,255,255,0.05)",
-                      border: "1px solid rgba(184,134,11,0.2)",
-                      color: "#9a8a6a",
-                    }}
-                  >
-                    {coverUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                    {addCoverFile ? addCoverFile.name : "Choose cover image…"}
-                  </button>
-                  <p className="text-[0.65rem]" style={{ color: "#3d3728" }}>If not provided, a default ornamental card design will be shown</p>
-                </div>
-                <input
-                  ref={addCoverRef}
-                  type="file"
-                  accept="image/*,.pdf"
-                  className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    setAddCoverFile(file);
-                    // Preview: upload immediately for preview URL
-                    setCoverUploading(true);
-                    const ext = file.name.split(".").pop();
-                    const path = `cover-preview-${Date.now()}.${ext}`;
-                    const { error: upErr } = await supabase.storage
-                      .from("publications")
-                      .upload(path, file, { upsert: true });
-                    if (upErr) {
-                      setCoverUploading(false);
-                      return showToast(upErr.message, "error");
-                    }
-                    const { data: urlData } = supabase.storage
-                      .from("publications")
-                      .getPublicUrl(path);
-                    setAddForm((f) => ({ ...f, cover_url: urlData.publicUrl }));
-                    setCoverUploading(false);
-                    showToast("Cover image uploaded.");
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 flex gap-3">
-            <SaveBtn onClick={addPub} loading={saving} />
             <button
-              onClick={() => setShowAdd(false)}
-              className="rounded-lg px-4 py-2.5 text-sm"
-              style={{ color: "#6b6450" }}
+              id="pub-add-btn"
+              onClick={() => setShowAdd(true)}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 px-4 py-2.5 text-sm font-bold shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98] self-start sm:self-auto"
             >
-              Cancel
+              <Plus className="h-4 w-4" /> Add Publication
             </button>
           </div>
-        </Section>
-      )}
 
-      <div className="space-y-3">
-        {pubs.map((pub) => (
-          <div
-            key={pub.id}
-            className="rounded-xl p-5"
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(184,134,11,0.12)",
-            }}
-          >
-            {editingId === pub.id ? (
-              <div className="space-y-3">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="sm:col-span-2">
-                    <InputRow
-                      label="Journal Name"
-                      value={editForm.journal_name ?? "Bharatiya Manyaprad"}
-                      onChange={(v) => setEditForm((f) => ({ ...f, journal_name: v }))}
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <InputRow
-                      label="Title (Article / Paper)"
-                      value={editForm.title ?? ""}
-                      onChange={(v) => setEditForm((f) => ({ ...f, title: v }))}
-                    />
-                  </div>
+          {showAdd && (
+            <Section title="Add New Publication">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
                   <InputRow
-                    label="Volume"
-                    value={editForm.volume ?? ""}
-                    onChange={(v) => setEditForm((f) => ({ ...f, volume: v }))}
+                    label="Journal Name"
+                    value={addForm.journal_name}
+                    onChange={(v) => setAddForm((f) => ({ ...f, journal_name: v }))}
+                    placeholder="Bharatiya Manyaprad"
                   />
-                  <InputRow
-                    label="No."
-                    value={editForm.issue_no ?? ""}
-                    onChange={(v) => setEditForm((f) => ({ ...f, issue_no: v }))}
-                  />
-                  <InputRow
-                    label="Year"
-                    value={String(editForm.year ?? "")}
-                    type="number"
-                    onChange={(v) => setEditForm((f) => ({ ...f, year: Number(v) }))}
-                  />
-                  <InputRow
-                    label="pp."
-                    value={editForm.pages ?? ""}
-                    onChange={(v) => setEditForm((f) => ({ ...f, pages: v }))}
-                  />
-                  <div className="sm:col-span-2">
-                    <InputRow
-                      label="Author Name"
-                      value={editForm.author ?? ""}
-                      onChange={(v) => setEditForm((f) => ({ ...f, author: v }))}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label
-                      className="text-xs font-medium uppercase tracking-wider"
-                      style={{ color: "#9a8a6a" }}
-                    >
-                      Replace PDF
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => fileRefs.current[pub.id]?.click()}
-                      className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80"
-                      style={{
-                        background: "rgba(255,255,255,0.05)",
-                        border: "1px solid rgba(184,134,11,0.2)",
-                        color: "#9a8a6a",
-                      }}
-                    >
-                      <Upload className="h-4 w-4" /> Choose new PDF
-                    </button>
-                    <input
-                      ref={(el) => {
-                        fileRefs.current[pub.id] = el;
-                      }}
-                      type="file"
-                      accept=".pdf"
-                      className="hidden"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label
-                      className="text-xs font-medium uppercase tracking-wider block mb-1.5"
-                      style={{ color: "#9a8a6a" }}
-                    >
-                      Cover Page Image (optional)
-                    </label>
-                    <div className="flex items-center gap-4">
-                      {editForm.cover_url ? (
-                        <div className="relative size-20 shrink-0 rounded-lg border border-accent/40 overflow-hidden bg-background">
-                          <img src={editForm.cover_url} alt="Cover preview" className="size-full object-cover" />
-                          <button
-                            type="button"
-                            onClick={() => setEditForm((f) => ({ ...f, cover_url: "" }))}
-                            className="absolute inset-0 bg-black/60 flex items-center justify-center text-red-400 opacity-0 hover:opacity-100 transition-opacity"
-                          >
-                            <Trash2 className="size-4" />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="size-20 shrink-0 rounded-lg border border-dashed border-accent/35 flex items-center justify-center text-accent/60 bg-secondary/10">
-                          <ImageIcon className="size-6" />
-                        </div>
-                      )}
-                      <div className="flex flex-col gap-1">
-                        <button
-                          type="button"
-                          onClick={() => fileRefs.current[`cover-${pub.id}`]?.click()}
-                          className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm transition hover:opacity-80"
-                          style={{
-                            background: "rgba(255,255,255,0.05)",
-                            border: "1px solid rgba(184,134,11,0.2)",
-                            color: "#9a8a6a",
-                          }}
-                        >
-                          <Upload className="h-4 w-4" /> {editForm.cover_url ? "Replace cover" : "Choose cover image…"}
-                        </button>
-                        <p className="text-[0.65rem]" style={{ color: "#3d3728" }}>If removed, the default ornamental design will be shown</p>
-                      </div>
-                      <input
-                        ref={(el) => {
-                          fileRefs.current[`cover-${pub.id}`] = el;
-                        }}
-                        type="file"
-                        accept="image/*,.pdf"
-                        className="hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          setCoverUploading(true);
-                          const ext = file.name.split(".").pop();
-                          const path = `cover-edit-${Date.now()}.${ext}`;
-                          const { error: upErr } = await supabase.storage
-                            .from("publications")
-                            .upload(path, file, { upsert: true });
-                          if (upErr) {
-                            setCoverUploading(false);
-                            return showToast(upErr.message, "error");
-                          }
-                          const { data: urlData } = supabase.storage
-                            .from("publications")
-                            .getPublicUrl(path);
-                          setEditForm((f) => ({ ...f, cover_url: urlData.publicUrl }));
-                          setCoverUploading(false);
-                          showToast("Cover image uploaded.");
-                        }}
-                      />
-                    </div>
-                  </div>
                 </div>
-                <div className="flex gap-3">
-                  <SaveBtn onClick={() => saveEdit(pub.id)} loading={saving} />
+                <div className="sm:col-span-2">
+                  <InputRow
+                    label="Title (Article / Paper)"
+                    value={addForm.title}
+                    onChange={(v) => setAddForm((f) => ({ ...f, title: v }))}
+                    placeholder="Introduction: Telling the Tale"
+                  />
+                </div>
+                <InputRow
+                  label="Volume"
+                  value={addForm.volume}
+                  onChange={(v) => setAddForm((f) => ({ ...f, volume: v }))}
+                  placeholder="Volume 1"
+                />
+                <InputRow
+                  label="No."
+                  value={addForm.issue_no}
+                  onChange={(v) => setAddForm((f) => ({ ...f, issue_no: v }))}
+                  placeholder="No.2"
+                />
+                <InputRow
+                  label="Year"
+                  value={String(addForm.year)}
+                  type="number"
+                  onChange={(v) => setAddForm((f) => ({ ...f, year: Number(v) }))}
+                />
+                <InputRow
+                  label="pp."
+                  value={addForm.pages}
+                  onChange={(v) => setAddForm((f) => ({ ...f, pages: v }))}
+                  placeholder="pp. 9-18"
+                />
+                <div className="sm:col-span-2">
+                  <InputRow
+                    label="Author Name"
+                    value={addForm.author}
+                    onChange={(v) => setAddForm((f) => ({ ...f, author: v }))}
+                    placeholder="Dr. Neerja A Gupta"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+                    PDF File (optional)
+                  </label>
                   <button
-                    onClick={() => setEditingId(null)}
-                    className="rounded-lg px-4 py-2.5 text-sm"
-                    style={{ color: "#6b6450" }}
+                    type="button"
+                    onClick={() => addFileRef.current?.click()}
+                    className="flex items-center gap-2 rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-[#1a263d]"
                   >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-4 min-w-0 flex-1">
-                  {/* Cover thumbnail */}
-                  <div className="size-14 shrink-0 rounded-lg overflow-hidden border border-accent/25 bg-background flex items-center justify-center">
-                    {pub.cover_url ? (
-                      <img src={pub.cover_url} alt={`Cover ${pub.volume}`} className="size-full object-cover" />
-                    ) : (
-                      <ImageIcon className="size-5 text-accent/30" />
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs uppercase tracking-widest" style={{ color: "#b8860b" }}>
-                      {pub.journal_name || "Bharatiya Manyaprad"}
-                    </p>
-                    <p className="mt-0.5 text-xs" style={{ color: "#9a8a6a" }}>
-                      {[pub.volume, pub.issue_no, String(pub.year), pub.pages]
-                        .filter(Boolean)
-                        .join(", ")}
-                    </p>
-                    <p className="mt-1 font-semibold" style={{ color: "#f5f0e8" }}>
-                      {pub.title}
-                    </p>
-                    {pub.author && (
-                      <p className="text-sm" style={{ color: "#6b6450" }}>
-                        by {pub.author}
-                      </p>
-                    )}
-                    {pub.pdf_url ? (
-                      <a
-                        href={pub.pdf_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-2 inline-flex items-center gap-1.5 text-xs hover:underline"
-                        style={{ color: "#d4a843" }}
-                      >
-                        <Download className="h-3.5 w-3.5" /> {pub.pdf_name ?? "Download PDF"}
-                      </a>
-                    ) : (
-                      <span
-                        className="mt-2 inline-flex items-center gap-1.5 text-xs"
-                        style={{ color: "#3d3728" }}
-                      >
-                        No PDF uploaded
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex shrink-0 gap-2 flex-wrap justify-end">
-                  <button
-                    onClick={() => fileRefs.current[`quick-${pub.id}`]?.click()}
-                    disabled={uploading === pub.id}
-                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition hover:opacity-80 disabled:opacity-50"
-                    style={{
-                      background: "rgba(255,255,255,0.06)",
-                      color: "#9a8a6a",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                    }}
-                    aria-label="Upload PDF"
-                  >
-                    {uploading === pub.id ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Upload className="h-3.5 w-3.5" />
-                    )}
-                    {pub.pdf_url ? "Replace PDF" : "Upload PDF"}
+                    <Upload className="h-4 w-4 text-amber-400" />
+                    {addPdfFile ? addPdfFile.name : "Choose PDF…"}
                   </button>
                   <input
-                    ref={(el) => {
-                      fileRefs.current[`quick-${pub.id}`] = el;
-                    }}
+                    ref={addFileRef}
                     type="file"
                     accept=".pdf"
                     className="hidden"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) uploadExistingPdf(pub, f);
-                    }}
+                    onChange={(e) => setAddPdfFile(e.target.files?.[0] ?? null)}
                   />
-                  <button
-                    onClick={() => {
-                      setEditingId(pub.id);
-                      setEditForm({
-                        journal_name: pub.journal_name || "Bharatiya Manyaprad",
-                        title: pub.title,
-                        volume: pub.volume,
-                        issue_no: pub.issue_no ?? "",
-                        period: pub.period,
-                        year: pub.year,
-                        pages: pub.pages ?? "",
-                        author: pub.author ?? "",
-                        cover_url: pub.cover_url ?? "",
-                        cover_name: pub.cover_name ?? "",
-                      });
-                    }}
-                    className="rounded-lg p-2 transition hover:opacity-80"
-                    style={{ background: "rgba(184,134,11,0.15)", color: "#d4a843" }}
-                    aria-label="Edit"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => deletePub(pub.id)}
-                    className="rounded-lg p-2 transition hover:opacity-80"
-                    style={{ background: "rgba(220,38,38,0.15)", color: "#f87171" }}
-                    aria-label="Delete"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5 text-slate-300">
+                    Cover Page Image (optional)
+                  </label>
+                  <div className="flex items-center gap-4">
+                    {addForm.cover_url ? (
+                      <div className="relative size-20 shrink-0 rounded-xl border border-[#2d3a54] overflow-hidden bg-[#0b0f17]">
+                        <img src={addForm.cover_url} alt="Cover preview" className="size-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAddForm((f) => ({ ...f, cover_url: "" }));
+                            setAddCoverFile(null);
+                          }}
+                          className="absolute inset-0 bg-slate-950/80 flex items-center justify-center text-rose-400 opacity-0 hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="size-20 shrink-0 rounded-xl border border-dashed border-[#334568] flex items-center justify-center text-slate-400 bg-[#0b0f17]">
+                        <ImageIcon className="size-6" />
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-1">
+                      <button
+                        type="button"
+                        onClick={() => addCoverRef.current?.click()}
+                        disabled={coverUploading}
+                        className="flex items-center gap-2 rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-[#1a263d] disabled:opacity-50"
+                      >
+                        {coverUploading ? <Loader2 className="h-4 w-4 animate-spin text-amber-400" /> : <Upload className="h-4 w-4 text-slate-400" />}
+                        {addCoverFile ? addCoverFile.name : "Choose cover image…"}
+                      </button>
+                    </div>
+                    <input
+                      ref={addCoverRef}
+                      type="file"
+                      accept="image/*,.pdf"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setAddCoverFile(file);
+                        setCoverUploading(true);
+                        const ext = file.name.split(".").pop();
+                        const path = `cover-preview-${Date.now()}.${ext}`;
+                        const { error: upErr } = await supabase.storage
+                          .from("publications")
+                          .upload(path, file, { upsert: true });
+                        if (upErr) {
+                          setCoverUploading(false);
+                          return showToast(upErr.message, "error");
+                        }
+                        const { data: urlData } = supabase.storage
+                          .from("publications")
+                          .getPublicUrl(path);
+                        setAddForm((f) => ({ ...f, cover_url: urlData.publicUrl }));
+                        setCoverUploading(false);
+                        showToast("Cover image uploaded.");
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
+              <div className="mt-5 flex gap-3">
+                <SaveBtn onClick={addPub} loading={saving} />
+                <button
+                  onClick={() => setShowAdd(false)}
+                  className="rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-[#1a263d]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </Section>
+          )}
+
+          <div className="space-y-3">
+            {paginatedPubs.length === 0 ? (
+              <div className="text-center py-10 text-slate-500 italic text-sm">
+                No publications found.
+              </div>
+            ) : (
+              paginatedPubs.map((pub) => (
+                <div
+                  key={pub.id}
+                  className="rounded-xl border border-[#2d3a54] bg-[#131c2e] p-4 sm:p-5 shadow-md hover:border-[#3d4d6e] transition-all"
+                >
+                  {editingId === pub.id ? (
+                    <div className="space-y-3">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="sm:col-span-2">
+                          <InputRow
+                            label="Journal Name"
+                            value={editForm.journal_name ?? "Bharatiya Manyaprad"}
+                            onChange={(v) => setEditForm((f) => ({ ...f, journal_name: v }))}
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <InputRow
+                            label="Title (Article / Paper)"
+                            value={editForm.title ?? ""}
+                            onChange={(v) => setEditForm((f) => ({ ...f, title: v }))}
+                          />
+                        </div>
+                        <InputRow
+                          label="Volume"
+                          value={editForm.volume ?? ""}
+                          onChange={(v) => setEditForm((f) => ({ ...f, volume: v }))}
+                        />
+                        <InputRow
+                          label="No."
+                          value={editForm.issue_no ?? ""}
+                          onChange={(v) => setEditForm((f) => ({ ...f, issue_no: v }))}
+                        />
+                        <InputRow
+                          label="Year"
+                          value={String(editForm.year ?? "")}
+                          type="number"
+                          onChange={(v) => setEditForm((f) => ({ ...f, year: Number(v) }))}
+                        />
+                        <InputRow
+                          label="pp."
+                          value={editForm.pages ?? ""}
+                          onChange={(v) => setEditForm((f) => ({ ...f, pages: v }))}
+                        />
+                        <div className="sm:col-span-2">
+                          <InputRow
+                            label="Author Name"
+                            value={editForm.author ?? ""}
+                            onChange={(v) => setEditForm((f) => ({ ...f, author: v }))}
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+                            Replace PDF
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => fileRefs.current[pub.id]?.click()}
+                            className="flex items-center gap-2 rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-[#1a263d]"
+                          >
+                            <Upload className="h-4 w-4 text-amber-400" /> Choose new PDF
+                          </button>
+                          <input
+                            ref={(el) => {
+                              fileRefs.current[pub.id] = el;
+                            }}
+                            type="file"
+                            accept=".pdf"
+                            className="hidden"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5 text-slate-300">
+                            Cover Page Image (optional)
+                          </label>
+                          <div className="flex items-center gap-4">
+                            {editForm.cover_url ? (
+                              <div className="relative size-20 shrink-0 rounded-xl border border-[#2d3a54] overflow-hidden bg-[#0b0f17]">
+                                <img src={editForm.cover_url} alt="Cover preview" className="size-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={() => setEditForm((f) => ({ ...f, cover_url: "" }))}
+                                  className="absolute inset-0 bg-slate-950/80 flex items-center justify-center text-rose-400 opacity-0 hover:opacity-100 transition-opacity"
+                                >
+                                  <Trash2 className="size-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="size-20 shrink-0 rounded-xl border border-dashed border-[#334568] flex items-center justify-center text-slate-400 bg-[#0b0f17]">
+                                <ImageIcon className="size-6" />
+                              </div>
+                            )}
+                            <div className="flex flex-col gap-1">
+                              <button
+                                type="button"
+                                onClick={() => fileRefs.current[`cover-${pub.id}`]?.click()}
+                                className="flex items-center gap-2 rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-[#1a263d]"
+                              >
+                                <Upload className="h-4 w-4 text-slate-400" /> {editForm.cover_url ? "Replace cover" : "Choose cover image…"}
+                              </button>
+                            </div>
+                            <input
+                              ref={(el) => {
+                                fileRefs.current[`cover-${pub.id}`] = el;
+                              }}
+                              type="file"
+                              accept="image/*,.pdf"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                setCoverUploading(true);
+                                const ext = file.name.split(".").pop();
+                                const path = `cover-edit-${Date.now()}.${ext}`;
+                                const { error: upErr } = await supabase.storage
+                                  .from("publications")
+                                  .upload(path, file, { upsert: true });
+                                if (upErr) {
+                                  setCoverUploading(false);
+                                  return showToast(upErr.message, "error");
+                                }
+                                const { data: urlData } = supabase.storage
+                                  .from("publications")
+                                  .getPublicUrl(path);
+                                setEditForm((f) => ({ ...f, cover_url: urlData.publicUrl }));
+                                setCoverUploading(false);
+                                showToast("Cover image uploaded.");
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-3 pt-2">
+                        <SaveBtn onClick={() => saveEdit(pub.id)} loading={saving} />
+                        <button
+                          onClick={() => setEditingId(null)}
+                          className="rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-[#1a263d]"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                      <div className="flex items-start gap-4 min-w-0 flex-1">
+                        <div className="size-14 shrink-0 rounded-xl overflow-hidden border border-[#2d3a54] bg-[#0b0f17] flex items-center justify-center">
+                          {pub.cover_url ? (
+                            <img src={pub.cover_url} alt={`Cover ${pub.volume}`} className="size-full object-cover" />
+                          ) : (
+                            <ImageIcon className="size-5 text-slate-500" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[0.65rem] font-bold uppercase tracking-wider text-amber-400">
+                            {pub.journal_name || "Bharatiya Manyaprad"}
+                          </p>
+                          <p className="mt-0.5 text-xs font-semibold text-slate-400">
+                            {[pub.volume, pub.issue_no, String(pub.year), pub.pages]
+                              .filter(Boolean)
+                              .join(", ")}
+                          </p>
+                          <p className="mt-1 font-bold text-slate-100 text-base">
+                            {pub.title}
+                          </p>
+                          {pub.author && (
+                            <p className="text-xs text-slate-400 font-medium">
+                              by {pub.author}
+                            </p>
+                          )}
+                          {pub.pdf_url ? (
+                            <a
+                              href={pub.pdf_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-400 hover:underline"
+                            >
+                              <Download className="h-3.5 w-3.5" /> {pub.pdf_name ?? "Download PDF"}
+                            </a>
+                          ) : (
+                            <span className="mt-2 inline-flex items-center gap-1.5 text-xs text-slate-500">
+                              No PDF uploaded
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 gap-2 flex-wrap justify-end self-end sm:self-start">
+                        <button
+                          onClick={() => fileRefs.current[`quick-${pub.id}`]?.click()}
+                          disabled={uploading === pub.id}
+                          className="flex items-center gap-1.5 rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-3.5 py-1.5 text-xs font-semibold text-slate-200 hover:bg-[#1a263d] disabled:opacity-50 shadow-sm"
+                          aria-label="Upload PDF"
+                        >
+                          {uploading === pub.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" />
+                          ) : (
+                            <Upload className="h-3.5 w-3.5 text-slate-400" />
+                          )}
+                          {pub.pdf_url ? "Replace PDF" : "Upload PDF"}
+                        </button>
+                        <input
+                          ref={(el) => {
+                            fileRefs.current[`quick-${pub.id}`] = el;
+                          }}
+                          type="file"
+                          accept=".pdf"
+                          className="hidden"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) uploadExistingPdf(pub, f);
+                          }}
+                        />
+                        <button
+                          onClick={() => {
+                            setEditingId(pub.id);
+                            setEditForm({
+                              journal_name: pub.journal_name || "Bharatiya Manyaprad",
+                              title: pub.title,
+                              volume: pub.volume,
+                              issue_no: pub.issue_no ?? "",
+                              period: pub.period,
+                              year: pub.year,
+                              pages: pub.pages ?? "",
+                              author: pub.author ?? "",
+                              cover_url: pub.cover_url ?? "",
+                              cover_name: pub.cover_name ?? "",
+                            });
+                          }}
+                          className="rounded-xl border border-[#334568] bg-[#1e2d4a] p-2 text-amber-400 hover:bg-[#253658] shadow-sm"
+                          aria-label="Edit"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => deletePub(pub.id)}
+                          className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-2 text-rose-400 hover:bg-rose-500/20 shadow-sm"
+                          aria-label="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))
             )}
           </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
-// ─── Settings Tab ──────────────────────────────────────────────────────────────
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#2d3a54] max-w-full">
+              <p className="text-xs text-slate-400 font-medium text-center sm:text-left">
+                Showing <span className="text-slate-100 font-bold">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
+                <span className="text-slate-100 font-bold">{Math.min(currentPage * ITEMS_PER_PAGE, pubs.length)}</span> of{" "}
+                <span className="text-slate-100 font-bold">{pubs.length}</span> publications
+              </p>
 
-function SettingsTab({ showToast }: { showToast: (m: string, t?: "success" | "error") => void }) {
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPw, setShowPw] = useState(false);
-  const [saving, setSaving] = useState(false);
+              <div className="flex flex-wrap items-center justify-center gap-2 max-w-full">
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-1 rounded-xl border border-[#2d3a54] bg-[#131c2e] px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-[#1e2d4a] disabled:opacity-30 disabled:pointer-events-none transition-all shadow-sm"
+                  aria-label="Previous Page"
+                >
+                  <ChevronLeft className="size-4" /> Prev
+                </button>
 
-  async function handleChangePassword(e: FormEvent) {
-    e.preventDefault();
-    if (newPassword.length < 4)
-      return showToast("Password must be at least 4 characters.", "error");
-    if (newPassword !== confirmPassword) return showToast("Passwords do not match.", "error");
-    setSaving(true);
-    const result = await changeAdminPassword(newPassword);
-    setSaving(false);
-    if (!result.success) return showToast(result.error ?? "Failed to update password.", "error");
-    showToast("Password updated successfully.");
-    setNewPassword("");
-    setConfirmPassword("");
-  }
+                <div className="flex flex-wrap items-center justify-center gap-1.5 px-1 max-w-full">
+                  {getPaginationPages(currentPage, totalPages).map((page, idx) =>
+                    page === "..." ? (
+                      <span key={`ellipsis-${idx}`} className="px-1 text-xs text-slate-500 font-bold select-none">
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={`page-${page}`}
+                        onClick={() => setCurrentPage(page)}
+                        className={`size-8 rounded-xl text-xs font-bold transition-all ${
+                          currentPage === page
+                            ? "bg-amber-500 text-slate-950 shadow-md"
+                            : "border border-[#2d3a54] bg-[#0b0f17] text-slate-400 hover:bg-[#1e2d4a] hover:text-slate-200"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  )}
+                </div>
 
-  return (
-    <div className="space-y-6 max-w-lg">
-      <h1 className="text-2xl font-semibold" style={{ color: "#f5f0e8" }}>
-        Settings
-      </h1>
-
-      <Section title="Change Password">
-        <form onSubmit={handleChangePassword} className="space-y-4">
-          <div className="relative">
-            <InputRow
-              label="New Password"
-              value={newPassword}
-              onChange={setNewPassword}
-              type={showPw ? "text" : "password"}
-              placeholder="Enter new password"
-            />
-          </div>
-          <div className="relative">
-            <InputRow
-              label="Confirm New Password"
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-              type={showPw ? "text" : "password"}
-              placeholder="Repeat new password"
-            />
-          </div>
-          <label
-            className="flex cursor-pointer items-center gap-2 text-sm"
-            style={{ color: "#6b6450" }}
-          >
-            <input
-              type="checkbox"
-              checked={showPw}
-              onChange={(e) => setShowPw(e.target.checked)}
-              className="rounded"
-            />
-            Show passwords
-          </label>
-          <SaveBtn onClick={() => {}} loading={saving} />
-        </form>
-        <p className="mt-3 text-xs" style={{ color: "#3d3728" }}>
-          No old password required. After changing, your current session remains active.
-        </p>
-      </Section>
-    </div>
-  );
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-1 rounded-xl border border-[#2d3a54] bg-[#131c2e] px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-[#1e2d4a] disabled:opacity-30 disabled:pointer-events-none transition-all shadow-sm"
+                  aria-label="Next Page"
+                >
+                  Next <ChevronRight className="size-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
 }
 
 // ─── Subscriptions Tab ─────────────────────────────────────────────────────────
@@ -2378,13 +2276,17 @@ function SubscriptionsTab({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold" style={{ color: "#f5f0e8" }}>
-          Subscriptions Registry
-        </h1>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-100">
+            Subscriptions Registry
+          </h1>
+          <p className="text-sm text-slate-400 mt-0.5">
+            Review user subscription requests and payment receipts
+          </p>
+        </div>
         <button
           onClick={load}
-          className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold transition hover:opacity-85"
-          style={{ background: "rgba(184,134,11,0.15)", color: "#d4a843" }}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-[#334568] bg-[#1e2d4a] px-3.5 py-2 text-xs font-semibold text-amber-400 hover:bg-[#253658] shadow-sm transition-all"
         >
           <RefreshCw className="h-3.5 w-3.5" />
           Refresh
@@ -2393,72 +2295,53 @@ function SubscriptionsTab({
 
       <div className="space-y-4">
         {subs.length === 0 ? (
-          <p className="text-sm italic" style={{ color: "#6b6450" }}>
+          <p className="text-sm italic text-slate-500">
             No subscriptions have been registered yet.
           </p>
         ) : (
           subs.map((s) => (
             <div
               key={s.id}
-              className="flex flex-col gap-5 rounded-xl p-6"
-              style={{
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(184,134,11,0.12)",
-              }}
+              className="flex flex-col gap-5 rounded-2xl border border-[#2d3a54] bg-[#131c2e] p-5 sm:p-6 shadow-xl shadow-black/30"
             >
-              <div className="flex flex-wrap items-start justify-between gap-4 border-b border-accent/10 pb-4">
+              <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#2d3a54] pb-4">
                 <div>
-                  <h3 className="font-semibold text-lg" style={{ color: "#f5f0e8" }}>
+                  <h3 className="font-bold text-lg text-slate-100">
                     {s.name}
                   </h3>
-                  <p className="text-sm" style={{ color: "#9a8a6a" }}>
+                  <p className="text-sm text-slate-300 font-medium">
                     {s.email} · {s.mobile}
                   </p>
-                  <p className="text-xs mt-1 text-muted-foreground">
+                  <p className="text-xs mt-1 text-slate-400">
                     Registered: {new Date(s.created_at).toLocaleDateString()}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <div className="flex flex-col gap-1">
-                    <label className="text-[0.62rem] uppercase tracking-wider font-semibold" style={{ color: "#6b6450" }}>
+                    <label className="text-[0.62rem] uppercase tracking-wider font-bold text-slate-400">
                       Payment Status
                     </label>
                     <select
                       value={s.status}
                       onChange={(e) => handleStatusChange(s.id, e.target.value as any)}
-                      className="rounded-lg border px-3 py-1.5 text-xs font-semibold focus:outline-none transition-colors cursor-pointer"
-                      style={{
-                        background:
-                          s.status === "Approved"
-                            ? "rgba(16,185,129,0.1)"
-                            : s.status === "Rejected"
-                              ? "rgba(239,68,68,0.1)"
-                              : "rgba(245,158,11,0.1)",
-                        color:
-                          s.status === "Approved"
-                            ? "#10b981"
-                            : s.status === "Rejected"
-                              ? "#ef4444"
-                              : "#f59e0b",
-                        borderColor:
-                          s.status === "Approved"
-                            ? "rgba(16,185,129,0.2)"
-                            : s.status === "Rejected"
-                              ? "rgba(239,68,68,0.2)"
-                              : "rgba(245,158,11,0.2)",
-                      }}
+                      className={`rounded-xl border px-3 py-1.5 text-xs font-bold focus:outline-none transition-colors cursor-pointer ${
+                        s.status === "Approved"
+                          ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-300"
+                          : s.status === "Rejected"
+                            ? "border-rose-500/30 bg-rose-500/15 text-rose-300"
+                            : "border-amber-500/30 bg-amber-500/15 text-amber-300"
+                      }`}
                     >
-                      <option value="Pending" style={{ background: "#1c1917", color: "#f59e0b" }}>Pending</option>
-                      <option value="Approved" style={{ background: "#1c1917", color: "#10b981" }}>Approved</option>
-                      <option value="Rejected" style={{ background: "#1c1917", color: "#ef4444" }}>Rejected</option>
+                      <option value="Pending" className="bg-[#0b0f17] text-amber-300">Pending</option>
+                      <option value="Approved" className="bg-[#0b0f17] text-emerald-300">Approved</option>
+                      <option value="Rejected" className="bg-[#0b0f17] text-rose-300">Rejected</option>
                     </select>
                   </div>
 
                   <button
                     onClick={() => deleteSub(s.id, s.receipt_name)}
-                    className="mt-4 rounded-lg p-2 transition hover:opacity-80 shrink-0"
-                    style={{ background: "rgba(220,38,38,0.15)", color: "#f87171" }}
+                    className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-2 text-rose-400 hover:bg-rose-500/20 shadow-sm transition-all"
                     aria-label="Delete registry record"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -2466,41 +2349,41 @@ function SubscriptionsTab({
                 </div>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 text-sm font-serif">
+              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 text-sm">
                 <div>
-                  <p className="text-[0.62rem] font-sans uppercase tracking-wider" style={{ color: "#6b6450" }}>
+                  <p className="text-[0.65rem] uppercase tracking-wider font-bold text-slate-400">
                     Subscription Type
                   </p>
-                  <p className="font-medium text-foreground/90 mt-1">{s.type} ({s.period})</p>
+                  <p className="font-semibold text-slate-200 mt-1">{s.type} ({s.period})</p>
                 </div>
                 <div>
-                  <p className="text-[0.62rem] font-sans uppercase tracking-wider" style={{ color: "#6b6450" }}>
+                  <p className="text-[0.65rem] uppercase tracking-wider font-bold text-slate-400">
                     Payment Method
                   </p>
-                  <p className="font-medium text-foreground/90 mt-1">{s.payment}</p>
+                  <p className="font-semibold text-slate-200 mt-1">{s.payment}</p>
                 </div>
                 <div>
-                  <p className="text-[0.62rem] font-sans uppercase tracking-wider" style={{ color: "#6b6450" }}>
+                  <p className="text-[0.65rem] uppercase tracking-wider font-bold text-slate-400">
                     Transferred Amount
                   </p>
-                  <p className="font-medium text-accent mt-1">₹{s.amount || "N/A"}</p>
+                  <p className="font-bold text-amber-400 mt-1">₹{s.amount || "N/A"}</p>
                 </div>
                 <div>
-                  <p className="text-[0.62rem] font-sans uppercase tracking-wider" style={{ color: "#6b6450" }}>
+                  <p className="text-[0.65rem] uppercase tracking-wider font-bold text-slate-400">
                     Bank &amp; Payment Date
                   </p>
-                  <p className="font-medium text-foreground/90 mt-1">
+                  <p className="font-semibold text-slate-200 mt-1">
                     {s.bank || "N/A"} {s.date ? `(${s.date})` : ""}
                   </p>
                 </div>
               </div>
 
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-3 border-t border-accent/5">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-3 border-t border-[#2d3a54]">
                 <div className="max-w-xl">
-                  <p className="text-[0.62rem] font-sans uppercase tracking-wider" style={{ color: "#6b6450" }}>
+                  <p className="text-[0.65rem] uppercase tracking-wider font-bold text-slate-400">
                     Postal Dispatch Address
                   </p>
-                  <p className="font-serif text-xs text-foreground/80 mt-1 leading-relaxed">
+                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
                     {s.address}, {s.country}
                   </p>
                 </div>
@@ -2510,10 +2393,9 @@ function SubscriptionsTab({
                     href={s.receipt_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold transition hover:opacity-85 self-start md:self-center"
-                    style={{ background: "rgba(184,134,11,0.15)", color: "#d4a843" }}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-[#334568] bg-[#1e2d4a] px-3.5 py-2 text-xs font-semibold text-amber-400 hover:bg-[#253658] shadow-sm transition-all self-start md:self-center"
                   >
-                    <ExternalLink className="h-3.5 w-3.5" />
+                    <ExternalLink className="h-3.5 w-3.5 text-amber-400" />
                     View Payment Receipt
                   </a>
                 )}
@@ -2526,12 +2408,82 @@ function SubscriptionsTab({
   );
 }
 
+// ─── Settings Tab ──────────────────────────────────────────────────────────────
+
+function SettingsTab({ showToast }: { showToast: (m: string, t?: "success" | "error") => void }) {
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  async function handleChangePassword(e: FormEvent) {
+    e.preventDefault();
+    if (newPassword.length < 4)
+      return showToast("Password must be at least 4 characters.", "error");
+    if (newPassword !== confirmPassword) return showToast("Passwords do not match.", "error");
+    setSaving(true);
+    const result = await changeAdminPassword(newPassword);
+    setSaving(false);
+    if (!result.success) return showToast(result.error ?? "Failed to update password.", "error");
+    showToast("Password updated successfully.");
+    setNewPassword("");
+    setConfirmPassword("");
+  }
+
+  return (
+    <div className="space-y-6 max-w-lg">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-100">
+          Settings
+        </h1>
+        <p className="text-sm text-slate-400 mt-0.5">
+          Manage system preferences and portal credentials
+        </p>
+      </div>
+
+      <Section title="Change Password">
+        <form onSubmit={handleChangePassword} className="space-y-4">
+          <InputRow
+            label="New Password"
+            value={newPassword}
+            onChange={setNewPassword}
+            type={showPw ? "text" : "password"}
+            placeholder="Enter new password"
+          />
+          <InputRow
+            label="Confirm New Password"
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            type={showPw ? "text" : "password"}
+            placeholder="Repeat new password"
+          />
+          <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-300">
+            <input
+              type="checkbox"
+              checked={showPw}
+              onChange={(e) => setShowPw(e.target.checked)}
+              className="rounded border-[#2d3a54] bg-[#0b0f17] text-amber-500 focus:ring-amber-500"
+            />
+            Show passwords
+          </label>
+          <div className="pt-2">
+            <SaveBtn onClick={() => {}} loading={saving} />
+          </div>
+        </form>
+        <p className="mt-3 text-xs text-slate-500">
+          No old password required. After changing, your current session remains active.
+        </p>
+      </Section>
+    </div>
+  );
+}
+
 // ─── Loading Spinner ───────────────────────────────────────────────────────────
 
 function LoadingSpinner() {
   return (
     <div className="flex h-64 items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin" style={{ color: "#b8860b" }} />
+      <Loader2 className="h-8 w-8 animate-spin text-amber-400" />
     </div>
   );
 }
