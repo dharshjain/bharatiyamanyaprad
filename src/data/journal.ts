@@ -143,4 +143,8 @@ export const contact = {
   email: "bhartiyamanyaprad@gmail.com",
   website: "www.bharatiyamanyaprad.com",
   issn: "2321-8444",
+  social: {
+    facebook: "https://www.facebook.com/profile.php?id=61593040995393",
+    instagram: "https://www.instagram.com/bharatiya_manyaprad/",
+  },
 };

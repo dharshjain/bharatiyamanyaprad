@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { Facebook, Instagram } from "lucide-react";
 import logo from "@/assets/logo.jpeg";
 import { CarvedBorder } from "@/components/site/ornaments";
 import { contact } from "@/data/journal";
@@ -22,6 +23,28 @@ export function SiteFooter() {
             aegis of Bhartiya Vidya Bhavan and Gujarat University, Ahmedabad.
           </p>
           <p className="mt-3 text-sm text-primary-foreground/70">ISSN {contact.issn}</p>
+
+          {/* Social Links */}
+          <div className="mt-4 flex items-center gap-3">
+            <a
+              href={contact.social.facebook}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex size-9 items-center justify-center rounded-full bg-primary-foreground/10 text-primary-foreground/90 transition-all hover:bg-terracotta hover:text-white hover:scale-110"
+              aria-label="Facebook Page"
+            >
+              <Facebook className="size-4" />
+            </a>
+            <a
+              href={contact.social.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex size-9 items-center justify-center rounded-full bg-primary-foreground/10 text-primary-foreground/90 transition-all hover:bg-terracotta hover:text-white hover:scale-110"
+              aria-label="Instagram Profile"
+            >
+              <Instagram className="size-4" />
+            </a>
+          </div>
         </div>
 
         <nav aria-label="Journal">

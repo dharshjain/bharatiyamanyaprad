@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Facebook, Instagram } from "lucide-react";
 import { useState } from "react";
 import { PageHero } from "@/components/site/page-hero";
 import { Reveal } from "@/components/site/reveal";
@@ -75,6 +75,29 @@ function Contact() {
               </p>
               <p className="text-sm text-muted-foreground">{contact.website}</p>
               <p className="text-sm text-muted-foreground">ISSN {contact.issn}</p>
+
+              {/* Social Media Links */}
+              <div className="pt-3 border-t border-accent/20">
+                <p className="text-xs font-bold uppercase tracking-wider text-accent mb-2">Connect with us</p>
+                <div className="flex items-center gap-3">
+                  <a
+                    href={contact.social.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-xl border border-accent/25 bg-secondary/30 px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-terracotta hover:text-white transition-all shadow-sm"
+                  >
+                    <Facebook className="size-3.5 text-blue-500" /> Facebook
+                  </a>
+                  <a
+                    href={contact.social.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-xl border border-accent/25 bg-secondary/30 px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-terracotta hover:text-white transition-all shadow-sm"
+                  >
+                    <Instagram className="size-3.5 text-pink-500" /> Instagram
+                  </a>
+                </div>
+              </div>
             </address>
           </div>
         </Reveal>
