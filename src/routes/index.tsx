@@ -31,6 +31,7 @@ import {
   contact,
   heritageNote,
   notices as staticNotices,
+  publications as staticPublications,
   quickLinks,
 } from "@/data/journal";
 import {
@@ -90,7 +91,27 @@ function Home() {
 
   const notices = liveNotices.length > 0 ? liveNotices.map((n) => n.content) : staticNotices;
 
-  const publications = livePublications;
+  const publications: Publication[] =
+    livePublications.length > 0
+      ? livePublications
+      : staticPublications.map((p, i) => ({
+          id: String(i),
+          journal_name: p.journal_name || "Bharatiya Manyaprad",
+          title: p.title,
+          volume: p.volume,
+          period: p.period,
+          year: p.year,
+          issue_no: p.issue_no || null,
+          pages: p.pages || null,
+          author: p.author || null,
+          pdf_url: null,
+          pdf_name: null,
+          cover_url: null,
+          cover_name: null,
+          sort_order: i,
+          created_at: "",
+          updated_at: "",
+        }));
 
   return (
     <>
@@ -479,14 +500,7 @@ function About() {
 function Publications({
   publications,
 }: {
-  publications: Array<{
-    id: string;
-    title: string;
-    volume: string;
-    period: string;
-    year: number;
-    pdf_url: string | null;
-  }>;
+  publications: Publication[];
 }) {
   return (
     <section className="paper-grain relative overflow-hidden bg-secondary/50 py-20">

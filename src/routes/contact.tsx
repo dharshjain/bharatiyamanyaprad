@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { PageHero } from "@/components/site/page-hero";
 import { Reveal } from "@/components/site/reveal";
@@ -27,7 +28,29 @@ export const Route = createFileRoute("/contact")({
 });
 
 function Contact() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
   const [sent, setSent] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const formattedMessage = [
+      "*New Enquiry — Bharatiya Manyaprad*",
+      "",
+      `*Name:* ${name.trim()}`,
+      `*Email:* ${email.trim()}`,
+      `*Message:* ${message.trim()}`,
+    ].join("\n");
+
+    const whatsappPhone = "917906515851";
+    const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(formattedMessage)}`;
+
+    window.open(whatsappUrl, "_blank");
+    setSent(true);
+  };
+
   return (
     <>
       <PageHero
@@ -44,7 +67,7 @@ function Contact() {
               <p className="font-serif leading-relaxed">{contact.address}</p>
               <p className="text-sm text-muted-foreground">Telefax: {contact.telefax}</p>
               <p className="text-sm text-muted-foreground">Phone: {contact.phone}</p>
-              <p className="text-sm text-muted-foreground">Mobile: {contact.mobile}</p>
+              <p className="text-sm text-muted-foreground">Mobile / WhatsApp: {contact.mobile}</p>
               <p className="text-sm">
                 <a className="text-terracotta hover:underline" href={`mailto:${contact.email}`}>
                   {contact.email}
@@ -57,31 +80,46 @@ function Contact() {
         </Reveal>
 
         <Reveal delay={100}>
-          <form
-            className="archive-card h-full space-y-5 p-8"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSent(true);
-            }}
-          >
+          <form className="archive-card h-full space-y-5 p-8" onSubmit={handleSubmit}>
             <h2 className="font-display text-xl text-primary">Send an enquiry</h2>
             <div>
               <Label htmlFor="c-name">Name</Label>
-              <Input id="c-name" required className="mt-2 bg-card" />
+              <Input
+                id="c-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="mt-2 bg-card"
+              />
             </div>
             <div>
               <Label htmlFor="c-email">Email</Label>
-              <Input id="c-email" type="email" required className="mt-2 bg-card" />
+              <Input
+                id="c-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="mt-2 bg-card"
+              />
             </div>
             <div>
               <Label htmlFor="c-message">Message</Label>
-              <Textarea id="c-message" rows={6} required className="mt-2 bg-card" />
+              <Textarea
+                id="c-message"
+                rows={6}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                required
+                className="mt-2 bg-card"
+              />
             </div>
-            <Button type="submit" variant="outline" className="engraved">
-              Send message
+            <Button type="submit" variant="outline" className="engraved flex items-center gap-2">
+              <MessageSquare className="size-4 text-emerald-600 dark:text-emerald-400" />
+              Send message via WhatsApp
             </Button>
             <p aria-live="polite" className="h-5 text-sm text-terracotta">
-              {sent ? "Thank you — we will reply to your message shortly." : ""}
+              {sent ? "Opening WhatsApp with your message..." : ""}
             </p>
           </form>
         </Reveal>
