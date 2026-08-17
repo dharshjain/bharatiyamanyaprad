@@ -94,11 +94,12 @@ export function SiteFooter() {
           </ul>
           <address className="mt-4 space-y-1 text-sm not-italic text-primary-foreground/85">
             <div>
+              Email:{" "}
               <a className="hover:text-accent" href={`mailto:${contact.email}`}>
                 {contact.email}
               </a>
             </div>
-            <div>{contact.mobile}</div>
+            <div>Mobile / WhatsApp: {contact.mobile}</div>
             <div>Navarangpura, Ahmedabad (Guj) 380009</div>
           </address>
         </div>

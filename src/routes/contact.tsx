@@ -44,7 +44,7 @@ function Contact() {
       `*Message:* ${message.trim()}`,
     ].join("\n");
 
-    const whatsappPhone = "917906515851";
+    const whatsappPhone = "919825012985";
     const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(formattedMessage)}`;
 
     window.open(whatsappUrl, "_blank");
@@ -68,8 +68,9 @@ function Contact() {
               <p className="text-sm text-muted-foreground">Telefax: {contact.telefax}</p>
               <p className="text-sm text-muted-foreground">Phone: {contact.phone}</p>
               <p className="text-sm text-muted-foreground">Mobile / WhatsApp: {contact.mobile}</p>
-              <p className="text-sm">
-                <a className="text-terracotta hover:underline" href={`mailto:${contact.email}`}>
+              <p className="text-sm text-muted-foreground">
+                Email:{" "}
+                <a className="hover:underline font-normal text-foreground/85" href={`mailto:${contact.email}`}>
                   {contact.email}
                 </a>
               </p>

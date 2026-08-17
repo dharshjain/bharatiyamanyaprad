@@ -654,7 +654,7 @@ function Subscription() {
                 {/* Intimate confirmation note */}
                 <div className="rounded-xl border border-accent/15 bg-secondary/30 p-3.5 text-xs font-serif leading-relaxed text-foreground/90">
                   <p className="font-semibold text-accent mb-1">Confirmation Details Note:</p>
-                  You are requested to kindly intimate the subscription confirmation details at <span className="font-bold text-primary">+91-7906515851</span> or <a href="mailto:bhartiyamanyaprad@gmail.com" className="font-bold text-accent underline">bhartiyamanyaprad@gmail.com</a>.
+                  You are requested to kindly intimate the subscription confirmation details at <span className="font-bold text-primary">+91-9825012985</span> or <a href="mailto:bhartiyamanyaprad@gmail.com" className="font-bold text-accent underline">bhartiyamanyaprad@gmail.com</a>.
                 </div>
 
                 <Button variant="outline" size="sm" className="engraved mt-4 w-full flex items-center justify-center gap-2" asChild>
