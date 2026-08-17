@@ -563,13 +563,13 @@ function Subscription() {
                     <tbody className="font-sans text-xs sm:text-sm">
                       <tr className="border-b border-accent/10">
                         <td className="py-2.5 font-semibold text-primary">Annual</td>
-                        <td className="py-2.5 text-center font-semibold text-primary font-mono">{subscriptionRates.india.annual.individual}</td>
-                        <td className="py-2.5 text-right font-semibold text-primary font-mono">{subscriptionRates.india.annual.institution}</td>
+                        <td className="py-2.5 text-center font-semibold text-primary font-sans">{subscriptionRates.india.annual.individual}</td>
+                        <td className="py-2.5 text-right font-semibold text-primary font-sans">{subscriptionRates.india.annual.institution}</td>
                       </tr>
                       <tr>
                         <td className="py-2.5 font-semibold text-primary">Three Years</td>
-                        <td className="py-2.5 text-center font-semibold text-primary font-mono">{subscriptionRates.india.threeYears.individual}</td>
-                        <td className="py-2.5 text-right font-semibold text-primary font-mono">{subscriptionRates.india.threeYears.institution}</td>
+                        <td className="py-2.5 text-center font-semibold text-primary font-sans">{subscriptionRates.india.threeYears.individual}</td>
+                        <td className="py-2.5 text-right font-semibold text-primary font-sans">{subscriptionRates.india.threeYears.institution}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -589,13 +589,13 @@ function Subscription() {
                     <tbody className="font-sans text-xs sm:text-sm">
                       <tr className="border-b border-accent/10">
                         <td className="py-2.5 font-semibold text-primary">Annual</td>
-                        <td className="py-2.5 text-center font-semibold text-primary font-mono">{subscriptionRates.overseas.annual.individual}</td>
-                        <td className="py-2.5 text-right font-semibold text-primary font-mono">{subscriptionRates.overseas.annual.institution}</td>
+                        <td className="py-2.5 text-center font-semibold text-primary font-sans">{subscriptionRates.overseas.annual.individual}</td>
+                        <td className="py-2.5 text-right font-semibold text-primary font-sans">{subscriptionRates.overseas.annual.institution}</td>
                       </tr>
                       <tr>
                         <td className="py-2.5 font-semibold text-primary">Three Years</td>
-                        <td className="py-2.5 text-center font-semibold text-primary font-mono">{subscriptionRates.overseas.threeYears.individual}</td>
-                        <td className="py-2.5 text-right font-semibold text-primary font-mono">{subscriptionRates.overseas.threeYears.institution}</td>
+                        <td className="py-2.5 text-center font-semibold text-primary font-sans">{subscriptionRates.overseas.threeYears.individual}</td>
+                        <td className="py-2.5 text-right font-semibold text-primary font-sans">{subscriptionRates.overseas.threeYears.institution}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -635,7 +635,7 @@ function Subscription() {
                   {bankDetails.map((b) => (
                     <div key={b.label} className="flex justify-between items-baseline gap-4 border-b border-accent/10 pb-1.5">
                       <dt className="text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">{b.label}</dt>
-                      <dd className="text-right text-xs sm:text-sm font-semibold text-primary font-mono">{b.value}</dd>
+                      <dd className="text-right text-xs sm:text-sm font-semibold text-primary font-sans">{b.value}</dd>
                     </div>
                   ))}
                 </dl>
@@ -643,7 +643,7 @@ function Subscription() {
                 {/* UPI Highlight Box */}
                 <div className="rounded-2xl border border-accent/30 bg-accent/10 p-4 text-center">
                   <p className="font-sans text-[0.7rem] uppercase tracking-widest text-accent font-bold">UPI Payment Number</p>
-                  <p className="mt-1 font-mono text-lg font-extrabold text-primary tracking-wider">
+                  <p className="mt-1 font-sans text-lg font-extrabold text-primary tracking-wider">
                     9825012985
                   </p>
                   <p className="mt-1 text-[0.75rem] text-muted-foreground">
