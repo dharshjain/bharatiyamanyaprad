@@ -19,7 +19,6 @@ import {
   MandalaDivider,
   ManuscriptSketch,
   PillarSketch,
-  QuillSketch,
   SealSketch,
   MajesticLotus,
 } from "@/components/site/ornaments";
@@ -424,7 +423,6 @@ function Notices({ notices }: { notices: string[] }) {
 function About() {
   return (
     <section className="relative mx-auto max-w-7xl overflow-hidden px-4 py-20 sm:px-6">
-      <QuillSketch className="sketch-float top-8 right-4 h-28 w-20 rotate-12" />
       <Reveal>
         <p className="eyebrow text-center">About the Journal</p>
         <h2 className="mt-3 text-center font-display text-3xl text-primary sm:text-4xl">

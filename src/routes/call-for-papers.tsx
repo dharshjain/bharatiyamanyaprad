@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Download, Calendar, FileText, BookOpen } from "lucide-react";
-import { CornerFlourish, MandalaDivider, QuillSketch } from "@/components/site/ornaments";
+import { CornerFlourish, MandalaDivider } from "@/components/site/ornaments";
 import { PageHero } from "@/components/site/page-hero";
 import { Reveal } from "@/components/site/reveal";
 import { Button } from "@/components/ui/button";
@@ -42,8 +42,6 @@ function CallForPapers() {
       />
 
       <section className="relative mx-auto max-w-4xl overflow-hidden px-4 py-16 sm:px-6">
-        <QuillSketch className="sketch-float top-10 right-2 h-28 w-20 rotate-12" />
-
         {/* Download PDF & Deadline Banner */}
         <Reveal>
           <div className="mb-10 flex flex-col gap-4 rounded-xl border border-amber-800/20 bg-amber-50/60 p-6 dark:bg-stone-900/40 sm:flex-row sm:items-center sm:justify-between">
