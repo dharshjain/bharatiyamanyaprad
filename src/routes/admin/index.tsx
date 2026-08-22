@@ -47,9 +47,7 @@ function AdminLogin() {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/20 font-bold">
             <ShieldCheck className="h-7 w-7" />
           </div>
-          <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-100">
-            Admin Portal
-          </h1>
+          <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-100">Admin Portal</h1>
           <p className="mt-1 text-sm text-slate-400 font-medium">
             Bharatiya Manyaprad Editorial Desk
           </p>
@@ -107,11 +105,7 @@ function AdminLogin() {
                   className="absolute top-1/2 right-3.5 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-200"
                   aria-label={showPw ? "Hide password" : "Show password"}
                 >
-                  {showPw ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>

@@ -10,15 +10,23 @@ import type { EventItem } from "./events";
 export const Route = createFileRoute("/events/$eventId")({
   component: EventDetail,
   head: ({ params }) => ({
-    meta: [
-      { title: `Event Details — Bharatiya Manyaprad` },
-    ],
+    meta: [{ title: `Event Details — Bharatiya Manyaprad` }],
   }),
 });
 
 const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -39,7 +47,8 @@ const fallbackEvents: EventItem[] = [
     id: "static-1",
     title: "National Seminar on Indian Heritage and Iconography",
     location: "Bhavan's Cultural Hall, Navrangpura, Ahmedabad",
-    description: "A two-day national colloquium exploring ancient Indian art history, temple architecture, and sculptural traditions. Scholars from central universities and archeological departments will present papers on iconography and manuscript preservation. Sessions cover: Epigraphy and Copper Plate Readings, Temple Geometry and Cosmic Alignments, and Digitisation of Palm Leaf Manuscripts.",
+    description:
+      "A two-day national colloquium exploring ancient Indian art history, temple architecture, and sculptural traditions. Scholars from central universities and archeological departments will present papers on iconography and manuscript preservation. Sessions cover: Epigraphy and Copper Plate Readings, Temple Geometry and Cosmic Alignments, and Digitisation of Palm Leaf Manuscripts.",
     event_date: "2026-11-04",
     tags: ["SEMINAR", "HISTORY", "ICONOGRAPHY"],
     cover_url: null,
@@ -49,7 +58,8 @@ const fallbackEvents: EventItem[] = [
     id: "static-2",
     title: "International Symposium on Diaspora & Indian Culture",
     location: "Sanchi University of Buddhist-Indic Studies, MP",
-    description: "Gathering global scholars to present research on the propagation of Indic studies, manuscripts, and literature across borders. This international symposium features keynote addresses, roundtable panels, and photo exhibitions. Major focus areas include the influence of Indian ocean trade on cultural assimilation, Sanskrit studies in Southeast Asia, and preserving oral traditions of folklore.",
+    description:
+      "Gathering global scholars to present research on the propagation of Indic studies, manuscripts, and literature across borders. This international symposium features keynote addresses, roundtable panels, and photo exhibitions. Major focus areas include the influence of Indian ocean trade on cultural assimilation, Sanskrit studies in Southeast Asia, and preserving oral traditions of folklore.",
     event_date: "2026-11-05",
     tags: ["SYMPOSIUM", "DIASPORA", "LITERATURE"],
     cover_url: null,
@@ -59,7 +69,8 @@ const fallbackEvents: EventItem[] = [
     id: "static-3",
     title: "Launch of Bharatiya Manyaprad Volume XII",
     location: "Gujarat University Assembly Hall, Ahmedabad",
-    description: "Official publication ceremony for the 2026 volume, featuring panel discussions on civilisational studies and historical archives. The editorial desk led by Dr. Neerja A Gupta will present key findings from the peer-reviewed papers. A copy of the printed volume will be unveiled, followed by high tea and networking with academic and cultural leaders.",
+    description:
+      "Official publication ceremony for the 2026 volume, featuring panel discussions on civilisational studies and historical archives. The editorial desk led by Dr. Neerja A Gupta will present key findings from the peer-reviewed papers. A copy of the printed volume will be unveiled, followed by high tea and networking with academic and cultural leaders.",
     event_date: "2026-11-06",
     tags: ["LAUNCH", "PUBLICATION", "ARCHIVE"],
     cover_url: null,
@@ -102,7 +113,9 @@ function EventDetail() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background text-center px-4">
         <h1 className="font-display text-2xl text-primary">Event Not Found</h1>
-        <p className="mt-2 text-muted-foreground text-sm">The event you are looking for does not exist or has been removed.</p>
+        <p className="mt-2 text-muted-foreground text-sm">
+          The event you are looking for does not exist or has been removed.
+        </p>
         <Button asChild variant="outline" className="engraved mt-6">
           <Link to="/events">Back to events</Link>
         </Button>
@@ -141,11 +154,7 @@ function EventDetail() {
               {/* Event Image Cover or Stylized Counter badge placeholder */}
               <div className="relative w-full h-64 sm:h-80 rounded-2xl overflow-hidden border border-accent/20 shadow-md bg-background/50 select-none">
                 {event.cover_url ? (
-                  <img
-                    src={event.cover_url}
-                    alt={event.title}
-                    className="size-full object-cover"
-                  />
+                  <img src={event.cover_url} alt={event.title} className="size-full object-cover" />
                 ) : (
                   <div className="size-full bg-secondary/15 flex flex-col items-center justify-center text-accent relative">
                     <div className="absolute inset-2 rounded-xl border border-dashed border-accent/10 pointer-events-none" />

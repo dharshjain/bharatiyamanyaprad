@@ -127,13 +127,14 @@ export function SiteHeader() {
           <nav className="hidden items-center gap-1 xl:flex" aria-label="Primary">
             {nav.map((item) => {
               if (item.label === "About") {
-                const isAboutActive = [
-                  "/about",
-                  "/editorial-board",
-                  "/call-for-papers",
-                  "/events",
-                  "/instructions-to-authors",
-                ].includes(location.pathname) || location.pathname.startsWith("/events");
+                const isAboutActive =
+                  [
+                    "/about",
+                    "/editorial-board",
+                    "/call-for-papers",
+                    "/events",
+                    "/instructions-to-authors",
+                  ].includes(location.pathname) || location.pathname.startsWith("/events");
                 return (
                   <div
                     key={item.to}
@@ -182,7 +183,7 @@ export function SiteHeader() {
                             className={`transition-all duration-300 ${
                               aboutDropdownOpen
                                 ? "opacity-100 translate-x-0"
-                               : "opacity-0 -translate-x-3.5"
+                                : "opacity-0 -translate-x-3.5"
                             }`}
                             style={{
                               transitionDelay: aboutDropdownOpen ? `${idx * 45}ms` : "0ms",
@@ -376,7 +377,6 @@ export function SiteHeader() {
           </ul>
         </nav>
       )}
-
     </header>
   );
 }

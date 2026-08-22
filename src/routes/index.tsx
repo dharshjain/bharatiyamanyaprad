@@ -497,11 +497,7 @@ function About() {
   );
 }
 
-function Publications({
-  publications,
-}: {
-  publications: Publication[];
-}) {
+function Publications({ publications }: { publications: Publication[] }) {
   return (
     <section className="paper-grain relative overflow-hidden bg-secondary/50 py-20">
       <CarvedBorder />

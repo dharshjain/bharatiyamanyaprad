@@ -70,7 +70,10 @@ function Contact() {
               <p className="text-sm text-muted-foreground">Mobile / WhatsApp: {contact.mobile}</p>
               <p className="text-sm text-muted-foreground">
                 Email:{" "}
-                <a className="hover:underline font-normal text-foreground/85" href={`mailto:${contact.email}`}>
+                <a
+                  className="hover:underline font-normal text-foreground/85"
+                  href={`mailto:${contact.email}`}
+                >
                   {contact.email}
                 </a>
               </p>
@@ -79,7 +82,9 @@ function Contact() {
 
               {/* Social Media Links */}
               <div className="pt-3 border-t border-accent/20">
-                <p className="text-xs font-bold uppercase tracking-wider text-accent mb-2">Connect with us</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-accent mb-2">
+                  Connect with us
+                </p>
                 <div className="flex items-center gap-3">
                   <a
                     href={contact.social.facebook}

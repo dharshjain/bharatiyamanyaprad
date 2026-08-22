@@ -6,8 +6,19 @@ import { Reveal } from "@/components/site/reveal";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { bankDetails, contact, subscriptionRates } from "@/data/journal";
-import { Download, CreditCard, Landmark, Check, ChevronDown, Upload, Paperclip, Loader2, AlertCircle } from "lucide-react";
+import {
+  Download,
+  CreditCard,
+  Landmark,
+  Check,
+  ChevronDown,
+  Upload,
+  Paperclip,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { compressFile } from "@/lib/file-compressor";
 
 export const Route = createFileRoute("/subscription")({
   component: Subscription,
@@ -45,7 +56,7 @@ function CustomSelect({ label, value, options, onChange }: CustomSelectProps) {
   return (
     <div className="flex flex-col relative">
       <span className="font-serif text-sm font-semibold text-primary">{label}</span>
-      
+
       {/* Trigger Button (looks like the underlined guideline) */}
       <button
         type="button"
@@ -53,22 +64,19 @@ function CustomSelect({ label, value, options, onChange }: CustomSelectProps) {
         className="mt-1 flex items-center justify-between border-0 border-b border-accent/25 bg-transparent rounded-none px-1 py-2 font-serif text-base text-primary text-left focus:border-accent transition-colors focus:outline-none"
       >
         <span>{value}</span>
-        <ChevronDown className={`size-3.5 text-accent/60 transition-transform duration-300 ${isOpen ? "rotate-180 text-accent" : ""}`} />
+        <ChevronDown
+          className={`size-3.5 text-accent/60 transition-transform duration-300 ${isOpen ? "rotate-180 text-accent" : ""}`}
+        />
       </button>
 
       {/* Overlay Backdrop to close when clicking outside */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
-          onClick={() => setIsOpen(false)} 
-        />
-      )}
+      {isOpen && <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />}
 
       {/* The Dynamic Historic Dropdown */}
       <div
         className={`absolute top-full left-0 right-0 mt-1 rounded-xl border border-accent/25 p-1.5 shadow-[0_12px_30px_rgba(184,134,11,0.12)] backdrop-blur-md transition-all duration-300 origin-top z-50 ${
-          isOpen 
-            ? "opacity-100 scale-100 translate-y-0 pointer-events-auto" 
+          isOpen
+            ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
             : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
         }`}
         style={{
@@ -77,7 +85,7 @@ function CustomSelect({ label, value, options, onChange }: CustomSelectProps) {
       >
         {/* Inner double border for historic manuscript look */}
         <div className="absolute inset-1.5 rounded-[8px] border border-accent/15 pointer-events-none" />
-        
+
         {/* Corner flourishes inside the dropdown */}
         <div className="absolute top-2 left-2 size-2 border-t border-l border-accent/35 rounded-tl-sm" />
         <div className="absolute top-2 right-2 size-2 border-t border-r border-accent/35 rounded-tr-sm" />
@@ -86,12 +94,10 @@ function CustomSelect({ label, value, options, onChange }: CustomSelectProps) {
 
         <ul className="relative z-10 space-y-0.5 max-h-48 overflow-y-auto py-0.5">
           {options.map((opt, idx) => (
-            <li 
+            <li
               key={opt}
               className={`transition-all duration-200 ${
-                isOpen 
-                  ? "opacity-100 translate-x-0" 
-                  : "opacity-0 -translate-x-2"
+                isOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"
               }`}
               style={{
                 transitionDelay: isOpen ? `${idx * 30}ms` : "0ms",
@@ -106,16 +112,18 @@ function CustomSelect({ label, value, options, onChange }: CustomSelectProps) {
                 className="group/item flex items-center justify-between w-full rounded-md px-2.5 py-1.5 font-serif text-[0.82rem] text-foreground/85 hover:bg-secondary/40 hover:text-primary transition-all duration-150"
               >
                 <div className="flex items-center gap-2">
-                  <span className={`text-accent text-[0.55rem] transition-all duration-200 ${
-                    value === opt ? "opacity-100 scale-100" : "opacity-0 -translate-x-1 group-hover/item:opacity-100 group-hover/item:translate-x-0"
-                  }`}>
+                  <span
+                    className={`text-accent text-[0.55rem] transition-all duration-200 ${
+                      value === opt
+                        ? "opacity-100 scale-100"
+                        : "opacity-0 -translate-x-1 group-hover/item:opacity-100 group-hover/item:translate-x-0"
+                    }`}
+                  >
                     ✦
                   </span>
                   <span>{opt}</span>
                 </div>
-                {value === opt && (
-                  <Check className="size-3 text-accent" />
-                )}
+                {value === opt && <Check className="size-3 text-accent" />}
               </button>
             </li>
           ))}
@@ -138,7 +146,7 @@ function Subscription() {
     payment: "Cheque",
     bank: "",
     amount: "",
-    date: ""
+    date: "",
   });
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -178,41 +186,40 @@ function Subscription() {
     setUploading(true);
     setFileError(null);
     try {
-      // 1. Upload to Supabase Storage
-      const fileExt = file.name.split(".").pop();
+      // 1. Compress file globally & Upload to Supabase Storage
+      const fileToUpload = await compressFile(file);
+      const fileExt = fileToUpload.name.split(".").pop();
       const fileName = `receipt-${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
         .from("subscriptions")
-        .upload(fileName, file);
+        .upload(fileName, fileToUpload);
 
       if (uploadError) {
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
 
       // Get public url
-      const { data: { publicUrl } } = supabase.storage
-        .from("subscriptions")
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("subscriptions").getPublicUrl(fileName);
 
       // 2. Save subscription details
-      const { error: dbError } = await supabase
-        .from("subscriptions")
-        .insert({
-          name: formData.name,
-          email: formData.email,
-          address: formData.address,
-          country: formData.country,
-          mobile: formData.mobile,
-          type: formData.type,
-          period: formData.period,
-          payment: formData.payment,
-          bank: formData.bank || null,
-          amount: formData.amount || null,
-          date: formData.date || null,
-          receipt_url: publicUrl,
-          receipt_name: fileName,
-          status: "Pending"
-        });
+      const { error: dbError } = await supabase.from("subscriptions").insert({
+        name: formData.name,
+        email: formData.email,
+        address: formData.address,
+        country: formData.country,
+        mobile: formData.mobile,
+        type: formData.type,
+        period: formData.period,
+        payment: formData.payment,
+        bank: formData.bank || null,
+        amount: formData.amount || null,
+        date: formData.date || null,
+        receipt_url: publicUrl,
+        receipt_name: fileName,
+        status: "Pending",
+      });
 
       if (dbError) {
         throw dbError;
@@ -280,7 +287,7 @@ function Subscription() {
         payment: "Cheque",
         bank: "",
         amount: "",
-        date: ""
+        date: "",
       });
     } catch (err: any) {
       setFileError(err.message || "Failed to submit subscription.");
@@ -298,7 +305,6 @@ function Subscription() {
       />
 
       <section className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,1fr)_400px]">
-        
         {/* PARCHMENT MANUSCRIPT FORM */}
         <Reveal>
           <form
@@ -310,7 +316,7 @@ function Subscription() {
           >
             {/* Double thin border for historic charter look */}
             <div className="absolute inset-2 sm:inset-3.5 rounded-[22px] border border-accent/15 pointer-events-none" />
-            
+
             {/* Corner flourishes inside padding */}
             <CornerFlourish className="pointer-events-none absolute top-4 left-4 size-4.5 text-accent/50" />
             <CornerFlourish className="pointer-events-none absolute top-4 right-4 size-4.5 rotate-90 text-accent/50" />
@@ -318,10 +324,11 @@ function Subscription() {
             <CornerFlourish className="pointer-events-none absolute bottom-4 right-4 size-4.5 rotate-180 text-accent/50" />
 
             <div className="relative z-10 space-y-8">
-              
               {/* Form Title & Ornate Separator */}
               <div className="text-center">
-                <h2 className="font-display text-2xl text-primary tracking-wide">Subscriber Details</h2>
+                <h2 className="font-display text-2xl text-primary tracking-wide">
+                  Subscriber Details
+                </h2>
                 <div className="flex items-center justify-center gap-4 mt-2">
                   <span className="h-[1px] w-12 bg-accent/25" />
                   <LotusMark className="size-4.5 text-accent/60" />
@@ -332,7 +339,9 @@ function Subscription() {
               {/* Form Rows (Underlined Guidelines) */}
               <div className="grid gap-6 sm:grid-cols-2">
                 <div className="flex flex-col">
-                  <Label htmlFor="s-name" className="font-serif text-sm font-semibold text-primary">Name of Subscriber</Label>
+                  <Label htmlFor="s-name" className="font-serif text-sm font-semibold text-primary">
+                    Name of Subscriber
+                  </Label>
                   <input
                     id="s-name"
                     type="text"
@@ -344,7 +353,12 @@ function Subscription() {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <Label htmlFor="s-email" className="font-serif text-sm font-semibold text-primary">Email Address</Label>
+                  <Label
+                    htmlFor="s-email"
+                    className="font-serif text-sm font-semibold text-primary"
+                  >
+                    Email Address
+                  </Label>
                   <input
                     id="s-email"
                     type="email"
@@ -358,7 +372,12 @@ function Subscription() {
               </div>
 
               <div className="flex flex-col">
-                <Label htmlFor="s-address" className="font-serif text-sm font-semibold text-primary">Full Postal Address (for dispatch)</Label>
+                <Label
+                  htmlFor="s-address"
+                  className="font-serif text-sm font-semibold text-primary"
+                >
+                  Full Postal Address (for dispatch)
+                </Label>
                 <textarea
                   id="s-address"
                   required
@@ -372,7 +391,12 @@ function Subscription() {
 
               <div className="grid gap-6 sm:grid-cols-2">
                 <div className="flex flex-col">
-                  <Label htmlFor="s-country" className="font-serif text-sm font-semibold text-primary">Country</Label>
+                  <Label
+                    htmlFor="s-country"
+                    className="font-serif text-sm font-semibold text-primary"
+                  >
+                    Country
+                  </Label>
                   <input
                     id="s-country"
                     type="text"
@@ -384,7 +408,12 @@ function Subscription() {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <Label htmlFor="s-mobile" className="font-serif text-sm font-semibold text-primary">Mobile Contact Number</Label>
+                  <Label
+                    htmlFor="s-mobile"
+                    className="font-serif text-sm font-semibold text-primary"
+                  >
+                    Mobile Contact Number
+                  </Label>
                   <input
                     id="s-mobile"
                     type="text"
@@ -421,7 +450,9 @@ function Subscription() {
 
               <div className="grid gap-6 sm:grid-cols-3">
                 <div className="flex flex-col">
-                  <Label htmlFor="s-bank" className="font-serif text-sm font-semibold text-primary">Bank Name / UPI App</Label>
+                  <Label htmlFor="s-bank" className="font-serif text-sm font-semibold text-primary">
+                    Bank Name / UPI App
+                  </Label>
                   <input
                     id="s-bank"
                     type="text"
@@ -432,7 +463,12 @@ function Subscription() {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <Label htmlFor="s-amount" className="font-serif text-sm font-semibold text-primary">Amount Transferred</Label>
+                  <Label
+                    htmlFor="s-amount"
+                    className="font-serif text-sm font-semibold text-primary"
+                  >
+                    Amount Transferred
+                  </Label>
                   <input
                     id="s-amount"
                     type="text"
@@ -443,7 +479,9 @@ function Subscription() {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <Label htmlFor="s-date" className="font-serif text-sm font-semibold text-primary">Payment Date</Label>
+                  <Label htmlFor="s-date" className="font-serif text-sm font-semibold text-primary">
+                    Payment Date
+                  </Label>
                   <input
                     id="s-date"
                     type="date"
@@ -483,17 +521,15 @@ function Subscription() {
                     ) : (
                       <Upload className="size-8 text-accent/60" />
                     )}
-                    
+
                     <div className="font-serif text-sm">
                       {file ? (
                         <span className="font-semibold text-primary">{file.name}</span>
                       ) : (
-                        <span className="text-foreground/85">
-                          Click or drag receipt file here
-                        </span>
+                        <span className="text-foreground/85">Click or drag receipt file here</span>
                       )}
                     </div>
-                    
+
                     <p className="text-xs text-muted-foreground">
                       Accepts images (PNG, JPEG, WebP, GIF) or PDFs up to 5MB.
                     </p>
@@ -502,19 +538,23 @@ function Subscription() {
               </div>
 
               <div className="pt-2 text-center">
-                <Button 
-                  type="submit" 
-                  variant="outline" 
+                <Button
+                  type="submit"
+                  variant="outline"
                   className="engraved w-full sm:w-auto px-10 py-5"
                   disabled={uploading}
                 >
                   {uploading ? "Submitting..." : "Submit Subscription Registry"}
                 </Button>
-                
-                <div aria-live="polite" className="min-h-6 mt-4 flex flex-col items-center justify-center">
+
+                <div
+                  aria-live="polite"
+                  className="min-h-6 mt-4 flex flex-col items-center justify-center"
+                >
                   {sent ? (
                     <span className="inline-flex items-center gap-1.5 text-sm font-serif font-semibold text-accent tracking-wide animate-fade-in">
-                      <Check className="size-4" /> Thank you — the editorial office will confirm your subscription receipt.
+                      <Check className="size-4" /> Thank you — the editorial office will confirm
+                      your subscription receipt.
                     </span>
                   ) : fileError ? (
                     <span className="inline-flex items-center gap-1.5 text-sm font-serif font-semibold text-red-500 tracking-wide animate-fade-in">
@@ -523,28 +563,28 @@ function Subscription() {
                   ) : null}
                 </div>
               </div>
-
             </div>
           </form>
         </Reveal>
 
         {/* LEDGER & RATES RIGHT COLUMN */}
         <div className="space-y-8">
-          
           {/* SUBSCRIPTION RATES TABLE CARD (ANNUAL & THREE YEARS) */}
           <Reveal delay={100}>
-            <div 
+            <div
               className="relative rounded-3xl p-6 sm:p-7 border border-accent/20 shadow-lg overflow-hidden"
               style={{
                 background: "linear-gradient(135deg, var(--card), var(--background))",
               }}
             >
               <div className="absolute inset-1.5 rounded-2xl border border-accent/10 pointer-events-none" />
-              
+
               <div className="relative z-10 space-y-6">
                 <div className="flex items-center gap-3">
                   <CreditCard className="size-5 text-accent" />
-                  <h2 className="font-display text-lg text-primary tracking-wide">Subscription Rates</h2>
+                  <h2 className="font-display text-lg text-primary tracking-wide">
+                    Subscription Rates
+                  </h2>
                 </div>
 
                 <CarvedBorder className="opacity-45 my-2" />
@@ -555,21 +595,35 @@ function Subscription() {
                   <table className="w-full text-xs sm:text-sm border-collapse">
                     <thead>
                       <tr className="text-left border-b border-accent/15">
-                        <th className="py-2 text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">Period</th>
-                        <th className="py-2 text-center text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">Individual / Members</th>
-                        <th className="py-2 text-right text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">Institution</th>
+                        <th className="py-2 text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">
+                          Period
+                        </th>
+                        <th className="py-2 text-center text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">
+                          Individual / Members
+                        </th>
+                        <th className="py-2 text-right text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">
+                          Institution
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="font-sans text-xs sm:text-sm">
                       <tr className="border-b border-accent/10">
                         <td className="py-2.5 font-semibold text-primary">Annual</td>
-                        <td className="py-2.5 text-center font-semibold text-primary font-sans">{subscriptionRates.india.annual.individual}</td>
-                        <td className="py-2.5 text-right font-semibold text-primary font-sans">{subscriptionRates.india.annual.institution}</td>
+                        <td className="py-2.5 text-center font-semibold text-primary font-sans">
+                          {subscriptionRates.india.annual.individual}
+                        </td>
+                        <td className="py-2.5 text-right font-semibold text-primary font-sans">
+                          {subscriptionRates.india.annual.institution}
+                        </td>
                       </tr>
                       <tr>
                         <td className="py-2.5 font-semibold text-primary">Three Years</td>
-                        <td className="py-2.5 text-center font-semibold text-primary font-sans">{subscriptionRates.india.threeYears.individual}</td>
-                        <td className="py-2.5 text-right font-semibold text-primary font-sans">{subscriptionRates.india.threeYears.institution}</td>
+                        <td className="py-2.5 text-center font-semibold text-primary font-sans">
+                          {subscriptionRates.india.threeYears.individual}
+                        </td>
+                        <td className="py-2.5 text-right font-semibold text-primary font-sans">
+                          {subscriptionRates.india.threeYears.institution}
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -581,21 +635,35 @@ function Subscription() {
                   <table className="w-full text-xs sm:text-sm border-collapse">
                     <thead>
                       <tr className="text-left border-b border-accent/15">
-                        <th className="py-2 text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">Period</th>
-                        <th className="py-2 text-center text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">Individual / Members</th>
-                        <th className="py-2 text-right text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">Institution</th>
+                        <th className="py-2 text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">
+                          Period
+                        </th>
+                        <th className="py-2 text-center text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">
+                          Individual / Members
+                        </th>
+                        <th className="py-2 text-right text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">
+                          Institution
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="font-sans text-xs sm:text-sm">
                       <tr className="border-b border-accent/10">
                         <td className="py-2.5 font-semibold text-primary">Annual</td>
-                        <td className="py-2.5 text-center font-semibold text-primary font-sans">{subscriptionRates.overseas.annual.individual}</td>
-                        <td className="py-2.5 text-right font-semibold text-primary font-sans">{subscriptionRates.overseas.annual.institution}</td>
+                        <td className="py-2.5 text-center font-semibold text-primary font-sans">
+                          {subscriptionRates.overseas.annual.individual}
+                        </td>
+                        <td className="py-2.5 text-right font-semibold text-primary font-sans">
+                          {subscriptionRates.overseas.annual.institution}
+                        </td>
                       </tr>
                       <tr>
                         <td className="py-2.5 font-semibold text-primary">Three Years</td>
-                        <td className="py-2.5 text-center font-semibold text-primary font-sans">{subscriptionRates.overseas.threeYears.individual}</td>
-                        <td className="py-2.5 text-right font-semibold text-primary font-sans">{subscriptionRates.overseas.threeYears.institution}</td>
+                        <td className="py-2.5 text-center font-semibold text-primary font-sans">
+                          {subscriptionRates.overseas.threeYears.individual}
+                        </td>
+                        <td className="py-2.5 text-right font-semibold text-primary font-sans">
+                          {subscriptionRates.overseas.threeYears.institution}
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -604,7 +672,9 @@ function Subscription() {
                 <CarvedBorder className="opacity-45 my-2 rotate-180" />
 
                 <p className="font-serif text-xs sm:text-sm leading-relaxed text-foreground/85">
-                  Deposit the subscription fee directly into the <span className="font-bold text-primary">BHARATIYA MANYAPRAD</span> account via bank transfer, DD, or UPI.
+                  Deposit the subscription fee directly into the{" "}
+                  <span className="font-bold text-primary">BHARATIYA MANYAPRAD</span> account via
+                  bank transfer, DD, or UPI.
                 </p>
               </div>
             </div>
@@ -612,37 +682,48 @@ function Subscription() {
 
           {/* DIRECT BANK DEPOSIT CERTIFICATE */}
           <Reveal delay={160}>
-            <div 
+            <div
               className="relative rounded-3xl p-6 sm:p-7 border border-accent/20 shadow-lg overflow-hidden"
               style={{
                 background: "linear-gradient(135deg, var(--card), var(--background))",
               }}
             >
               <div className="absolute inset-1.5 rounded-2xl border border-accent/10 pointer-events-none" />
-              
+
               {/* Subtle watermark background */}
               <SealSketch className="absolute -right-6 -bottom-6 size-36 text-accent/5 opacity-[0.07] pointer-events-none select-none" />
 
               <div className="relative z-10 space-y-4">
                 <div className="flex items-center gap-3">
                   <Landmark className="size-5 text-accent" />
-                  <h2 className="font-display text-lg text-primary tracking-wide">Direct Bank Deposit</h2>
+                  <h2 className="font-display text-lg text-primary tracking-wide">
+                    Direct Bank Deposit
+                  </h2>
                 </div>
 
                 <CarvedBorder className="opacity-45 my-2" />
 
                 <dl className="space-y-2.5 text-sm font-sans">
                   {bankDetails.map((b) => (
-                    <div key={b.label} className="flex justify-between items-baseline gap-4 border-b border-accent/10 pb-1.5">
-                      <dt className="text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">{b.label}</dt>
-                      <dd className="text-right text-xs sm:text-sm font-semibold text-primary font-sans">{b.value}</dd>
+                    <div
+                      key={b.label}
+                      className="flex justify-between items-baseline gap-4 border-b border-accent/10 pb-1.5"
+                    >
+                      <dt className="text-[0.75rem] font-sans tracking-wider uppercase text-accent font-semibold">
+                        {b.label}
+                      </dt>
+                      <dd className="text-right text-xs sm:text-sm font-semibold text-primary font-sans">
+                        {b.value}
+                      </dd>
                     </div>
                   ))}
                 </dl>
 
                 {/* UPI Highlight Box */}
                 <div className="rounded-2xl border border-accent/30 bg-accent/10 p-4 text-center">
-                  <p className="font-sans text-[0.7rem] uppercase tracking-widest text-accent font-bold">UPI Payment Number</p>
+                  <p className="font-sans text-[0.7rem] uppercase tracking-widest text-accent font-bold">
+                    UPI Payment Number
+                  </p>
                   <p className="mt-1 font-sans text-lg font-extrabold text-primary tracking-wider">
                     9825012985
                   </p>
@@ -654,18 +735,35 @@ function Subscription() {
                 {/* Intimate confirmation note */}
                 <div className="rounded-xl border border-accent/15 bg-secondary/30 p-3.5 text-xs font-serif leading-relaxed text-foreground/90">
                   <p className="font-semibold text-accent mb-1">Confirmation Details Note:</p>
-                  You are requested to kindly intimate the subscription confirmation details at <span className="font-bold text-primary">+91-9825012985</span> or <a href="mailto:bhartiyamanyaprad@gmail.com" className="font-bold text-accent underline">bhartiyamanyaprad@gmail.com</a>.
+                  You are requested to kindly intimate the subscription confirmation details at{" "}
+                  <span className="font-bold text-primary">+91-9825012985</span> or{" "}
+                  <a
+                    href="mailto:bhartiyamanyaprad@gmail.com"
+                    className="font-bold text-accent underline"
+                  >
+                    bhartiyamanyaprad@gmail.com
+                  </a>
+                  .
                 </div>
 
-                <Button variant="outline" size="sm" className="engraved mt-4 w-full flex items-center justify-center gap-2" asChild>
-                  <a href="/Subscription Form.pdf" download="Subscription Form.pdf" target="_blank" rel="noopener noreferrer">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="engraved mt-4 w-full flex items-center justify-center gap-2"
+                  asChild
+                >
+                  <a
+                    href="/Subscription Form.pdf"
+                    download="Subscription Form.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <Download className="size-4 mr-1.5" /> Subscription Form
                   </a>
                 </Button>
               </div>
             </div>
           </Reveal>
-          
         </div>
       </section>
     </>

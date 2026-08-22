@@ -84,7 +84,6 @@ export function SiteFooter() {
           </ul>
         </nav>
 
-
         <div>
           <h2 className="eyebrow text-terracotta font-extrabold">Indexing &amp; Contact</h2>
           <ul className="mt-4 space-y-2 text-sm text-primary-foreground/85">

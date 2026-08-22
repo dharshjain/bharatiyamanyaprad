@@ -59,7 +59,6 @@ const guides = [
   },
 ];
 
-
 function Authors() {
   return (
     <>

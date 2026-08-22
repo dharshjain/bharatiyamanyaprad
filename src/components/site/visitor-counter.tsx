@@ -70,13 +70,15 @@ export function VisitorCounter() {
         // Fallback if network/Supabase unavailable
         try {
           if (!hasVisited) {
-            const localFallback = Number(localStorage.getItem("bm_fallback_count")) || BASELINE_COUNT;
+            const localFallback =
+              Number(localStorage.getItem("bm_fallback_count")) || BASELINE_COUNT;
             const nextLocal = localFallback + 1;
             localStorage.setItem("bm_fallback_count", String(nextLocal));
             localStorage.setItem(STORAGE_KEY, "v_local");
             setVisitorCount(nextLocal);
           } else {
-            const localFallback = Number(localStorage.getItem("bm_fallback_count")) || BASELINE_COUNT;
+            const localFallback =
+              Number(localStorage.getItem("bm_fallback_count")) || BASELINE_COUNT;
             setVisitorCount(localFallback);
           }
         } catch {

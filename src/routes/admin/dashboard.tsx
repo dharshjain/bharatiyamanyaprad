@@ -1,12 +1,6 @@
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
-import type {
-  ReactNode,
-  ChangeEvent,
-  Dispatch,
-  SetStateAction,
-  FormEvent,
-} from "react";
+import type { ReactNode, ChangeEvent, Dispatch, SetStateAction, FormEvent } from "react";
 import {
   BookOpen,
   FileText,
@@ -45,6 +39,7 @@ import {
   type Publication,
   type Subscription,
 } from "@/lib/supabase";
+import { compressFile } from "@/lib/file-compressor";
 
 export const Route = createFileRoute("/admin/dashboard")({
   component: AdminDashboard,
@@ -107,9 +102,7 @@ function Toast({
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="rounded-2xl border border-[#2d3a54] bg-[#131c2e] p-5 sm:p-6 shadow-xl shadow-black/30">
-      <h2 className="mb-5 text-xs font-bold uppercase tracking-wider text-amber-400">
-        {title}
-      </h2>
+      <h2 className="mb-5 text-xs font-bold uppercase tracking-wider text-amber-400">{title}</h2>
       {children}
     </div>
   );
@@ -207,7 +200,9 @@ function AdminDashboard() {
             BM
           </div>
           <div>
-            <p className="text-[0.65rem] uppercase tracking-wider text-amber-400 font-bold">Admin Portal</p>
+            <p className="text-[0.65rem] uppercase tracking-wider text-amber-400 font-bold">
+              Admin Portal
+            </p>
             <p className="text-sm font-bold text-slate-100 leading-none">Bharatiya Manyaprad</p>
           </div>
         </div>
@@ -288,9 +283,7 @@ function AdminDashboard() {
             <p className="text-[0.65rem] font-bold uppercase tracking-wider text-amber-400">
               Admin Portal
             </p>
-            <p className="mt-0.5 text-base font-bold text-slate-100">
-              Bharatiya Manyaprad
-            </p>
+            <p className="mt-0.5 text-base font-bold text-slate-100">Bharatiya Manyaprad</p>
           </div>
           <button
             id="admin-top-logout-btn"
@@ -463,11 +456,12 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const ext = file.name.split(".").pop();
+    const compressed = await compressFile(file);
+    const ext = compressed.name.split(".").pop();
     const path = `editorial-board-${Date.now()}.${ext}`;
     const { error: upErr } = await supabase.storage
       .from("editorial-documents")
-      .upload(path, file, { upsert: true });
+      .upload(path, compressed, { upsert: true });
     if (upErr) {
       setUploading(false);
       return showToast(upErr.message, "error");
@@ -505,9 +499,7 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100">
-            Editorial Board
-          </h1>
+          <h1 className="text-2xl font-bold text-slate-100">Editorial Board</h1>
           <p className="text-sm text-slate-400 mt-0.5">
             Manage board members and official editorial documentation
           </p>
@@ -535,9 +527,7 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
               {boardDoc.file_name ?? "View current file"}
             </a>
           ) : (
-            <p className="text-sm text-slate-400">
-              No document uploaded yet.
-            </p>
+            <p className="text-sm text-slate-400">No document uploaded yet.</p>
           )}
           <button
             id="editorial-doc-upload-btn"
@@ -645,11 +635,12 @@ function EditorialTab({ showToast }: { showToast: (m: string, t?: "success" | "e
                     const file = e.target.files?.[0];
                     if (!file) return;
                     setSaving(true);
-                    const ext = file.name.split(".").pop();
+                    const compressed = await compressFile(file);
+                    const ext = compressed.name.split(".").pop();
                     const path = `member-photo-${Date.now()}.${ext}`;
                     const { error: upErr } = await supabase.storage
                       .from("editorial-documents")
-                      .upload(path, file, { upsert: true });
+                      .upload(path, compressed, { upsert: true });
                     if (upErr) {
                       setSaving(false);
                       return showToast(upErr.message, "error");
@@ -748,11 +739,12 @@ function MemberCard({
             const file = e.target.files?.[0];
             if (!file) return;
             setUploading(true);
-            const ext = file.name.split(".").pop();
+            const compressed = await compressFile(file);
+            const ext = compressed.name.split(".").pop();
             const path = `member-photo-${Date.now()}.${ext}`;
             const { error: upErr } = await supabase.storage
               .from("editorial-documents")
-              .upload(path, file, { upsert: true });
+              .upload(path, compressed, { upsert: true });
             if (upErr) {
               setUploading(false);
               alert(upErr.message);
@@ -794,18 +786,12 @@ function MemberCard({
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="font-bold text-slate-100 text-base">
-            {member.name}
-          </p>
+          <p className="font-bold text-slate-100 text-base">{member.name}</p>
           {member.designation && (
-            <p className="mt-0.5 text-xs font-bold text-amber-400">
-              {member.designation}
-            </p>
+            <p className="mt-0.5 text-xs font-bold text-amber-400">{member.designation}</p>
           )}
           {member.description && (
-            <p className="mt-1 text-xs leading-relaxed text-slate-400">
-              {member.description}
-            </p>
+            <p className="mt-1 text-xs leading-relaxed text-slate-400">{member.description}</p>
           )}
           {member.email && (
             <a
@@ -884,9 +870,15 @@ function EditMemberForm({
             }
             className="w-full rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-3.5 py-2.5 text-sm text-slate-100 outline-none transition-all focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
           >
-            <option value="editor_in_chief" className="bg-[#0b0f17]">Editor in Chief</option>
-            <option value="executive_editor" className="bg-[#0b0f17]">Executive Editor</option>
-            <option value="advisory" className="bg-[#0b0f17]">Advisory</option>
+            <option value="editor_in_chief" className="bg-[#0b0f17]">
+              Editor in Chief
+            </option>
+            <option value="executive_editor" className="bg-[#0b0f17]">
+              Executive Editor
+            </option>
+            <option value="advisory" className="bg-[#0b0f17]">
+              Advisory
+            </option>
           </select>
         </div>
         <div className="sm:col-span-2">
@@ -925,11 +917,12 @@ function EditMemberForm({
                 const file = e.target.files?.[0];
                 if (!file) return;
                 setSaving(true);
-                const ext = file.name.split(".").pop();
+                const compressed = await compressFile(file);
+                const ext = compressed.name.split(".").pop();
                 const path = `member-photo-${Date.now()}.${ext}`;
                 const { error: upErr } = await supabase.storage
                   .from("editorial-documents")
-                  .upload(path, file, { upsert: true });
+                  .upload(path, compressed, { upsert: true });
                 if (upErr) {
                   setSaving(false);
                   return showToast(upErr.message, "error");
@@ -1001,7 +994,11 @@ function NewsTab({ showToast }: { showToast: (m: string, t?: "success" | "error"
   );
 }
 
-function NoticesManager({ showToast }: { showToast: (m: string, t?: "success" | "error") => void }) {
+function NoticesManager({
+  showToast,
+}: {
+  showToast: (m: string, t?: "success" | "error") => void;
+}) {
   const [items, setItems] = useState<NewsEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -1085,9 +1082,7 @@ function NoticesManager({ showToast }: { showToast: (m: string, t?: "success" | 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-100">
-          Notices (Ticker)
-        </h2>
+        <h2 className="text-xl font-bold text-slate-100">Notices (Ticker)</h2>
         <button
           id="news-add-btn"
           onClick={() => setShowAdd(true)}
@@ -1174,7 +1169,11 @@ function NoticesManager({ showToast }: { showToast: (m: string, t?: "success" | 
                     }`}
                     aria-label={item.is_active ? "Hide" : "Show"}
                   >
-                    {item.is_active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                    {item.is_active ? (
+                      <Eye className="h-3.5 w-3.5" />
+                    ) : (
+                      <EyeOff className="h-3.5 w-3.5" />
+                    )}
                   </button>
                   <button
                     onClick={() => {
@@ -1235,7 +1234,10 @@ function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase.from("events").select("*").order("event_date", { ascending: true });
+    const { data } = await supabase
+      .from("events")
+      .select("*")
+      .order("event_date", { ascending: true });
     if (data) {
       setEvents(data as EventItem[]);
     } else {
@@ -1252,9 +1254,12 @@ function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "
     if (!form.title.trim()) return showToast("Title is required.", "error");
     if (!form.event_date) return showToast("Date is required.", "error");
     setSaving(true);
-    
+
     const tagArray = form.tags
-      ? form.tags.split(",").map((t) => t.trim().toUpperCase()).filter(Boolean)
+      ? form.tags
+          .split(",")
+          .map((t) => t.trim().toUpperCase())
+          .filter(Boolean)
       : [];
 
     const { error } = await supabase.from("events").insert({
@@ -1302,7 +1307,10 @@ function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "
     setSaving(true);
 
     const tagArray = form.tags
-      ? form.tags.split(",").map((t) => t.trim().toUpperCase()).filter(Boolean)
+      ? form.tags
+          .split(",")
+          .map((t) => t.trim().toUpperCase())
+          .filter(Boolean)
       : [];
 
     const { error } = await supabase
@@ -1338,21 +1346,20 @@ function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const ext = file.name.split(".").pop();
+    const compressed = await compressFile(file);
+    const ext = compressed.name.split(".").pop();
     const path = `event-cover-${Date.now()}.${ext}`;
 
     const { error: upErr } = await supabase.storage
       .from("editorial-documents")
-      .upload(path, file, { upsert: true });
+      .upload(path, compressed, { upsert: true });
 
     if (upErr) {
       setUploading(false);
       return showToast(upErr.message, "error");
     }
 
-    const { data: urlData } = supabase.storage
-      .from("editorial-documents")
-      .getPublicUrl(path);
+    const { data: urlData } = supabase.storage.from("editorial-documents").getPublicUrl(path);
 
     setForm((prev) => ({ ...prev, cover_url: urlData.publicUrl }));
     setUploading(false);
@@ -1364,9 +1371,7 @@ function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-100">
-          Events List
-        </h2>
+        <h2 className="text-xl font-bold text-slate-100">Events List</h2>
         {!showAdd && editingId === null && (
           <button
             onClick={() => {
@@ -1464,10 +1469,7 @@ function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "
           </div>
 
           <div className="mt-6 flex gap-3">
-            <SaveBtn
-              onClick={showAdd ? addItem : () => saveEdit(editingId!)}
-              loading={saving}
-            />
+            <SaveBtn onClick={showAdd ? addItem : () => saveEdit(editingId!)} loading={saving} />
             <button
               onClick={() => {
                 setShowAdd(false);
@@ -1504,18 +1506,19 @@ function EventsManager({ showToast }: { showToast: (m: string, t?: "success" | "
                       </span>
                     )}
                   </div>
-                  
+
                   <div className="min-w-0">
-                    <h3 className="font-bold text-base text-slate-100 truncate">
-                      {ev.title}
-                    </h3>
+                    <h3 className="font-bold text-base text-slate-100 truncate">{ev.title}</h3>
                     <p className="text-xs font-bold text-amber-400 mt-0.5">
                       {ev.event_date} {ev.location ? `| ${ev.location}` : ""}
                     </p>
                     {ev.tags && ev.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {ev.tags.map((t) => (
-                          <span key={t} className="bg-[#1e2d4a] border border-amber-500/30 text-amber-300 text-[0.65rem] font-bold px-2 py-0.5 rounded-full">
+                          <span
+                            key={t}
+                            className="bg-[#1e2d4a] border border-amber-500/30 text-amber-300 text-[0.65rem] font-bold px-2 py-0.5 rounded-full"
+                          >
                             {t}
                           </span>
                         ))}
@@ -1599,34 +1602,36 @@ function PublicationsTab({
     pubId: string,
     file: File,
   ): Promise<{ url: string; name: string } | null> {
-    const ext = file.name.split(".").pop();
+    const compressed = await compressFile(file);
+    const ext = compressed.name.split(".").pop();
     const path = `pub-${pubId}-${Date.now()}.${ext}`;
     const { error } = await supabase.storage
       .from("publications")
-      .upload(path, file, { upsert: true });
+      .upload(path, compressed, { upsert: true });
     if (error) {
       showToast(error.message, "error");
       return null;
     }
     const { data } = supabase.storage.from("publications").getPublicUrl(path);
-    return { url: data.publicUrl, name: file.name };
+    return { url: data.publicUrl, name: compressed.name };
   }
 
   async function uploadCoverImage(
     pubId: string,
     file: File,
   ): Promise<{ url: string; name: string } | null> {
-    const ext = file.name.split(".").pop();
+    const compressed = await compressFile(file);
+    const ext = compressed.name.split(".").pop();
     const path = `cover-${pubId}-${Date.now()}.${ext}`;
     const { error } = await supabase.storage
       .from("publications")
-      .upload(path, file, { upsert: true });
+      .upload(path, compressed, { upsert: true });
     if (error) {
       showToast(error.message, "error");
       return null;
     }
     const { data } = supabase.storage.from("publications").getPublicUrl(path);
-    return { url: data.publicUrl, name: file.name };
+    return { url: data.publicUrl, name: compressed.name };
   }
 
   async function saveEdit(id: string) {
@@ -1755,486 +1760,507 @@ function PublicationsTab({
 
   if (loading) return <LoadingSpinner />;
 
-      const totalPages = Math.max(1, Math.ceil(pubs.length / ITEMS_PER_PAGE));
-      const paginatedPubs = pubs.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE,
-      );
+  const totalPages = Math.max(1, Math.ceil(pubs.length / ITEMS_PER_PAGE));
+  const paginatedPubs = pubs.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
 
-      return (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-100">
-                Publications
-              </h1>
-              <p className="text-sm text-slate-400 mt-0.5">
-                Manage printed volumes and downloadable PDFs ({pubs.length} total)
-              </p>
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-100">Publications</h1>
+          <p className="text-sm text-slate-400 mt-0.5">
+            Manage printed volumes and downloadable PDFs ({pubs.length} total)
+          </p>
+        </div>
+        <button
+          id="pub-add-btn"
+          onClick={() => setShowAdd(true)}
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 px-4 py-2.5 text-sm font-bold shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98] self-start sm:self-auto"
+        >
+          <Plus className="h-4 w-4" /> Add Publication
+        </button>
+      </div>
+
+      {showAdd && (
+        <Section title="Add New Publication">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <InputRow
+                label="Journal Name"
+                value={addForm.journal_name}
+                onChange={(v) => setAddForm((f) => ({ ...f, journal_name: v }))}
+                placeholder="Bharatiya Manyaprad"
+              />
             </div>
-            <button
-              id="pub-add-btn"
-              onClick={() => setShowAdd(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 px-4 py-2.5 text-sm font-bold shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98] self-start sm:self-auto"
-            >
-              <Plus className="h-4 w-4" /> Add Publication
-            </button>
-          </div>
-
-          {showAdd && (
-            <Section title="Add New Publication">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <InputRow
-                    label="Journal Name"
-                    value={addForm.journal_name}
-                    onChange={(v) => setAddForm((f) => ({ ...f, journal_name: v }))}
-                    placeholder="Bharatiya Manyaprad"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <InputRow
-                    label="Title (Article / Paper)"
-                    value={addForm.title}
-                    onChange={(v) => setAddForm((f) => ({ ...f, title: v }))}
-                    placeholder="Introduction: Telling the Tale"
-                  />
-                </div>
-                <InputRow
-                  label="Volume"
-                  value={addForm.volume}
-                  onChange={(v) => setAddForm((f) => ({ ...f, volume: v }))}
-                  placeholder="Volume 1"
-                />
-                <InputRow
-                  label="No."
-                  value={addForm.issue_no}
-                  onChange={(v) => setAddForm((f) => ({ ...f, issue_no: v }))}
-                  placeholder="No.2"
-                />
-                <InputRow
-                  label="Year"
-                  value={String(addForm.year)}
-                  type="number"
-                  onChange={(v) => setAddForm((f) => ({ ...f, year: Number(v) }))}
-                />
-                <InputRow
-                  label="pp."
-                  value={addForm.pages}
-                  onChange={(v) => setAddForm((f) => ({ ...f, pages: v }))}
-                  placeholder="pp. 9-18"
-                />
-                <div className="sm:col-span-2">
-                  <InputRow
-                    label="Author Name"
-                    value={addForm.author}
-                    onChange={(v) => setAddForm((f) => ({ ...f, author: v }))}
-                    placeholder="Dr. Neerja A Gupta"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                    PDF File (optional)
-                  </label>
+            <div className="sm:col-span-2">
+              <InputRow
+                label="Title (Article / Paper)"
+                value={addForm.title}
+                onChange={(v) => setAddForm((f) => ({ ...f, title: v }))}
+                placeholder="Introduction: Telling the Tale"
+              />
+            </div>
+            <InputRow
+              label="Volume"
+              value={addForm.volume}
+              onChange={(v) => setAddForm((f) => ({ ...f, volume: v }))}
+              placeholder="Volume 1"
+            />
+            <InputRow
+              label="No."
+              value={addForm.issue_no}
+              onChange={(v) => setAddForm((f) => ({ ...f, issue_no: v }))}
+              placeholder="No.2"
+            />
+            <InputRow
+              label="Year"
+              value={String(addForm.year)}
+              type="number"
+              onChange={(v) => setAddForm((f) => ({ ...f, year: Number(v) }))}
+            />
+            <InputRow
+              label="pp."
+              value={addForm.pages}
+              onChange={(v) => setAddForm((f) => ({ ...f, pages: v }))}
+              placeholder="pp. 9-18"
+            />
+            <div className="sm:col-span-2">
+              <InputRow
+                label="Author Name"
+                value={addForm.author}
+                onChange={(v) => setAddForm((f) => ({ ...f, author: v }))}
+                placeholder="Dr. Neerja A Gupta"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+                PDF File (optional)
+              </label>
+              <button
+                type="button"
+                onClick={() => addFileRef.current?.click()}
+                className="flex items-center gap-2 rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-[#1a263d]"
+              >
+                <Upload className="h-4 w-4 text-amber-400" />
+                {addPdfFile ? addPdfFile.name : "Choose PDF…"}
+              </button>
+              <input
+                ref={addFileRef}
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={(e) => setAddPdfFile(e.target.files?.[0] ?? null)}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5 text-slate-300">
+                Cover Page Image (optional)
+              </label>
+              <div className="flex items-center gap-4">
+                {addForm.cover_url ? (
+                  <div className="relative size-20 shrink-0 rounded-xl border border-[#2d3a54] overflow-hidden bg-[#0b0f17]">
+                    <img
+                      src={addForm.cover_url}
+                      alt="Cover preview"
+                      className="size-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAddForm((f) => ({ ...f, cover_url: "" }));
+                        setAddCoverFile(null);
+                      }}
+                      className="absolute inset-0 bg-slate-950/80 flex items-center justify-center text-rose-400 opacity-0 hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="size-20 shrink-0 rounded-xl border border-dashed border-[#334568] flex items-center justify-center text-slate-400 bg-[#0b0f17]">
+                    <ImageIcon className="size-6" />
+                  </div>
+                )}
+                <div className="flex flex-col gap-1">
                   <button
                     type="button"
-                    onClick={() => addFileRef.current?.click()}
-                    className="flex items-center gap-2 rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-[#1a263d]"
+                    onClick={() => addCoverRef.current?.click()}
+                    disabled={coverUploading}
+                    className="flex items-center gap-2 rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-[#1a263d] disabled:opacity-50"
                   >
-                    <Upload className="h-4 w-4 text-amber-400" />
-                    {addPdfFile ? addPdfFile.name : "Choose PDF…"}
-                  </button>
-                  <input
-                    ref={addFileRef}
-                    type="file"
-                    accept=".pdf"
-                    className="hidden"
-                    onChange={(e) => setAddPdfFile(e.target.files?.[0] ?? null)}
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5 text-slate-300">
-                    Cover Page Image (optional)
-                  </label>
-                  <div className="flex items-center gap-4">
-                    {addForm.cover_url ? (
-                      <div className="relative size-20 shrink-0 rounded-xl border border-[#2d3a54] overflow-hidden bg-[#0b0f17]">
-                        <img src={addForm.cover_url} alt="Cover preview" className="size-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAddForm((f) => ({ ...f, cover_url: "" }));
-                            setAddCoverFile(null);
-                          }}
-                          className="absolute inset-0 bg-slate-950/80 flex items-center justify-center text-rose-400 opacity-0 hover:opacity-100 transition-opacity"
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
-                      </div>
+                    {coverUploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-amber-400" />
                     ) : (
-                      <div className="size-20 shrink-0 rounded-xl border border-dashed border-[#334568] flex items-center justify-center text-slate-400 bg-[#0b0f17]">
-                        <ImageIcon className="size-6" />
-                      </div>
+                      <Upload className="h-4 w-4 text-slate-400" />
                     )}
-                    <div className="flex flex-col gap-1">
-                      <button
-                        type="button"
-                        onClick={() => addCoverRef.current?.click()}
-                        disabled={coverUploading}
-                        className="flex items-center gap-2 rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-[#1a263d] disabled:opacity-50"
-                      >
-                        {coverUploading ? <Loader2 className="h-4 w-4 animate-spin text-amber-400" /> : <Upload className="h-4 w-4 text-slate-400" />}
-                        {addCoverFile ? addCoverFile.name : "Choose cover image…"}
-                      </button>
-                    </div>
-                    <input
-                      ref={addCoverRef}
-                      type="file"
-                      accept="image/*,.pdf"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        setAddCoverFile(file);
-                        setCoverUploading(true);
-                        const ext = file.name.split(".").pop();
-                        const path = `cover-preview-${Date.now()}.${ext}`;
-                        const { error: upErr } = await supabase.storage
-                          .from("publications")
-                          .upload(path, file, { upsert: true });
-                        if (upErr) {
-                          setCoverUploading(false);
-                          return showToast(upErr.message, "error");
-                        }
-                        const { data: urlData } = supabase.storage
-                          .from("publications")
-                          .getPublicUrl(path);
-                        setAddForm((f) => ({ ...f, cover_url: urlData.publicUrl }));
-                        setCoverUploading(false);
-                        showToast("Cover image uploaded.");
-                      }}
-                    />
-                  </div>
+                    {addCoverFile ? addCoverFile.name : "Choose cover image…"}
+                  </button>
                 </div>
-              </div>
-              <div className="mt-5 flex gap-3">
-                <SaveBtn onClick={addPub} loading={saving} />
-                <button
-                  onClick={() => setShowAdd(false)}
-                  className="rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-[#1a263d]"
-                >
-                  Cancel
-                </button>
-              </div>
-            </Section>
-          )}
-
-          <div className="space-y-3">
-            {paginatedPubs.length === 0 ? (
-              <div className="text-center py-10 text-slate-500 italic text-sm">
-                No publications found.
-              </div>
-            ) : (
-              paginatedPubs.map((pub) => (
-                <div
-                  key={pub.id}
-                  className="rounded-xl border border-[#2d3a54] bg-[#131c2e] p-4 sm:p-5 shadow-md hover:border-[#3d4d6e] transition-all"
-                >
-                  {editingId === pub.id ? (
-                    <div className="space-y-3">
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="sm:col-span-2">
-                          <InputRow
-                            label="Journal Name"
-                            value={editForm.journal_name ?? "Bharatiya Manyaprad"}
-                            onChange={(v) => setEditForm((f) => ({ ...f, journal_name: v }))}
-                          />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <InputRow
-                            label="Title (Article / Paper)"
-                            value={editForm.title ?? ""}
-                            onChange={(v) => setEditForm((f) => ({ ...f, title: v }))}
-                          />
-                        </div>
-                        <InputRow
-                          label="Volume"
-                          value={editForm.volume ?? ""}
-                          onChange={(v) => setEditForm((f) => ({ ...f, volume: v }))}
-                        />
-                        <InputRow
-                          label="No."
-                          value={editForm.issue_no ?? ""}
-                          onChange={(v) => setEditForm((f) => ({ ...f, issue_no: v }))}
-                        />
-                        <InputRow
-                          label="Year"
-                          value={String(editForm.year ?? "")}
-                          type="number"
-                          onChange={(v) => setEditForm((f) => ({ ...f, year: Number(v) }))}
-                        />
-                        <InputRow
-                          label="pp."
-                          value={editForm.pages ?? ""}
-                          onChange={(v) => setEditForm((f) => ({ ...f, pages: v }))}
-                        />
-                        <div className="sm:col-span-2">
-                          <InputRow
-                            label="Author Name"
-                            value={editForm.author ?? ""}
-                            onChange={(v) => setEditForm((f) => ({ ...f, author: v }))}
-                          />
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                          <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                            Replace PDF
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => fileRefs.current[pub.id]?.click()}
-                            className="flex items-center gap-2 rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-[#1a263d]"
-                          >
-                            <Upload className="h-4 w-4 text-amber-400" /> Choose new PDF
-                          </button>
-                          <input
-                            ref={(el) => {
-                              fileRefs.current[pub.id] = el;
-                            }}
-                            type="file"
-                            accept=".pdf"
-                            className="hidden"
-                          />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5 text-slate-300">
-                            Cover Page Image (optional)
-                          </label>
-                          <div className="flex items-center gap-4">
-                            {editForm.cover_url ? (
-                              <div className="relative size-20 shrink-0 rounded-xl border border-[#2d3a54] overflow-hidden bg-[#0b0f17]">
-                                <img src={editForm.cover_url} alt="Cover preview" className="size-full object-cover" />
-                                <button
-                                  type="button"
-                                  onClick={() => setEditForm((f) => ({ ...f, cover_url: "" }))}
-                                  className="absolute inset-0 bg-slate-950/80 flex items-center justify-center text-rose-400 opacity-0 hover:opacity-100 transition-opacity"
-                                >
-                                  <Trash2 className="size-4" />
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="size-20 shrink-0 rounded-xl border border-dashed border-[#334568] flex items-center justify-center text-slate-400 bg-[#0b0f17]">
-                                <ImageIcon className="size-6" />
-                              </div>
-                            )}
-                            <div className="flex flex-col gap-1">
-                              <button
-                                type="button"
-                                onClick={() => fileRefs.current[`cover-${pub.id}`]?.click()}
-                                className="flex items-center gap-2 rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-[#1a263d]"
-                              >
-                                <Upload className="h-4 w-4 text-slate-400" /> {editForm.cover_url ? "Replace cover" : "Choose cover image…"}
-                              </button>
-                            </div>
-                            <input
-                              ref={(el) => {
-                                fileRefs.current[`cover-${pub.id}`] = el;
-                              }}
-                              type="file"
-                              accept="image/*,.pdf"
-                              className="hidden"
-                              onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (!file) return;
-                                setCoverUploading(true);
-                                const ext = file.name.split(".").pop();
-                                const path = `cover-edit-${Date.now()}.${ext}`;
-                                const { error: upErr } = await supabase.storage
-                                  .from("publications")
-                                  .upload(path, file, { upsert: true });
-                                if (upErr) {
-                                  setCoverUploading(false);
-                                  return showToast(upErr.message, "error");
-                                }
-                                const { data: urlData } = supabase.storage
-                                  .from("publications")
-                                  .getPublicUrl(path);
-                                setEditForm((f) => ({ ...f, cover_url: urlData.publicUrl }));
-                                setCoverUploading(false);
-                                showToast("Cover image uploaded.");
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex gap-3 pt-2">
-                        <SaveBtn onClick={() => saveEdit(pub.id)} loading={saving} />
-                        <button
-                          onClick={() => setEditingId(null)}
-                          className="rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-[#1a263d]"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-                      <div className="flex items-start gap-4 min-w-0 flex-1">
-                        <div className="size-14 shrink-0 rounded-xl overflow-hidden border border-[#2d3a54] bg-[#0b0f17] flex items-center justify-center">
-                          {pub.cover_url ? (
-                            <img src={pub.cover_url} alt={`Cover ${pub.volume}`} className="size-full object-cover" />
-                          ) : (
-                            <ImageIcon className="size-5 text-slate-500" />
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[0.65rem] font-bold uppercase tracking-wider text-amber-400">
-                            {pub.journal_name || "Bharatiya Manyaprad"}
-                          </p>
-                          <p className="mt-0.5 text-xs font-semibold text-slate-400">
-                            {[pub.volume, pub.issue_no, String(pub.year), pub.pages]
-                              .filter(Boolean)
-                              .join(", ")}
-                          </p>
-                          <p className="mt-1 font-bold text-slate-100 text-base">
-                            {pub.title}
-                          </p>
-                          {pub.author && (
-                            <p className="text-xs text-slate-400 font-medium">
-                              by {pub.author}
-                            </p>
-                          )}
-                          {pub.pdf_url ? (
-                            <a
-                              href={pub.pdf_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-400 hover:underline"
-                            >
-                              <Download className="h-3.5 w-3.5" /> {pub.pdf_name ?? "Download PDF"}
-                            </a>
-                          ) : (
-                            <span className="mt-2 inline-flex items-center gap-1.5 text-xs text-slate-500">
-                              No PDF uploaded
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex shrink-0 gap-2 flex-wrap justify-end self-end sm:self-start">
-                        <button
-                          onClick={() => fileRefs.current[`quick-${pub.id}`]?.click()}
-                          disabled={uploading === pub.id}
-                          className="flex items-center gap-1.5 rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-3.5 py-1.5 text-xs font-semibold text-slate-200 hover:bg-[#1a263d] disabled:opacity-50 shadow-sm"
-                          aria-label="Upload PDF"
-                        >
-                          {uploading === pub.id ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" />
-                          ) : (
-                            <Upload className="h-3.5 w-3.5 text-slate-400" />
-                          )}
-                          {pub.pdf_url ? "Replace PDF" : "Upload PDF"}
-                        </button>
-                        <input
-                          ref={(el) => {
-                            fileRefs.current[`quick-${pub.id}`] = el;
-                          }}
-                          type="file"
-                          accept=".pdf"
-                          className="hidden"
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) uploadExistingPdf(pub, f);
-                          }}
-                        />
-                        <button
-                          onClick={() => {
-                            setEditingId(pub.id);
-                            setEditForm({
-                              journal_name: pub.journal_name || "Bharatiya Manyaprad",
-                              title: pub.title,
-                              volume: pub.volume,
-                              issue_no: pub.issue_no ?? "",
-                              period: pub.period,
-                              year: pub.year,
-                              pages: pub.pages ?? "",
-                              author: pub.author ?? "",
-                              cover_url: pub.cover_url ?? "",
-                              cover_name: pub.cover_name ?? "",
-                            });
-                          }}
-                          className="rounded-xl border border-[#334568] bg-[#1e2d4a] p-2 text-amber-400 hover:bg-[#253658] shadow-sm"
-                          aria-label="Edit"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => deletePub(pub.id)}
-                          className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-2 text-rose-400 hover:bg-rose-500/20 shadow-sm"
-                          aria-label="Delete"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#2d3a54] max-w-full">
-              <p className="text-xs text-slate-400 font-medium text-center sm:text-left">
-                Showing <span className="text-slate-100 font-bold">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
-                <span className="text-slate-100 font-bold">{Math.min(currentPage * ITEMS_PER_PAGE, pubs.length)}</span> of{" "}
-                <span className="text-slate-100 font-bold">{pubs.length}</span> publications
-              </p>
-
-              <div className="flex flex-wrap items-center justify-center gap-2 max-w-full">
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="flex items-center gap-1 rounded-xl border border-[#2d3a54] bg-[#131c2e] px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-[#1e2d4a] disabled:opacity-30 disabled:pointer-events-none transition-all shadow-sm"
-                  aria-label="Previous Page"
-                >
-                  <ChevronLeft className="size-4" /> Prev
-                </button>
-
-                <div className="flex flex-wrap items-center justify-center gap-1.5 px-1 max-w-full">
-                  {getPaginationPages(currentPage, totalPages).map((page, idx) =>
-                    page === "..." ? (
-                      <span key={`ellipsis-${idx}`} className="px-1 text-xs text-slate-500 font-bold select-none">
-                        …
-                      </span>
-                    ) : (
-                      <button
-                        key={`page-${page}`}
-                        onClick={() => setCurrentPage(page)}
-                        className={`size-8 rounded-xl text-xs font-bold transition-all ${
-                          currentPage === page
-                            ? "bg-amber-500 text-slate-950 shadow-md"
-                            : "border border-[#2d3a54] bg-[#0b0f17] text-slate-400 hover:bg-[#1e2d4a] hover:text-slate-200"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    )
-                  )}
-                </div>
-
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="flex items-center gap-1 rounded-xl border border-[#2d3a54] bg-[#131c2e] px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-[#1e2d4a] disabled:opacity-30 disabled:pointer-events-none transition-all shadow-sm"
-                  aria-label="Next Page"
-                >
-                  Next <ChevronRight className="size-4" />
-                </button>
+                <input
+                  ref={addCoverRef}
+                  type="file"
+                  accept="image/*,.pdf"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setAddCoverFile(file);
+                    setCoverUploading(true);
+                    const compressed = await compressFile(file);
+                    const ext = compressed.name.split(".").pop();
+                    const path = `cover-preview-${Date.now()}.${ext}`;
+                    const { error: upErr } = await supabase.storage
+                      .from("publications")
+                      .upload(path, compressed, { upsert: true });
+                    if (upErr) {
+                      setCoverUploading(false);
+                      return showToast(upErr.message, "error");
+                    }
+                    const { data: urlData } = supabase.storage
+                      .from("publications")
+                      .getPublicUrl(path);
+                    setAddForm((f) => ({ ...f, cover_url: urlData.publicUrl }));
+                    setCoverUploading(false);
+                    showToast("Cover image uploaded.");
+                  }}
+                />
               </div>
             </div>
-          )}
+          </div>
+          <div className="mt-5 flex gap-3">
+            <SaveBtn onClick={addPub} loading={saving} />
+            <button
+              onClick={() => setShowAdd(false)}
+              className="rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-[#1a263d]"
+            >
+              Cancel
+            </button>
+          </div>
+        </Section>
+      )}
+
+      <div className="space-y-3">
+        {paginatedPubs.length === 0 ? (
+          <div className="text-center py-10 text-slate-500 italic text-sm">
+            No publications found.
+          </div>
+        ) : (
+          paginatedPubs.map((pub) => (
+            <div
+              key={pub.id}
+              className="rounded-xl border border-[#2d3a54] bg-[#131c2e] p-4 sm:p-5 shadow-md hover:border-[#3d4d6e] transition-all"
+            >
+              {editingId === pub.id ? (
+                <div className="space-y-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="sm:col-span-2">
+                      <InputRow
+                        label="Journal Name"
+                        value={editForm.journal_name ?? "Bharatiya Manyaprad"}
+                        onChange={(v) => setEditForm((f) => ({ ...f, journal_name: v }))}
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <InputRow
+                        label="Title (Article / Paper)"
+                        value={editForm.title ?? ""}
+                        onChange={(v) => setEditForm((f) => ({ ...f, title: v }))}
+                      />
+                    </div>
+                    <InputRow
+                      label="Volume"
+                      value={editForm.volume ?? ""}
+                      onChange={(v) => setEditForm((f) => ({ ...f, volume: v }))}
+                    />
+                    <InputRow
+                      label="No."
+                      value={editForm.issue_no ?? ""}
+                      onChange={(v) => setEditForm((f) => ({ ...f, issue_no: v }))}
+                    />
+                    <InputRow
+                      label="Year"
+                      value={String(editForm.year ?? "")}
+                      type="number"
+                      onChange={(v) => setEditForm((f) => ({ ...f, year: Number(v) }))}
+                    />
+                    <InputRow
+                      label="pp."
+                      value={editForm.pages ?? ""}
+                      onChange={(v) => setEditForm((f) => ({ ...f, pages: v }))}
+                    />
+                    <div className="sm:col-span-2">
+                      <InputRow
+                        label="Author Name"
+                        value={editForm.author ?? ""}
+                        onChange={(v) => setEditForm((f) => ({ ...f, author: v }))}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+                        Replace PDF
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => fileRefs.current[pub.id]?.click()}
+                        className="flex items-center gap-2 rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-[#1a263d]"
+                      >
+                        <Upload className="h-4 w-4 text-amber-400" /> Choose new PDF
+                      </button>
+                      <input
+                        ref={(el) => {
+                          fileRefs.current[pub.id] = el;
+                        }}
+                        type="file"
+                        accept=".pdf"
+                        className="hidden"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5 text-slate-300">
+                        Cover Page Image (optional)
+                      </label>
+                      <div className="flex items-center gap-4">
+                        {editForm.cover_url ? (
+                          <div className="relative size-20 shrink-0 rounded-xl border border-[#2d3a54] overflow-hidden bg-[#0b0f17]">
+                            <img
+                              src={editForm.cover_url}
+                              alt="Cover preview"
+                              className="size-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setEditForm((f) => ({ ...f, cover_url: "" }))}
+                              className="absolute inset-0 bg-slate-950/80 flex items-center justify-center text-rose-400 opacity-0 hover:opacity-100 transition-opacity"
+                            >
+                              <Trash2 className="size-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="size-20 shrink-0 rounded-xl border border-dashed border-[#334568] flex items-center justify-center text-slate-400 bg-[#0b0f17]">
+                            <ImageIcon className="size-6" />
+                          </div>
+                        )}
+                        <div className="flex flex-col gap-1">
+                          <button
+                            type="button"
+                            onClick={() => fileRefs.current[`cover-${pub.id}`]?.click()}
+                            className="flex items-center gap-2 rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-[#1a263d]"
+                          >
+                            <Upload className="h-4 w-4 text-slate-400" />{" "}
+                            {editForm.cover_url ? "Replace cover" : "Choose cover image…"}
+                          </button>
+                        </div>
+                        <input
+                          ref={(el) => {
+                            fileRefs.current[`cover-${pub.id}`] = el;
+                          }}
+                          type="file"
+                          accept="image/*,.pdf"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            setCoverUploading(true);
+                            const ext = file.name.split(".").pop();
+                            const path = `cover-edit-${Date.now()}.${ext}`;
+                            const { error: upErr } = await supabase.storage
+                              .from("publications")
+                              .upload(path, file, { upsert: true });
+                            if (upErr) {
+                              setCoverUploading(false);
+                              return showToast(upErr.message, "error");
+                            }
+                            const { data: urlData } = supabase.storage
+                              .from("publications")
+                              .getPublicUrl(path);
+                            setEditForm((f) => ({ ...f, cover_url: urlData.publicUrl }));
+                            setCoverUploading(false);
+                            showToast("Cover image uploaded.");
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <SaveBtn onClick={() => saveEdit(pub.id)} loading={saving} />
+                    <button
+                      onClick={() => setEditingId(null)}
+                      className="rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-[#1a263d]"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                  <div className="flex items-start gap-4 min-w-0 flex-1">
+                    <div className="size-14 shrink-0 rounded-xl overflow-hidden border border-[#2d3a54] bg-[#0b0f17] flex items-center justify-center">
+                      {pub.cover_url ? (
+                        <img
+                          src={pub.cover_url}
+                          alt={`Cover ${pub.volume}`}
+                          className="size-full object-cover"
+                        />
+                      ) : (
+                        <ImageIcon className="size-5 text-slate-500" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[0.65rem] font-bold uppercase tracking-wider text-amber-400">
+                        {pub.journal_name || "Bharatiya Manyaprad"}
+                      </p>
+                      <p className="mt-0.5 text-xs font-semibold text-slate-400">
+                        {[pub.volume, pub.issue_no, String(pub.year), pub.pages]
+                          .filter(Boolean)
+                          .join(", ")}
+                      </p>
+                      <p className="mt-1 font-bold text-slate-100 text-base">{pub.title}</p>
+                      {pub.author && (
+                        <p className="text-xs text-slate-400 font-medium">by {pub.author}</p>
+                      )}
+                      {pub.pdf_url ? (
+                        <a
+                          href={pub.pdf_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-400 hover:underline"
+                        >
+                          <Download className="h-3.5 w-3.5" /> {pub.pdf_name ?? "Download PDF"}
+                        </a>
+                      ) : (
+                        <span className="mt-2 inline-flex items-center gap-1.5 text-xs text-slate-500">
+                          No PDF uploaded
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 gap-2 flex-wrap justify-end self-end sm:self-start">
+                    <button
+                      onClick={() => fileRefs.current[`quick-${pub.id}`]?.click()}
+                      disabled={uploading === pub.id}
+                      className="flex items-center gap-1.5 rounded-xl border border-[#2d3a54] bg-[#0b0f17] px-3.5 py-1.5 text-xs font-semibold text-slate-200 hover:bg-[#1a263d] disabled:opacity-50 shadow-sm"
+                      aria-label="Upload PDF"
+                    >
+                      {uploading === pub.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" />
+                      ) : (
+                        <Upload className="h-3.5 w-3.5 text-slate-400" />
+                      )}
+                      {pub.pdf_url ? "Replace PDF" : "Upload PDF"}
+                    </button>
+                    <input
+                      ref={(el) => {
+                        fileRefs.current[`quick-${pub.id}`] = el;
+                      }}
+                      type="file"
+                      accept=".pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) uploadExistingPdf(pub, f);
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        setEditingId(pub.id);
+                        setEditForm({
+                          journal_name: pub.journal_name || "Bharatiya Manyaprad",
+                          title: pub.title,
+                          volume: pub.volume,
+                          issue_no: pub.issue_no ?? "",
+                          period: pub.period,
+                          year: pub.year,
+                          pages: pub.pages ?? "",
+                          author: pub.author ?? "",
+                          cover_url: pub.cover_url ?? "",
+                          cover_name: pub.cover_name ?? "",
+                        });
+                      }}
+                      className="rounded-xl border border-[#334568] bg-[#1e2d4a] p-2 text-amber-400 hover:bg-[#253658] shadow-sm"
+                      aria-label="Edit"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => deletePub(pub.id)}
+                      className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-2 text-rose-400 hover:bg-rose-500/20 shadow-sm"
+                      aria-label="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#2d3a54] max-w-full">
+          <p className="text-xs text-slate-400 font-medium text-center sm:text-left">
+            Showing{" "}
+            <span className="text-slate-100 font-bold">
+              {(currentPage - 1) * ITEMS_PER_PAGE + 1}
+            </span>{" "}
+            to{" "}
+            <span className="text-slate-100 font-bold">
+              {Math.min(currentPage * ITEMS_PER_PAGE, pubs.length)}
+            </span>{" "}
+            of <span className="text-slate-100 font-bold">{pubs.length}</span> publications
+          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-2 max-w-full">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 rounded-xl border border-[#2d3a54] bg-[#131c2e] px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-[#1e2d4a] disabled:opacity-30 disabled:pointer-events-none transition-all shadow-sm"
+              aria-label="Previous Page"
+            >
+              <ChevronLeft className="size-4" /> Prev
+            </button>
+
+            <div className="flex flex-wrap items-center justify-center gap-1.5 px-1 max-w-full">
+              {getPaginationPages(currentPage, totalPages).map((page, idx) =>
+                page === "..." ? (
+                  <span
+                    key={`ellipsis-${idx}`}
+                    className="px-1 text-xs text-slate-500 font-bold select-none"
+                  >
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={`page-${page}`}
+                    onClick={() => setCurrentPage(page)}
+                    className={`size-8 rounded-xl text-xs font-bold transition-all ${
+                      currentPage === page
+                        ? "bg-amber-500 text-slate-950 shadow-md"
+                        : "border border-[#2d3a54] bg-[#0b0f17] text-slate-400 hover:bg-[#1e2d4a] hover:text-slate-200"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ),
+              )}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-1 rounded-xl border border-[#2d3a54] bg-[#131c2e] px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-[#1e2d4a] disabled:opacity-30 disabled:pointer-events-none transition-all shadow-sm"
+              aria-label="Next Page"
+            >
+              Next <ChevronRight className="size-4" />
+            </button>
+          </div>
         </div>
-      );
+      )}
+    </div>
+  );
 }
 
 // ─── Subscriptions Tab ─────────────────────────────────────────────────────────
@@ -2261,7 +2287,10 @@ function SubscriptionsTab({
     load();
   }, []);
 
-  async function handleStatusChange(sub: Subscription, newStatus: "Pending" | "Approved" | "Rejected") {
+  async function handleStatusChange(
+    sub: Subscription,
+    newStatus: "Pending" | "Approved" | "Rejected",
+  ) {
     const { error } = await supabase
       .from("subscriptions")
       .update({ status: newStatus, updated_at: new Date().toISOString() })
@@ -2273,14 +2302,15 @@ function SubscriptionsTab({
     }
 
     showToast(`Status updated to ${newStatus}`, "success");
-    setSubs((prev) =>
-      prev.map((s) => (s.id === sub.id ? { ...s, status: newStatus } : s))
-    );
+    setSubs((prev) => prev.map((s) => (s.id === sub.id ? { ...s, status: newStatus } : s)));
 
     // 1. Send status update notification email to subscriber
     try {
       const emailPayload = new URLSearchParams();
-      emailPayload.append("_subject", `Subscription Status Update: ${newStatus} — Bharatiya Manyaprad`);
+      emailPayload.append(
+        "_subject",
+        `Subscription Status Update: ${newStatus} — Bharatiya Manyaprad`,
+      );
       emailPayload.append("_cc", "xavierrodgriues123@gmail.com, bhartiyamanyaprad@gmail.com");
       emailPayload.append("_template", "table");
       emailPayload.append("_captcha", "false");
@@ -2297,8 +2327,8 @@ function SubscriptionsTab({
         newStatus === "Approved"
           ? "Your subscription to Bharatiya Manyaprad has been APPROVED! Print volumes will be dispatched to your registered postal address."
           : newStatus === "Rejected"
-          ? "Your subscription request was REJECTED. Please contact bhartiyamanyaprad@gmail.com for assistance."
-          : "Your subscription status is PENDING review."
+            ? "Your subscription request was REJECTED. Please contact bhartiyamanyaprad@gmail.com for assistance."
+            : "Your subscription status is PENDING review.",
       );
 
       fetch(`https://formsubmit.co/ajax/${sub.email}`, {
@@ -2324,8 +2354,8 @@ function SubscriptionsTab({
         newStatus === "Approved"
           ? `Dear ${sub.name}, Greetings from Bharatiya Manyaprad! Your subscription (${sub.type} - ${sub.period}) has been APPROVED. Print issues will be dispatched to your address (${sub.address}). Thank you!`
           : newStatus === "Rejected"
-          ? `Dear ${sub.name}, Greetings from Bharatiya Manyaprad. Your subscription status for ${sub.type} has been updated to REJECTED. Please contact us at bhartiyamanyaprad@gmail.com for details.`
-          : `Dear ${sub.name}, Greetings from Bharatiya Manyaprad. Your subscription request is currently PENDING review.`;
+            ? `Dear ${sub.name}, Greetings from Bharatiya Manyaprad. Your subscription status for ${sub.type} has been updated to REJECTED. Please contact us at bhartiyamanyaprad@gmail.com for details.`
+            : `Dear ${sub.name}, Greetings from Bharatiya Manyaprad. Your subscription request is currently PENDING review.`;
 
       const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(textMsg)}`;
       window.open(waUrl, "_blank");
@@ -2354,9 +2384,7 @@ function SubscriptionsTab({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100">
-            Subscriptions Registry
-          </h1>
+          <h1 className="text-2xl font-bold text-slate-100">Subscriptions Registry</h1>
           <p className="text-sm text-slate-400 mt-0.5">
             Review user subscription requests and payment receipts
           </p>
@@ -2383,9 +2411,7 @@ function SubscriptionsTab({
             >
               <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#2d3a54] pb-4">
                 <div>
-                  <h3 className="font-bold text-lg text-slate-100">
-                    {s.name}
-                  </h3>
+                  <h3 className="font-bold text-lg text-slate-100">{s.name}</h3>
                   <p className="text-sm text-slate-300 font-medium">
                     {s.email} · {s.mobile}
                   </p>
@@ -2410,9 +2436,15 @@ function SubscriptionsTab({
                             : "border-amber-500/30 bg-amber-500/15 text-amber-300"
                       }`}
                     >
-                      <option value="Pending" className="bg-[#0b0f17] text-amber-300">Pending</option>
-                      <option value="Approved" className="bg-[#0b0f17] text-emerald-300">Approved</option>
-                      <option value="Rejected" className="bg-[#0b0f17] text-rose-300">Rejected</option>
+                      <option value="Pending" className="bg-[#0b0f17] text-amber-300">
+                        Pending
+                      </option>
+                      <option value="Approved" className="bg-[#0b0f17] text-emerald-300">
+                        Approved
+                      </option>
+                      <option value="Rejected" className="bg-[#0b0f17] text-rose-300">
+                        Rejected
+                      </option>
                     </select>
                   </div>
 
@@ -2431,7 +2463,9 @@ function SubscriptionsTab({
                   <p className="text-[0.65rem] uppercase tracking-wider font-bold text-slate-400">
                     Subscription Type
                   </p>
-                  <p className="font-semibold text-slate-200 mt-1">{s.type} ({s.period})</p>
+                  <p className="font-semibold text-slate-200 mt-1">
+                    {s.type} ({s.period})
+                  </p>
                 </div>
                 <div>
                   <p className="text-[0.65rem] uppercase tracking-wider font-bold text-slate-400">
@@ -2469,7 +2503,7 @@ function SubscriptionsTab({
                   {s.mobile && (
                     <a
                       href={`https://wa.me/${s.mobile.replace(/\D/g, "").length === 10 ? "91" + s.mobile.replace(/\D/g, "") : s.mobile.replace(/\D/g, "")}?text=${encodeURIComponent(
-                        `Dear ${s.name}, Greetings from Bharatiya Manyaprad! Your subscription status is: ${s.status}.`
+                        `Dear ${s.name}, Greetings from Bharatiya Manyaprad! Your subscription status is: ${s.status}.`,
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -2527,9 +2561,7 @@ function SettingsTab({ showToast }: { showToast: (m: string, t?: "success" | "er
   return (
     <div className="space-y-6 max-w-lg">
       <div>
-        <h1 className="text-2xl font-bold text-slate-100">
-          Settings
-        </h1>
+        <h1 className="text-2xl font-bold text-slate-100">Settings</h1>
         <p className="text-sm text-slate-400 mt-0.5">
           Manage system preferences and portal credentials
         </p>

@@ -49,8 +49,8 @@ const sectionData = [
       "Remain in active, responsive communication with the publisher and editor.",
       "Submit corrigenda in a timely and responsible fashion when errors are discovered.",
       "Cooperate fully with the publication of errata or retractions if work is found to be misleading or unethical.",
-      "Maintain professional communication with all co-authors and editorial staff."
-    ]
+      "Maintain professional communication with all co-authors and editorial staff.",
+    ],
   },
   {
     id: "editor",
@@ -70,8 +70,8 @@ const sectionData = [
       "Support authors in queries concerning originality, requesting publisher support when necessary.",
       "Advise the publisher of any third-party material used where sufficient clearance has not been proven.",
       "Be prepared to publish corrections, corrigenda, errata, or retract articles deemed unethical, misleading, or damaging.",
-      "Maintain active, helpful communication with both authors and publisher."
-    ]
+      "Maintain active, helpful communication with both authors and publisher.",
+    ],
   },
   {
     id: "reviewer",
@@ -87,8 +87,8 @@ const sectionData = [
       "Avoid the use of unnecessarily inflammatory, hostile, or offensive language in appraisals.",
       "Accept the commitment to review revised versions of the work and provide follow-up advice if requested.",
       "Seek immediate advice from the editor if anything remains unclear at the time of invitation.",
-      "Maintain professional communication with the editorial desk throughout the process."
-    ]
+      "Maintain professional communication with the editorial desk throughout the process.",
+    ],
   },
   {
     id: "publisher",
@@ -107,9 +107,9 @@ const sectionData = [
       "Correct substantive errors in Advance Online Publications (AOP) quickly, publishing dated correction statements.",
       "Retract articles immediately if they are found to be unethical, misleading, or academically damaging.",
       "Publish errata, corrigenda, and retractions in an open-access online format and in print in a timely manner.",
-      "Maintain strong, ethical communication with editors, authors, reviewers, and indexing partners."
-    ]
-  }
+      "Maintain strong, ethical communication with editors, authors, reviewers, and indexing partners.",
+    ],
+  },
 ];
 
 function Responsibilities() {
@@ -126,12 +126,12 @@ function Responsibilities() {
           const offsetPosition = elementPosition + window.scrollY - headerOffset;
           window.scrollTo({
             top: offsetPosition,
-            behavior: "smooth"
+            behavior: "smooth",
           });
         }
       }
     };
-    
+
     // Run after mount/render is complete to allow DOM element detection
     const timer = setTimeout(handleHashScroll, 200);
     window.addEventListener("hashchange", handleHashScroll);
@@ -148,21 +148,22 @@ function Responsibilities() {
         title="Publication Ethics"
         intro="The custody of civilisation demands rigorous standards. Below is our code of conduct for Authors, Editors, Reviewers, and the Publisher."
       />
-      
+
       <div className="relative border-b border-accent/20 bg-background/50">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
           <div className="grid gap-10 lg:grid-cols-[260px_1fr]">
-            
             {/* STICKY HISTORIC PLACARD SIDE NAV */}
             <aside className="hidden lg:block">
-              <div 
+              <div
                 className="sticky top-28 rounded-2xl p-6 border border-accent/20 shadow-md relative"
                 style={{
                   background: "linear-gradient(135deg, var(--card), var(--background))",
                 }}
               >
                 <div className="absolute inset-1.5 rounded-xl border border-accent/10 pointer-events-none" />
-                <p className="font-display text-[0.68rem] tracking-wider uppercase text-terracotta mb-4">Index of Duties</p>
+                <p className="font-display text-[0.68rem] tracking-wider uppercase text-terracotta mb-4">
+                  Index of Duties
+                </p>
                 <nav className="relative z-10 space-y-1">
                   {sectionData.map((sec) => {
                     const Icon = sec.icon;
@@ -203,12 +204,11 @@ function Responsibilities() {
 
             {/* MAIN CONTENT AREA */}
             <div className="space-y-12">
-              
               {sectionData.map((sec, secIdx) => {
                 const Icon = sec.icon;
                 return (
                   <Reveal key={sec.id} delay={secIdx * 100}>
-                    <section 
+                    <section
                       id={sec.id}
                       className="relative rounded-3xl p-6 sm:p-10 border border-accent/20 shadow-xl overflow-hidden scroll-mt-28"
                       style={{
@@ -217,7 +217,7 @@ function Responsibilities() {
                     >
                       {/* Historic border styling inside card */}
                       <div className="absolute inset-2.5 rounded-[22px] border border-accent/10 pointer-events-none" />
-                      
+
                       {/* Chapter Counter background marker */}
                       <div className="absolute top-4 right-6 font-display text-4xl text-accent/15 select-none font-bold">
                         {sec.num}
@@ -271,8 +271,8 @@ function Responsibilities() {
 
               {/* MISCONDUCT SECTION */}
               <Reveal delay={250}>
-                <section 
-                  id="misconduct" 
+                <section
+                  id="misconduct"
                   className="relative rounded-3xl p-6 sm:p-10 border border-accent/20 shadow-xl overflow-hidden scroll-mt-28"
                   style={{
                     background: "linear-gradient(135deg, var(--card), var(--background))",
@@ -282,7 +282,7 @@ function Responsibilities() {
                   <div className="absolute top-4 right-6 font-display text-4xl text-accent/15 select-none font-bold">
                     ०५
                   </div>
-                  
+
                   <div className="relative z-10">
                     <div className="mb-6 flex items-start gap-4">
                       <div className="flex size-12 items-center justify-center rounded-2xl bg-terracotta/10 text-terracotta">
@@ -302,16 +302,44 @@ function Responsibilities() {
 
                     <div className="mt-6 space-y-5 font-serif text-[1.05rem] leading-relaxed text-foreground/85">
                       <p>
-                        If ethical misconduct is suspected in work submitted to any of our journals, <span className="font-serif font-bold text-primary">Palgrave Macmillan</span> works closely with the editor(s) to ensure that a fair and transparent investigation of the matter is carried out.
+                        If ethical misconduct is suspected in work submitted to any of our journals,{" "}
+                        <span className="font-serif font-bold text-primary">
+                          Palgrave Macmillan
+                        </span>{" "}
+                        works closely with the editor(s) to ensure that a fair and transparent
+                        investigation of the matter is carried out.
                       </p>
                       <p>
-                        We take all instances of misconduct very seriously and will investigate each with care and attention, providing full support to the editor. Consequences for misconduct are as varied as the misconduct itself, and are determined on a case-by-case basis. In all cases, the author will be given the opportunity to provide an explanation for the misconduct. An editorial decision will only be made once the investigation is completed.
+                        We take all instances of misconduct very seriously and will investigate each
+                        with care and attention, providing full support to the editor. Consequences
+                        for misconduct are as varied as the misconduct itself, and are determined on
+                        a case-by-case basis. In all cases, the author will be given the opportunity
+                        to provide an explanation for the misconduct. An editorial decision will
+                        only be made once the investigation is completed.
                       </p>
                       <p>
-                        In most cases, we accept that the incorrect use of third party material is frequently a result of human error, or a misunderstanding of publication ethics. This is why we actively encourage authors to read our ethics policy and guidance on using third party material before submitting, to avoid these mistakes. In those cases where more serious misconduct is detected, consequences are proportionately more serious. <span className="font-serif font-semibold text-primary">Bharatiya Manyaprad</span> reserves the right to request any and all information from the author concerning the creation of the work, to verify its originality. If no such evidence is provided or no satisfactory explanation given, then we may ban the author(s) from resubmitting to the journal for a determined period. In extreme cases, we may take the matter to the author's institution for their attention.
+                        In most cases, we accept that the incorrect use of third party material is
+                        frequently a result of human error, or a misunderstanding of publication
+                        ethics. This is why we actively encourage authors to read our ethics policy
+                        and guidance on using third party material before submitting, to avoid these
+                        mistakes. In those cases where more serious misconduct is detected,
+                        consequences are proportionately more serious.{" "}
+                        <span className="font-serif font-semibold text-primary">
+                          Bharatiya Manyaprad
+                        </span>{" "}
+                        reserves the right to request any and all information from the author
+                        concerning the creation of the work, to verify its originality. If no such
+                        evidence is provided or no satisfactory explanation given, then we may ban
+                        the author(s) from resubmitting to the journal for a determined period. In
+                        extreme cases, we may take the matter to the author's institution for their
+                        attention.
                       </p>
                       <p>
-                        If ethical misconduct is discovered in content that has already been published, we may publish a statement of concern whilst the work is investigated. If we deem it necessary, the paper may be retracted with a statement of explanation. Other consequences may include a submissions ban for any or all authors, and contacting the relevant institution(s).
+                        If ethical misconduct is discovered in content that has already been
+                        published, we may publish a statement of concern whilst the work is
+                        investigated. If we deem it necessary, the paper may be retracted with a
+                        statement of explanation. Other consequences may include a submissions ban
+                        for any or all authors, and contacting the relevant institution(s).
                       </p>
                     </div>
                   </div>
@@ -320,8 +348,8 @@ function Responsibilities() {
 
               {/* FURTHER READING SECTION */}
               <Reveal delay={300}>
-                <section 
-                  id="reading" 
+                <section
+                  id="reading"
                   className="relative rounded-3xl p-6 sm:p-10 border border-accent/20 shadow-xl overflow-hidden scroll-mt-28"
                   style={{
                     background: "linear-gradient(135deg, var(--card), var(--background))",
@@ -331,7 +359,7 @@ function Responsibilities() {
                   <div className="absolute top-4 right-6 font-display text-4xl text-accent/15 select-none font-bold">
                     ०६
                   </div>
-                  
+
                   <div className="relative z-10">
                     <div className="mb-6 flex items-start gap-4">
                       <div className="flex size-12 items-center justify-center rounded-2xl bg-accent/10 text-accent">
@@ -351,16 +379,31 @@ function Responsibilities() {
 
                     <div className="mt-6 font-serif text-[1.05rem] leading-relaxed text-foreground/85">
                       <p>
-                        This policy owes its content in no small part to Bharatiya Manyaprad’s membership to ISSN Paris, whose guidelines and codes of conduct are available at <a href="https://www.publicationethics.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-accent font-sans text-sm font-semibold">www.publicationethics.org</a>. Bharatiya Manyaprad have also accessed and learned from the existing policies of other publishers and leading experts as well as open access articles that detail and define ethical misconduct.
+                        This policy owes its content in no small part to Bharatiya Manyaprad’s
+                        membership to ISSN Paris, whose guidelines and codes of conduct are
+                        available at{" "}
+                        <a
+                          href="https://www.publicationethics.org"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:text-accent font-sans text-sm font-semibold"
+                        >
+                          www.publicationethics.org
+                        </a>
+                        . Bharatiya Manyaprad have also accessed and learned from the existing
+                        policies of other publishers and leading experts as well as open access
+                        articles that detail and define ethical misconduct.
                       </p>
 
                       <div className="mt-8 space-y-3.5 border-t border-accent/15 pt-6">
-                        <p className="font-display text-xs tracking-wider uppercase text-terracotta">Resources &amp; Citations</p>
-                        
+                        <p className="font-display text-xs tracking-wider uppercase text-terracotta">
+                          Resources &amp; Citations
+                        </p>
+
                         <div className="flex flex-col gap-3 font-serif">
-                          <a 
-                            href="http://www.nature.com/authors/policies/publication.html" 
-                            target="_blank" 
+                          <a
+                            href="http://www.nature.com/authors/policies/publication.html"
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 text-foreground/90 hover:text-accent group"
                           >
@@ -368,14 +411,16 @@ function Responsibilities() {
                             <span className="underline">Nature's Publication Ethics</span>
                           </a>
 
-                          <a 
-                            href="http://www.ingentaconnect.com/content/alpsp/lp/2010/00000023/00000004/art00002" 
-                            target="_blank" 
+                          <a
+                            href="http://www.ingentaconnect.com/content/alpsp/lp/2010/00000023/00000004/art00002"
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 text-foreground/90 hover:text-accent group"
                           >
                             <span className="text-[0.65rem] text-accent">✦</span>
-                            <span className="underline">'Plagiarism and the law', Joss Saunders, Learned Publishing (2010)</span>
+                            <span className="underline">
+                              'Plagiarism and the law', Joss Saunders, Learned Publishing (2010)
+                            </span>
                           </a>
 
                           <div className="inline-flex items-center gap-2 text-foreground/75">
@@ -388,9 +433,7 @@ function Responsibilities() {
                   </div>
                 </section>
               </Reveal>
-
             </div>
-
           </div>
         </div>
       </div>

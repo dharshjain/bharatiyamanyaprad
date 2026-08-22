@@ -221,9 +221,19 @@
     pointer-events: none;
     opacity: 0.5;
     background-image:
-      radial-gradient(circle at 20% 30%, color-mix(in oklab, var(--stone) 26%, transparent) 0 1px, transparent 1px),
-      radial-gradient(circle at 70% 60%, color-mix(in oklab, var(--stone) 20%, transparent) 0 1px, transparent 1px);
-    background-size: 7px 7px, 11px 11px;
+      radial-gradient(
+        circle at 20% 30%,
+        color-mix(in oklab, var(--stone) 26%, transparent) 0 1px,
+        transparent 1px
+      ),
+      radial-gradient(
+        circle at 70% 60%,
+        color-mix(in oklab, var(--stone) 20%, transparent) 0 1px,
+        transparent 1px
+      );
+    background-size:
+      7px 7px,
+      11px 11px;
     mix-blend-mode: multiply;
   }
 }
@@ -392,5 +402,3 @@
   opacity: 0.22;
   color: color-mix(in oklab, var(--terracotta) 70%, var(--temple));
 }
-
-

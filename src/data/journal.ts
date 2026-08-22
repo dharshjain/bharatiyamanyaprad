@@ -66,39 +66,43 @@ export const notices = [
 ];
 
 export const aboutParagraphs = [
-  "BHARATIYA MANYAPRAD is a call to bring closer all Indians at one mental meadow irrespective of them being Indian residents, NRIs or PIOs. Certain issues touch all of them with the same concern.",
-  "Bharatiya Manyaprad is an International Journal of Indian Studies aiming to bring the best of cultural studies to a diverse academic and non-academic audience. We feature research articles and features practices and conditions specific to contemporary popular culture, traditions, norms and societies. It shall include scholarly articles pertaining to the issues faced by Indians in any part of the world including India. It also invites books for review. It is a platform for all those who want to share issues which need attention and get things changed for the betterment. In fact it shall culminate into a dialogue bringing in a silent revolution amongst the people who are connected to India in any manner.",
-  "Though it is a research journal, it shall still include the restlessness of an Indian as s/he faces the society around the world. It is a multicultural journal inviting articles from all sectors of life. Bharatiya Manyaprad shall contain socio-cultural-psycho issues as faced by Indians throughout the world including India.",
-  "Articles should borrow from semiotics, psychoanalysis, queer theory and other academic disciplines associated with cultural studies and critical theory, while remaining accessible to a general audience. Ideally, articles should surprise and entertain, presenting smart, pithy analysis of familiar subject matter. Articles are liable to be published after peer review.",
+  "Bharatiya Manyaprad is a call to bring closer all Indians to one mental meadow irrespective of whether them being Indian residents, NRIs, or PIOs. Certain issues touch all of them with the same concern. Bharatiya Manyaprad receives financial assistance from ICHR, New Delhi. This is a recognized Peer-reviewed journal that is enlisted in the UGC CARE List and has established academic credibility in the field of research and scholarship.",
+  "Bharatiya Manyaprad is a new International Journal of Indian Studies with ISSN Number (2321 – 8444), aiming to bring the best of cultural studies to a diverse academic and non-academic audience. We feature research articles and feature practices and conditions specific to contemporary popular culture, traditions, norms, societies, etc. Bharatiya Manyaprad shall include scholarly articles in English pertaining to the issues which are faced by Indians in any part of the world including India. It also invites books for review. It’s a platform for all those who want to share the issues which need attention and get things changed for betterment. It shall culminate into a dialogue bringing in a silent revolution amongst the people who are connected to India in any manner.",
+  "Though it is a research journal still it shall include the restlessness of an Indian as s/he faces in society around the world. It is a multicultural journal inviting articles from all sectors of life. Bharatiya Manyaprad shall contain socio-cultural-psycho issues as faced by Indians throughout the world including India.",
+  "Articles should borrow from semiotics, psychoanalysis, queer theory, and other academic disciplines associated with cultural studies and critical theory while remaining accessible to a general audience. Ideally, articles should surprise and entertain, presenting smart, pithy analyses of the familiar subject matter. Articles are liable to be published after peer review.",
 ];
 
 export const heritageNote =
-  "Prolonging the tradition of Bharatiyata, Bharatiya Manyaprad is an effort to initiate an incessant renaissance in the heritage of knowledge, wisdom and culture of the great Indian master spirits. The incipient perception must be carried forward with the belief that 'Bharat' is not just a nation but an ongoing civilization, not an accident of history but a design of destiny. Started by Bharatiya Vidya Bhavan's Ahmedabad Kendra, the journal invites Bharatiya wisdom across the borders.";
+  "Prolonging the tradition of Bharatiyata, Bharatiya Manyaprad is an effort to initiate an incessant renaissance in the heritage of knowledge, wisdom, and culture that great Indian master spirits. The incipient perception must be carried forward with the belief that 'Bharat' is not just a nation but an ongoing civilization, not an accident of history but a design of destiny. The vitality of Indian culture and its self-renewing greatness has always constituted a living principle. Bharatiya Manyaprad is a mirror image of this belief. Started by Bhartiya Vidya Bhavan’s Ahmedabad Kendra, the journal invites Bharatiya wisdom across the borders.";
 
 export const callForPapers = {
-  volume: "Annual Vol X / No. 1",
-  theme: "Azadi Ka Amrit Mahotsav",
+  volume: "Annual Vol XIV",
+  year: "2027",
+  deadline: "October 15th, 2026",
+  theme: "Call for Papers 2027",
   intro:
-    "Bharatiya Manyaprad receives financial assistance from ICHR, New Delhi. This is a recognized peer-reviewed journal enlisted in the UGC CARE List, with established academic credibility in the field of research and scholarship.",
+    "Bharatiya Manyaprad receives financial assistance from ICHR, New Delhi. This is a recognized Peer-reviewed journal that is enlisted in the UGC CARE List and has established academic credibility in the field of research and scholarship.",
   themeNote:
-    "Bharatiya Manyaprad invites proposals for papers (including photo features) based on the Indian freedom struggle and the freedom fighters of India. We are currently seeking submissions of not less than 3500 words. Article submissions should be preceded by a short personal and professional brief.",
+    "We seeking submissions of not less than 3500 words. Submissions are accepted till October 15th, 2026. Article submissions should be preceded by a short personal and professional brief with the following editing requirements:",
   requirements: [
-    "Language: English. Sanskrit or Hindi text may be supplemented as citations.",
-    "Paper size A4, Times New Roman 12 pt, 1.5 line spacing, 12 pages maximum and 6 pages minimum.",
-    'Page setup: margins 1" on right, top and bottom, and 1.5" on left.',
-    "Title of the article: caps, bold, centered, 14 pt.",
+    "Language: English. However, Sanskrit or Hindi text can be supplemented as citations.",
+    "Paper size: A4, Font size: Times New Roman 12, Spacing: 1.5 line, 12 pages maximum, 6 pages minimum.",
+    'Page setup: margins 1" on the right, top, and bottom, and 1.5" on the left.',
+    "Title of the article: Caps, bold, centred 14-point fonts.",
     "First name, last name, institutional affiliation (full address and e-mail).",
     "Text of the article: justified.",
-    "References: authors ordered alphabetically. Titles of books in italics; titles of articles quoted.",
-    "Submissions should follow APA Style guidelines.",
-    "Articles submitted as MS Word documents, sent as .rtf attachment via email to any of the editors specified.",
-    'Declaration of "Not published before" and an undertaking of originality by the author.',
+    "References: the authors should be ordered alphabetically. Titles of books: italics. Titles of articles: quoted. The submissions should follow APA Style guidelines.",
+    "Articles will be submitted as MS Word documents and sent as .rtf attachments via email to any of the editors as specified.",
+    'Declaration of "Not published before".',
+    "Submissions are accepted till October 15th, 2026.",
+    "The undertaking of the originality by the author.",
   ],
   bookReview: [
     "Books are welcome for review.",
-    "The first reference to the book should include the publisher, place and year of publication.",
-    "A first-hand copy should be mailed along with the book review.",
+    "The first reference to the book should include the publisher, space, and the year of publication.",
+    "A firsthand copy should be mailed along with a book review.",
   ],
+  pdfUrl: "/Bharatiya Manyaprad- Call for Papers.pdf",
 };
 
 export const subscriptionRates = {

@@ -25,7 +25,8 @@ export const Route = createFileRoute("/events")({
       { title: "News & Events — Bharatiya Manyaprad" },
       {
         name: "description",
-        content: "Stay updated with academic conferences, journal launches, and cultural symposiums organized under Bharatiya Manyaprad.",
+        content:
+          "Stay updated with academic conferences, journal launches, and cultural symposiums organized under Bharatiya Manyaprad.",
       },
     ],
     links: [{ rel: "canonical", href: "/events" }],
@@ -33,8 +34,18 @@ export const Route = createFileRoute("/events")({
 });
 
 const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 const DAY_NAMES = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
@@ -57,7 +68,8 @@ const fallbackEvents: EventItem[] = [
     id: "static-1",
     title: "National Seminar on Indian Heritage and Iconography",
     location: "Bhavan's Cultural Hall, Navrangpura, Ahmedabad",
-    description: "A two-day national colloquium exploring ancient Indian art history, temple architecture, and sculptural traditions.",
+    description:
+      "A two-day national colloquium exploring ancient Indian art history, temple architecture, and sculptural traditions.",
     event_date: "2026-11-04",
     tags: ["SEMINAR", "HISTORY", "ICONOGRAPHY"],
     cover_url: null,
@@ -67,7 +79,8 @@ const fallbackEvents: EventItem[] = [
     id: "static-2",
     title: "International Symposium on Diaspora & Indian Culture",
     location: "Sanchi University of Buddhist-Indic Studies, MP",
-    description: "Gathering global scholars to present research on the propagation of Indic studies, manuscripts, and literature across borders.",
+    description:
+      "Gathering global scholars to present research on the propagation of Indic studies, manuscripts, and literature across borders.",
     event_date: "2026-11-05",
     tags: ["SYMPOSIUM", "DIASPORA", "LITERATURE"],
     cover_url: null,
@@ -77,7 +90,8 @@ const fallbackEvents: EventItem[] = [
     id: "static-3",
     title: "Launch of Bharatiya Manyaprad Volume XII",
     location: "Gujarat University Assembly Hall, Ahmedabad",
-    description: "Official publication ceremony for the 2026 volume, featuring panel discussions on civilisational studies and historical archives.",
+    description:
+      "Official publication ceremony for the 2026 volume, featuring panel discussions on civilisational studies and historical archives.",
     event_date: "2026-11-06",
     tags: ["LAUNCH", "PUBLICATION", "ARCHIVE"],
     cover_url: null,
@@ -208,7 +222,7 @@ function EventsList() {
                               </div>
                             )}
                           </div>
-                          
+
                           {ev.description && (
                             <p className="font-serif text-sm text-foreground/80 leading-relaxed line-clamp-2">
                               {ev.description}

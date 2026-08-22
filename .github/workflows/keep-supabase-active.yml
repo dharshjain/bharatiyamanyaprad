@@ -3,7 +3,7 @@ name: Keep Supabase Active
 on:
   schedule:
     # Runs at 00:00 UTC every 3 days (Supabase free projects pause after 7 days of inactivity)
-    - cron: '0 0 */3 * *'
+    - cron: "0 0 */3 * *"
   workflow_dispatch: # Allows manual trigger from GitHub Actions UI
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
             -H "apikey: ${SUPABASE_ANON_KEY}" \
             -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
             "${SUPABASE_URL}/rest/v1/site_stats?select=id&limit=1")
-          
+
           echo "HTTP Response Status: ${HTTP_STATUS}"
           if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
             echo "Successfully pinged Supabase! Project activity refreshed."

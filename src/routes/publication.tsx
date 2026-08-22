@@ -105,10 +105,7 @@ function PublicationPage() {
   }, [publications]);
 
   const filtered = useMemo(
-    () =>
-      publications.filter((p) =>
-        selectedYear === "all" ? true : p.year === selectedYear,
-      ),
+    () => publications.filter((p) => (selectedYear === "all" ? true : p.year === selectedYear)),
     [selectedYear, publications],
   );
 
@@ -130,7 +127,11 @@ function PublicationPage() {
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         {/* Year Filter Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-full overflow-x-hidden border-b border-accent/15 pb-6">
-          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by year">
+          <div
+            className="flex flex-wrap items-center gap-2"
+            role="group"
+            aria-label="Filter by year"
+          >
             <button
               onClick={() => handleYearChange("all")}
               aria-pressed={selectedYear === "all"}
@@ -161,9 +162,7 @@ function PublicationPage() {
             {/* Styled Dropdown Select for All / Older Years */}
             <Select
               value={String(selectedYear)}
-              onValueChange={(val) =>
-                handleYearChange(val === "all" ? "all" : Number(val))
-              }
+              onValueChange={(val) => handleYearChange(val === "all" ? "all" : Number(val))}
             >
               <SelectTrigger
                 aria-label="Select specific year"
@@ -193,9 +192,15 @@ function PublicationPage() {
 
           {!loading && filtered.length > 0 && (
             <p className="text-xs sm:text-sm text-foreground/90 font-semibold font-serif shrink-0 sm:text-right">
-              Showing <span className="text-accent font-bold">{Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, filtered.length)}</span>–
-              <span className="text-accent font-bold">{Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)}</span> of{" "}
-              <span className="text-accent font-bold">{filtered.length}</span> volumes
+              Showing{" "}
+              <span className="text-accent font-bold">
+                {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, filtered.length)}
+              </span>
+              –
+              <span className="text-accent font-bold">
+                {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)}
+              </span>{" "}
+              of <span className="text-accent font-bold">{filtered.length}</span> volumes
             </p>
           )}
         </div>
@@ -232,7 +237,10 @@ function PublicationPage() {
                 <div className="flex flex-wrap items-center justify-center gap-1.5 px-2 max-w-full">
                   {getPaginationPages(currentPage, totalPages).map((page, idx) =>
                     page === "..." ? (
-                      <span key={`ellipsis-${idx}`} className="px-1 text-xs text-muted-foreground font-bold select-none">
+                      <span
+                        key={`ellipsis-${idx}`}
+                        className="px-1 text-xs text-muted-foreground font-bold select-none"
+                      >
                         …
                       </span>
                     ) : (
@@ -250,7 +258,7 @@ function PublicationPage() {
                       >
                         {page}
                       </button>
-                    )
+                    ),
                   )}
                 </div>
 
@@ -435,11 +443,7 @@ export function PublicationCard({ publication: p }: { publication: Publication }
           {[
             p.issue_no ? `Issue ${p.issue_no}` : null,
             p.period || String(p.year),
-            p.pages
-              ? p.pages.toLowerCase().includes("pp")
-                ? p.pages
-                : `pp. ${p.pages}`
-              : null,
+            p.pages ? (p.pages.toLowerCase().includes("pp") ? p.pages : `pp. ${p.pages}`) : null,
           ]
             .filter(Boolean)
             .join(" • ")}
@@ -473,4 +477,3 @@ export function PublicationCard({ publication: p }: { publication: Publication }
     </article>
   );
 }
-
