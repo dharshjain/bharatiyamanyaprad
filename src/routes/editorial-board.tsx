@@ -15,7 +15,7 @@ export const Route = createFileRoute("/editorial-board")({
       {
         name: "description",
         content:
-          "The editorial desk of Bharatiya Manyaprad, led by Dr Neerja A Gupta, Editor in Chief and Publisher.",
+          "The editorial desk of Bharatiya Manyaprad, led by Dr Neerja Gupta, Editor in Chief and Publisher.",
       },
       { property: "og:title", content: "Editorial Board — Bharatiya Manyaprad" },
       {

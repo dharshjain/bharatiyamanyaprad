@@ -152,7 +152,7 @@ function About() {
                     3. Printer's Particulars
                   </span>
                   <div className="space-y-1">
-                    <p className="text-primary font-medium">Dr Neerja A Gupta</p>
+                    <p className="text-primary font-medium">Dr Neerja Gupta</p>
                     <p className="text-xs text-muted-foreground">
                       <span className="text-accent">Nationality:</span> Indian
                     </p>
@@ -169,7 +169,7 @@ function About() {
                     4. Publisher's Particulars
                   </span>
                   <div className="space-y-1">
-                    <p className="text-primary font-medium">Dr Neerja A Gupta</p>
+                    <p className="text-primary font-medium">Dr Neerja Gupta</p>
                     <p className="text-xs text-muted-foreground">
                       <span className="text-accent">Nationality:</span> Indian
                     </p>
@@ -186,7 +186,7 @@ function About() {
                     5. Editor's Particulars
                   </span>
                   <div className="space-y-1">
-                    <p className="text-primary font-medium">Dr Neerja A Gupta</p>
+                    <p className="text-primary font-medium">Dr Neerja Gupta</p>
                     <p className="text-xs text-muted-foreground">
                       <span className="text-accent">Nationality:</span> Indian
                     </p>
@@ -221,7 +221,7 @@ function About() {
 
                 <div className="text-right font-serif pr-4">
                   <p className="text-xs text-accent">Sd./-</p>
-                  <p className="text-base text-primary font-bold">Dr. Neerja A Gupta</p>
+                  <p className="text-base text-primary font-bold">Dr. Neerja Gupta</p>
                   <p className="text-[0.7rem] uppercase tracking-wider text-muted-foreground">
                     Publisher &amp; Editor-in-Chief
                   </p>

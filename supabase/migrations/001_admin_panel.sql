@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS editorial_board_members (
 INSERT INTO editorial_board_members (role, name, designation, description, email, sort_order) VALUES
 (
   'editor_in_chief',
-  'Dr Neerja A Gupta',
+  'Dr Neerja Gupta',
   'Editor in Chief and Publisher',
   'Principal, Bharatiya Vidya Bhavan''s Sheth R. A. College of Arts and Commerce, Director, Diasora Studies Center / Study Abroad Program, Gujarat University, Ahmedabad, Gujarat, India. International Academic Council Chair, GOPIO, New York, USA.',
   'drneerjaarun@yahoo.com',

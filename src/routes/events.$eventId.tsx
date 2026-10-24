@@ -70,7 +70,7 @@ const fallbackEvents: EventItem[] = [
     title: "Launch of Bharatiya Manyaprad Volume XII",
     location: "Gujarat University Assembly Hall, Ahmedabad",
     description:
-      "Official publication ceremony for the 2026 volume, featuring panel discussions on civilisational studies and historical archives. The editorial desk led by Dr. Neerja A Gupta will present key findings from the peer-reviewed papers. A copy of the printed volume will be unveiled, followed by high tea and networking with academic and cultural leaders.",
+      "Official publication ceremony for the 2026 volume, featuring panel discussions on civilisational studies and historical archives. The editorial desk led by Dr. Neerja Gupta will present key findings from the peer-reviewed papers. A copy of the printed volume will be unveiled, followed by high tea and networking with academic and cultural leaders.",
     event_date: "2026-11-06",
     tags: ["LAUNCH", "PUBLICATION", "ARCHIVE"],
     cover_url: null,

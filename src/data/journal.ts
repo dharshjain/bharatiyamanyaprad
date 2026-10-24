@@ -136,8 +136,8 @@ export const quickLinks = [
 ];
 
 export const contact = {
-  editor: "Dr Neerja A Gupta",
-  designation: "Vice Chancellor, Sanchi University of Buddhist-Indic Studies, Madhya Pradesh",
+  editor: "Dr Neerja Gupta",
+  designation: "Former Vice Chancellor, Sanchi University of Buddhist-Indic Studies, Madhya Pradesh",
   address:
     "Principal, Bhavan's Arts and Commerce College, II Floor, Rituraj Appartment, Opp. Rupal Flats, Nr. St. Xavier's Loyola Hall, Navarangpura, Ahmedabad (Guj) 380009",
   telefax: "+91-79-27910213",

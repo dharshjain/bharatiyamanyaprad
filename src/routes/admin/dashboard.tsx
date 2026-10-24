@@ -1832,7 +1832,7 @@ function PublicationsTab({
                 label="Author Name"
                 value={addForm.author}
                 onChange={(v) => setAddForm((f) => ({ ...f, author: v }))}
-                placeholder="Dr. Neerja A Gupta"
+                placeholder="Dr. Neerja Gupta"
               />
             </div>
             <div className="flex flex-col gap-1.5">
