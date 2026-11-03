@@ -725,7 +725,7 @@ function Subscription() {
                     UPI Payment Number
                   </p>
                   <p className="mt-1 font-sans text-lg font-extrabold text-primary tracking-wider">
-                    9825012985
+                    9825012984
                   </p>
                   <p className="mt-1 text-[0.75rem] text-muted-foreground">
                     Payments may also be made via UPI to this number
@@ -736,7 +736,7 @@ function Subscription() {
                 <div className="rounded-xl border border-accent/15 bg-secondary/30 p-3.5 text-xs font-serif leading-relaxed text-foreground/90">
                   <p className="font-semibold text-accent mb-1">Confirmation Details Note:</p>
                   You are requested to kindly intimate the subscription confirmation details at{" "}
-                  <span className="font-bold text-primary">+91-9825012985</span> or{" "}
+                  <span className="font-bold text-primary">+91-9825012984</span> or{" "}
                   <a
                     href="mailto:bhartiyamanyaprad@gmail.com"
                     className="font-bold text-accent underline"

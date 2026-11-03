@@ -44,7 +44,7 @@ function Contact() {
       `*Message:* ${message.trim()}`,
     ].join("\n");
 
-    const whatsappPhone = "919825012985";
+    const whatsappPhone = "919825012984";
     const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(formattedMessage)}`;
 
     window.open(whatsappUrl, "_blank");

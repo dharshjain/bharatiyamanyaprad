@@ -125,7 +125,7 @@ export const bankDetails = [
   { label: "Account number", value: "20092293840" },
   { label: "MICR code", value: "380002002" },
   { label: "IFSC code", value: "SBIN0000301" },
-  { label: "UPI Number", value: "9825012985" },
+  { label: "UPI Number", value: "9825012984" },
 ];
 
 export const quickLinks = [
@@ -142,8 +142,8 @@ export const contact = {
     "Principal, Bhavan's Arts and Commerce College, II Floor, Rituraj Appartment, Opp. Rupal Flats, Nr. St. Xavier's Loyola Hall, Navarangpura, Ahmedabad (Guj) 380009",
   telefax: "+91-79-27910213",
   phone: "+91-79-2560312 / 25600311",
-  mobile: "+91 98250 12985",
-  whatsapp: "+91 98250 12985",
+  mobile: "+91 98250 12984",
+  whatsapp: "+91 98250 12984",
   email: "bhartiyamanyaprad@gmail.com",
   website: "www.bharatiyamanyaprad.com",
   issn: "2321-8444",
